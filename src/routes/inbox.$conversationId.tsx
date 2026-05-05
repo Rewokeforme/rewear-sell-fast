@@ -118,6 +118,14 @@ function ConversationPage() {
         { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
         (payload) => setMessages((m) => [...m, payload.new as Msg]),
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
+        (payload) => {
+          const updated = payload.new as Msg;
+          setMessages((m) => m.map((msg) => (msg.id === updated.id ? { ...msg, ...updated } : msg)));
+        },
+      )
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
