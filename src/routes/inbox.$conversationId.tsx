@@ -183,11 +183,14 @@ function ConversationPage() {
     }
   }
 
-  async function reportConversation() {
+  function reportConversation() {
     setMenuOpen(false);
     if (!user) return;
-    const reason = window.prompt("Beskriv kort varför du rapporterar:");
-    if (!reason) return;
+    setReportOpen(true);
+  }
+
+  async function submitReport(reason: string) {
+    if (!user) return;
     const { error } = await supabase.from("user_reports").insert({
       reporter_id: user.id,
       reported_conversation_id: conversationId,
