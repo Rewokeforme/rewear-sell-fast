@@ -10,6 +10,7 @@ import { Flag, ShieldCheck, Star, UserMinus } from "lucide-react";
 import { computeSellerBadge, type SellerStatsLite } from "@/lib/rewear";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { ReportDialog } from "@/components/ReportDialog";
 
 type Stats = SellerStatsLite & {
   rating_count: number;
@@ -33,6 +34,7 @@ function PublicProfilePage() {
   const [items, setItems] = useState<ListingWithDetails[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [blocked, setBlocked] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -71,10 +73,8 @@ function PublicProfilePage() {
       .then(({ data }) => setBlocked(Boolean(data)));
   }, [user, userId]);
 
-  async function reportUser() {
+  async function submitReport(reason: string) {
     if (!user) return;
-    const reason = window.prompt("Beskriv kort varför du rapporterar användaren:");
-    if (!reason) return;
     const { error } = await supabase.from("user_reports").insert({
       reporter_id: user.id,
       reported_user_id: userId,
@@ -159,7 +159,7 @@ function PublicProfilePage() {
         {!isMe && user && (
           <div className="flex gap-2 pt-4 text-xs">
             <button
-              onClick={reportUser}
+              onClick={() => setReportOpen(true)}
               className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full border border-border py-2 text-muted-foreground hover:text-foreground"
             >
               <Flag className="h-3 w-3" /> Rapportera
@@ -177,6 +177,13 @@ function PublicProfilePage() {
           <Link to="/" className="text-muted-foreground underline">Till hem</Link>
         </p>
       </main>
+      <ReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        title="Rapportera användare"
+        description="Hjälp oss hålla Rewear tryggt. Berätta kort vad som är fel — vårt team granskar alla rapporter."
+        onSubmit={submitReport}
+      />
       <BottomNav />
     </div>
   );
