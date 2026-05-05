@@ -106,13 +106,17 @@ function SellPage() {
     if (!price) setPrice("950");
   }
 
+  const sizeInfo = useMemo(() => sizesForCategory(mainCategory, subCategory), [mainCategory, subCategory]);
+  const showJeansSizes = isJeans(subCategory);
+
   function validate(): Record<string, string> {
     const e: Record<string, string> = {};
     if (files.length === 0) e.images = "Lägg till minst en bild.";
     if (!brand.trim()) e.brand = "Ange märke.";
     if (!title.trim()) e.title = "Ange titel.";
-    if (!categoryId) e.categoryId = "Välj kategori.";
-    if (!size) e.size = "Välj storlek.";
+    if (!mainCategory) e.mainCategory = "Välj huvudkategori.";
+    if (mainCategory && !subCategory) e.subCategory = "Välj underkategori.";
+    if (!sizeInfo.optional && !size) e.size = "Välj storlek.";
     if (!condition) e.condition = "Välj skick.";
     const priceNum = Number(price);
     if (!price || !Number.isFinite(priceNum) || priceNum <= 0) e.price = "Ange ett pris över 0.";
@@ -121,12 +125,12 @@ function SellPage() {
     return e;
   }
 
-  const liveErrors = useMemo(() => (submitAttempted ? validate() : errors), [submitAttempted, errors, files, brand, title, categoryId, size, condition, price, city, deliveryMethod]);
+  const liveErrors = useMemo(() => (submitAttempted ? validate() : errors), [submitAttempted, errors, files, brand, title, mainCategory, subCategory, size, condition, price, city, deliveryMethod, sizeInfo]);
 
   function saveDraft() {
     try {
       const draft = {
-        brand, title, categoryId, size, condition, price, description,
+        brand, title, categoryId, mainCategory, subCategory, size, waistSize, lengthSize, condition, price, description,
         city, area, deliveryMethod, buyerPaysShipping, shippingPrice, shipsWithin,
       };
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -145,7 +149,11 @@ function SellPage() {
       if (d.brand) setBrand(d.brand);
       if (d.title) setTitle(d.title);
       if (d.categoryId) setCategoryId(d.categoryId);
+      if (d.mainCategory) setMainCategory(d.mainCategory);
+      if (d.subCategory) setSubCategory(d.subCategory);
       if (d.size) setSize(d.size);
+      if (d.waistSize) setWaistSize(d.waistSize);
+      if (d.lengthSize) setLengthSize(d.lengthSize);
       if (d.condition) setCondition(d.condition);
       if (d.price) setPrice(d.price);
       if (d.description) setDescription(d.description);
@@ -157,6 +165,13 @@ function SellPage() {
       if (d.shipsWithin) setShipsWithin(d.shipsWithin);
     } catch { /* ignore */ }
   }, []);
+
+  // Reset sub-category when main changes
+  useEffect(() => {
+    setSubCategory("");
+    setSize("");
+  }, [mainCategory]);
+
 
   function openPreview() {
     setSubmitAttempted(true);
