@@ -235,6 +235,12 @@ function ListingPage() {
             {listing.categories?.name_sv && <Chip>{listing.categories.name_sv}</Chip>}
           </div>
 
+          {/* Engagemang */}
+          <div className="flex items-center gap-2">
+            <StatPill icon={<Eye className="h-3.5 w-3.5" />} value={(listing as unknown as { views_count?: number }).views_count ?? 0} label={((listing as unknown as { views_count?: number }).views_count ?? 0) === 1 ? "visning" : "visningar"} />
+            <StatPill icon={<Bookmark className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} />} value={savesCount} label={savesCount === 1 ? "sparad" : "sparade"} highlight={saved} />
+          </div>
+
           {listing.co2_saved_kg > 0 && (
             <div className="flex items-center gap-3 rounded-xl bg-primary/10 p-3 text-sm">
               <Leaf className="h-5 w-5 text-primary" />
