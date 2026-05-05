@@ -16,7 +16,6 @@ export const Route = createFileRoute("/sell")({
 });
 
 const CONDITIONS = ["Nyskick", "Mycket bra", "Bra", "Sliten"] as const;
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "34", "36", "38", "40", "42", "44"];
 
 const DRAFT_KEY = "rewear:sell:draft";
 
