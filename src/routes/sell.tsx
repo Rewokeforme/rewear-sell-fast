@@ -77,6 +77,14 @@ function SellPage() {
       .then(({ data }) => {
         if (data) setSellerStats(data as unknown as SellerStatsLite);
       });
+    supabase
+      .from("profiles")
+      .select("full_name, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setSellerProfile(data as { full_name: string | null; avatar_url: string | null });
+      });
   }, [user]);
 
   // Hämta CO₂-besparing för vald kategori
