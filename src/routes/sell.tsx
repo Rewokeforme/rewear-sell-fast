@@ -167,10 +167,19 @@ function SellPage() {
   }, []);
 
   // Reset sub-category when main changes
+  useEffect(() => { setSubCategory(""); }, [mainCategory]);
+
+  // Nollställ storlek om den inte längre är giltig för vald kategori
   useEffect(() => {
-    setSubCategory("");
-    setSize("");
-  }, [mainCategory]);
+    if (size && !isValidSizeForCategory(mainCategory, subCategory, size)) {
+      setSize("");
+    }
+    if (!jeansVisible) {
+      if (waistSize) setWaistSize("");
+      if (lengthSize) setLengthSize("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mainCategory, subCategory]);
 
 
   function openPreview() {
