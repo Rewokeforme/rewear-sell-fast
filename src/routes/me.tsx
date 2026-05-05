@@ -195,7 +195,7 @@ function RowLink({
   icon: Icon,
   label,
 }: {
-  to: "/me/listings" | "/me/favorites" | "/notifications" | "/inbox" | "/admin";
+  to: "/me/listings" | "/me/favorites" | "/me/following" | "/notifications" | "/inbox" | "/admin";
   icon: typeof Heart;
   label: string;
 }) {
