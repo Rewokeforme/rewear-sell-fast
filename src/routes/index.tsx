@@ -79,8 +79,8 @@ function HomePage() {
     });
   }, [activeCat, feedTab, followingIds]);
 
-  const showDemo = !loading && feedTab === "discover" && listings.length === 0;
-  const feed = showDemo ? demoListings : listings;
+  const showDiscoverEmpty = !loading && feedTab === "discover" && listings.length === 0;
+  const feed = listings;
   const showFollowingEmpty =
     !loading && feedTab === "following" && listings.length === 0;
 
