@@ -718,7 +718,7 @@ function SellPage() {
                   )}
                   <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-[10px] font-medium text-foreground shadow-sm backdrop-blur">
                     <Leaf className="h-3 w-3 text-primary" />
-                    −4 kg CO₂
+                    −{co2Kg} kg CO₂
                   </span>
                 </div>
                 {previews.length > 1 && (
