@@ -7,7 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ListingCard } from "@/components/ListingCard";
 import type { ListingWithDetails } from "@/lib/database.types";
 import { Flag, ShieldCheck, Star, UserMinus } from "lucide-react";
-import { computeSellerBadge, type SellerStatsLite } from "@/lib/rewear";
+import { computeAllBadges, type SellerStatsLite, type VerificationFlags } from "@/lib/rewear";
+import { TrustBadges } from "@/components/TrustBadges";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { ReportDialog } from "@/components/ReportDialog";
@@ -30,6 +31,7 @@ function PublicProfilePage() {
   const [profile, setProfile] = useState<{
     full_name: string | null; city: string | null; avatar_url: string | null; bio: string | null;
     rewear_score: number; is_verified: boolean;
+    email_verified: boolean; phone_verified: boolean; identity_verified: boolean;
   } | null>(null);
   const [items, setItems] = useState<ListingWithDetails[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -40,7 +42,7 @@ function PublicProfilePage() {
     (async () => {
       const { data: p } = await supabase
         .from("profiles")
-        .select("full_name, city, avatar_url, bio, rewear_score, is_verified")
+        .select("full_name, city, avatar_url, bio, rewear_score, is_verified, email_verified, phone_verified, identity_verified")
         .eq("id", userId)
         .maybeSingle();
       setProfile(p as typeof profile);
@@ -100,7 +102,7 @@ function PublicProfilePage() {
     }
   }
 
-  const badge = computeSellerBadge(stats);
+  const badges = computeAllBadges(stats, profile);
   const isMe = user?.id === userId;
 
   return (
@@ -123,14 +125,12 @@ function PublicProfilePage() {
               {profile?.is_verified && <ShieldCheck className="h-4 w-4 text-primary" />}
             </div>
             <p className="text-xs text-muted-foreground">{profile?.city}</p>
-            <div className="mt-1 flex items-center gap-3 text-xs">
-              {badge && <span className="text-eyebrow text-primary">{badge}</span>}
-              {stats && stats.rating_count > 0 && (
-                <span className="flex items-center gap-0.5 text-muted-foreground">
-                  <Star className="h-3 w-3 fill-current" /> {stats.average_rating.toFixed(1)} ({stats.rating_count})
-                </span>
-              )}
-            </div>
+            {badges.length > 0 && <TrustBadges badges={badges} className="mt-2" />}
+            {stats && stats.rating_count > 0 && (
+              <span className="mt-1 flex items-center gap-0.5 text-xs text-muted-foreground">
+                <Star className="h-3 w-3 fill-current" /> {stats.average_rating.toFixed(1)} ({stats.rating_count})
+              </span>
+            )}
           </div>
           {!isMe && <FollowButton sellerId={userId} />}
         </section>
