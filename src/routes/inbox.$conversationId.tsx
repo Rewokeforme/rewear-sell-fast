@@ -88,6 +88,7 @@ function ConversationPage() {
   const [counterpartStats, setCounterpartStats] = useState<SellerStats | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [reportMsgId, setReportMsgId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -206,6 +207,19 @@ function ConversationPage() {
     });
     if (error) toast.error(error.message);
     else toast.success("Tack — rapporten är skickad.");
+  }
+
+  async function submitMessageReport(reason: string) {
+    if (!user || !reportMsgId) return;
+    const { error } = await supabase.from("user_reports").insert({
+      reporter_id: user.id,
+      reported_conversation_id: conversationId,
+      reported_message_id: reportMsgId,
+      reason,
+    });
+    if (error) toast.error(error.message);
+    else toast.success("Tack — meddelandet har rapporterats.");
+    setReportMsgId(null);
   }
 
   async function blockUser() {
@@ -402,17 +416,29 @@ function ConversationPage() {
                     const prev = g.items[i - 1];
                     const grouped = prev && prev.sender_id === m.sender_id;
                     return (
-                      <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start", grouped ? "mt-0.5" : "mt-2")}>
+                      <div key={m.id} className={cn("group/msg flex", mine ? "justify-end" : "justify-start", grouped ? "mt-0.5" : "mt-2")}>
                         <div className={cn("flex max-w-[75%] flex-col", mine ? "items-end" : "items-start")}>
-                          <div
-                            className={cn(
-                              "rounded-2xl px-4 py-2.5 text-sm leading-snug shadow-soft",
-                              mine
-                                ? "bg-primary text-primary-foreground rounded-br-md"
-                                : "bg-card text-card-foreground border border-border rounded-bl-md",
+                          <div className={cn("flex items-center gap-1.5", mine ? "flex-row-reverse" : "flex-row")}>
+                            <div
+                              className={cn(
+                                "rounded-2xl px-4 py-2.5 text-sm leading-snug shadow-soft",
+                                mine
+                                  ? "bg-primary text-primary-foreground rounded-br-md"
+                                  : "bg-card text-card-foreground border border-border rounded-bl-md",
+                              )}
+                            >
+                              <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                            </div>
+                            {!mine && (
+                              <button
+                                type="button"
+                                onClick={() => setReportMsgId(m.id)}
+                                aria-label="Rapportera meddelande"
+                                className="opacity-0 transition group-hover/msg:opacity-100 focus:opacity-100 rounded-full p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                              >
+                                <Flag className="h-3 w-3" />
+                              </button>
                             )}
-                          >
-                            <p className="whitespace-pre-wrap break-words">{m.body}</p>
                           </div>
                           <p className="mt-1 px-1 text-[10px] text-muted-foreground">
                             {format(new Date(m.created_at), "HH:mm")}
@@ -502,6 +528,21 @@ function ConversationPage() {
           "Annat",
         ]}
         onSubmit={submitReport}
+      />
+      <ReportDialog
+        open={Boolean(reportMsgId)}
+        onOpenChange={(o) => { if (!o) setReportMsgId(null); }}
+        title="Rapportera meddelande"
+        description="Berätta kort varför detta specifika meddelande bryter mot reglerna."
+        presets={[
+          "Bedrägeriförsök",
+          "Försöker flytta affären utanför Rewear",
+          "Trakasserier",
+          "Spam",
+          "Olämpligt språk",
+          "Annat",
+        ]}
+        onSubmit={submitMessageReport}
       />
     </div>
   );

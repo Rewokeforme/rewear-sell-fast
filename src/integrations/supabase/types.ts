@@ -417,30 +417,51 @@ export type Database = {
           bio: string | null
           city: string | null
           created_at: string
+          email_verified: boolean
           full_name: string | null
           id: string
+          identity_provider: string | null
+          identity_verified: boolean
+          identity_verified_at: string | null
+          is_suspended: boolean
           is_verified: boolean
+          phone_verified: boolean
           rewear_score: number
+          trust_score: number
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           city?: string | null
           created_at?: string
+          email_verified?: boolean
           full_name?: string | null
           id: string
+          identity_provider?: string | null
+          identity_verified?: boolean
+          identity_verified_at?: string | null
+          is_suspended?: boolean
           is_verified?: boolean
+          phone_verified?: boolean
           rewear_score?: number
+          trust_score?: number
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           city?: string | null
           created_at?: string
+          email_verified?: boolean
           full_name?: string | null
           id?: string
+          identity_provider?: string | null
+          identity_verified?: boolean
+          identity_verified_at?: string | null
+          is_suspended?: boolean
           is_verified?: boolean
+          phone_verified?: boolean
           rewear_score?: number
+          trust_score?: number
         }
         Relationships: []
       }
@@ -572,6 +593,39 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_verifications: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          provider: string | null
+          status: string
+          user_id: string
+          verification_type: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          provider?: string | null
+          status?: string
+          user_id: string
+          verification_type: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          provider?: string | null
+          status?: string
+          user_id?: string
+          verification_type?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       user_blocks: {
         Row: {
           blocked_id: string
@@ -595,11 +649,13 @@ export type Database = {
       }
       user_reports: {
         Row: {
+          admin_notes: string | null
           admin_response: string | null
           created_at: string
           id: string
           reason: string
           reported_conversation_id: string | null
+          reported_message_id: string | null
           reported_user_id: string | null
           reporter_id: string
           responded_at: string | null
@@ -607,11 +663,13 @@ export type Database = {
           status: string
         }
         Insert: {
+          admin_notes?: string | null
           admin_response?: string | null
           created_at?: string
           id?: string
           reason: string
           reported_conversation_id?: string | null
+          reported_message_id?: string | null
           reported_user_id?: string | null
           reporter_id: string
           responded_at?: string | null
@@ -619,11 +677,13 @@ export type Database = {
           status?: string
         }
         Update: {
+          admin_notes?: string | null
           admin_response?: string | null
           created_at?: string
           id?: string
           reason?: string
           reported_conversation_id?: string | null
+          reported_message_id?: string | null
           reported_user_id?: string | null
           reporter_id?: string
           responded_at?: string | null
@@ -681,6 +741,7 @@ export type Database = {
       }
       recompute_rewear_score: { Args: { _user_id: string }; Returns: undefined }
       recompute_seller_stats: { Args: { _user_id: string }; Returns: undefined }
+      recompute_trust_score: { Args: { _user_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"

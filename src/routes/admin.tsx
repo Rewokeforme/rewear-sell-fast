@@ -24,7 +24,15 @@ type AdminListing = {
   seller_id: string;
   profiles: { full_name: string | null } | null;
 };
-type AdminUser = { id: string; full_name: string | null; city: string | null; is_verified: boolean; rewear_score: number };
+type AdminUser = {
+  id: string;
+  full_name: string | null;
+  city: string | null;
+  is_verified: boolean;
+  identity_verified: boolean;
+  is_suspended: boolean;
+  rewear_score: number;
+};
 
 type ReporterProfile = { id: string; full_name: string | null } | null;
 
@@ -81,7 +89,7 @@ function AdminPage() {
   async function loadAll() {
     const [l, u, lr, cr, sold, totalListings, totalUsers, co2] = await Promise.all([
       supabase.from("listings").select("id, title, price_sek, status, created_at, seller_id, profiles(full_name)").order("created_at", { ascending: false }).limit(50),
-      supabase.from("profiles").select("id, full_name, city, is_verified, rewear_score").order("created_at", { ascending: false }).limit(50),
+      supabase.from("profiles").select("id, full_name, city, is_verified, identity_verified, is_suspended, rewear_score").order("created_at", { ascending: false }).limit(50),
       supabase
         .from("reports")
         .select("id, reason, status, created_at, reporter_id, listing_id, admin_response, responded_at, reporter:profiles!reports_reporter_id_fkey(id, full_name), listing:listings!reports_listing_id_fkey(id, title)")
@@ -150,6 +158,28 @@ function AdminPage() {
     const { error } = await supabase.from("profiles").update({ is_verified: !current }).eq("id", id);
     if (error) return toast.error(error.message);
     setUsers((p) => p.map((u) => (u.id === id ? { ...u, is_verified: !current } : u)));
+  }
+
+  async function toggleIdentityVerified(id: string, current: boolean) {
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        identity_verified: !current,
+        identity_provider: !current ? "manual" : null,
+        identity_verified_at: !current ? new Date().toISOString() : null,
+      })
+      .eq("id", id);
+    if (error) return toast.error(error.message);
+    setUsers((p) => p.map((u) => (u.id === id ? { ...u, identity_verified: !current } : u)));
+    toast.success(!current ? "Markerad som ID-verifierad" : "ID-verifiering borttagen");
+  }
+
+  async function toggleSuspended(id: string, current: boolean) {
+    if (!current && !confirm("Stänga av användaren? De kommer inte kunna logga in på vissa funktioner.")) return;
+    const { error } = await supabase.from("profiles").update({ is_suspended: !current }).eq("id", id);
+    if (error) return toast.error(error.message);
+    setUsers((p) => p.map((u) => (u.id === id ? { ...u, is_suspended: !current } : u)));
+    toast.success(!current ? "Användaren avstängd" : "Avstängning hävd");
   }
 
   async function dismissReport(report: AnyReport) {
@@ -457,9 +487,12 @@ function AdminPage() {
         {tab === "users" && (
           <ul className="space-y-2">
             {users.map((u) => (
-              <li key={u.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-sm">
+              <li key={u.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 text-sm">
                 <Link to="/profile/$userId" params={{ userId: u.id }} className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{u.full_name ?? "?"}</p>
+                  <p className="font-medium truncate">
+                    {u.full_name ?? "?"}
+                    {u.is_suspended && <span className="ml-2 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold text-destructive">Avstängd</span>}
+                  </p>
                   <p className="text-xs text-muted-foreground">{u.city ?? "—"} · Score {u.rewear_score}</p>
                 </Link>
                 <button
@@ -467,6 +500,18 @@ function AdminPage() {
                   className={`rounded-full border px-3 py-1 text-xs ${u.is_verified ? "border-primary text-primary" : "border-border"}`}
                 >
                   {u.is_verified ? "Verifierad" : "Verifiera"}
+                </button>
+                <button
+                  onClick={() => toggleIdentityVerified(u.id, u.identity_verified)}
+                  className={`rounded-full border px-3 py-1 text-xs ${u.identity_verified ? "border-primary bg-primary/10 text-primary" : "border-border"}`}
+                >
+                  {u.identity_verified ? "ID-verifierad" : "Markera ID-verifierad"}
+                </button>
+                <button
+                  onClick={() => toggleSuspended(u.id, u.is_suspended)}
+                  className={`rounded-full border px-3 py-1 text-xs ${u.is_suspended ? "border-primary text-primary" : "border-destructive/40 text-destructive"}`}
+                >
+                  {u.is_suspended ? "Häv avstängning" : "Stäng av"}
                 </button>
               </li>
             ))}
