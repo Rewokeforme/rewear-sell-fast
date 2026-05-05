@@ -754,8 +754,18 @@ function SellPage() {
                   <h3 className="font-display text-2xl leading-tight text-foreground">
                     {title || "Titel saknas"}
                   </h3>
+                  {titleNeedsImprovement && (
+                    <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                      <Info className="mt-0.5 h-3 w-3 shrink-0 text-amber-600" />
+                      <span>Tips: En tydligare titel gör annonsen enklare att hitta.</span>
+                    </p>
+                  )}
                   <p className="font-display text-3xl text-primary">
                     {price ? formatSEK(Number(price)) : "Ej angivet"}
+                  </p>
+                  <p className="flex items-center gap-1 pt-0.5 text-[11px] text-muted-foreground">
+                    <Leaf className="h-3 w-3 text-primary" />
+                    Denna annons sparar cirka {co2Kg} kg CO₂ jämfört med att köpa nytt.
                   </p>
                 </div>
 
