@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ import {
   ExternalLink,
   User as UserIcon,
   AlertTriangle,
+  Trash2,
 } from "lucide-react";
 import { formatSEK } from "@/lib/rewear";
 import { buyerQuickReplies, sellerQuickReplies, detectFraudRisk } from "@/lib/quickReplies";
@@ -80,6 +81,7 @@ function badgeFor(stats: SellerStats | null, isVerified: boolean): string | null
 function ConversationPage() {
   const { conversationId } = Route.useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [body, setBody] = useState("");
   const [conv, setConv] = useState<Conv | null>(null);
@@ -236,6 +238,20 @@ function ConversationPage() {
     else toast.success("Användaren är blockerad.");
   }
 
+  async function deleteConversation() {
+    setMenuOpen(false);
+    if (!user) return;
+    if (!window.confirm("Radera denna konversation från din inkorg? Den dyker upp igen om motparten skickar ett nytt meddelande.")) return;
+    const { error } = await supabase
+      .from("conversation_deletions")
+      .insert({ conversation_id: conversationId, user_id: user.id });
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Konversationen är raderad.");
+      void navigate({ to: "/inbox" });
+    }
+  }
   // Group messages by day
   const groups = useMemo(() => {
     const out: { day: string; items: Msg[] }[] = [];
@@ -373,6 +389,14 @@ function ConversationPage() {
                     >
                       <Ban className="h-4 w-4" />
                       Blockera användare
+                    </button>
+                    <div className="border-t border-border" />
+                    <button
+                      onClick={deleteConversation}
+                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-destructive hover:bg-secondary"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Radera konversation
                     </button>
                   </div>
                 </>

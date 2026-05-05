@@ -100,6 +100,27 @@ export type Database = {
           },
         ]
       }
+      conversation_deletions: {
+        Row: {
+          conversation_id: string
+          deleted_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          deleted_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          deleted_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           buyer_id: string

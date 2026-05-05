@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -8,7 +8,8 @@ import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { formatSEK } from "@/lib/rewear";
-import { BadgeCheck, Sparkles, ShieldCheck, Lock } from "lucide-react";
+import { BadgeCheck, Sparkles, ShieldCheck, Lock, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 type AdminMsgItem = {
   id: string;
@@ -48,10 +49,30 @@ function counterpartBadge(stats: ConvSummary["other_stats"], verified: boolean):
 
 function InboxPage() {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [items, setItems] = useState<ConvSummary[]>([]);
   const [adminMsgs, setAdminMsgs] = useState<AdminMsgItem[]>([]);
   const [busy, setBusy] = useState(true);
   const [tab, setTab] = useState<Tab>("all");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  async function deleteConversation(convId: string) {
+    if (!user) return;
+    if (!window.confirm("Radera denna konversation från din inkorg? Den dyker upp igen om motparten skickar ett nytt meddelande.")) return;
+    setDeletingId(convId);
+    const prev = items;
+    setItems((arr) => arr.filter((c) => c.id !== convId));
+    const { error } = await supabase
+      .from("conversation_deletions")
+      .insert({ conversation_id: convId, user_id: user.id });
+    setDeletingId(null);
+    if (error) {
+      setItems(prev);
+      toast.error(error.message);
+    } else {
+      toast.success("Konversationen är raderad.");
+    }
+  }
 
   useEffect(() => {
     if (loading) return;
@@ -84,13 +105,20 @@ function InboxPage() {
           })),
         );
 
-        const { data: convs } = await supabase
-          .from("conversations")
-          .select("id, listing_id, buyer_id, seller_id, last_message_at, listings(title, status, price_sek, listing_images(url))")
-          .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-          .order("last_message_at", { ascending: false });
-
-        const list = (convs ?? []) as Array<Omit<ConvSummary, "other_profile" | "other_stats" | "last_message" | "unread">>;
+        const [convsRes, deletionsRes] = await Promise.all([
+          supabase
+            .from("conversations")
+            .select("id, listing_id, buyer_id, seller_id, last_message_at, listings(title, status, price_sek, listing_images(url))")
+            .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+            .order("last_message_at", { ascending: false }),
+          supabase
+            .from("conversation_deletions")
+            .select("conversation_id")
+            .eq("user_id", user.id),
+        ]);
+        const deletedSet = new Set((deletionsRes.data ?? []).map((d) => d.conversation_id));
+        const list = ((convsRes.data ?? []) as Array<Omit<ConvSummary, "other_profile" | "other_stats" | "last_message" | "unread">>)
+          .filter((c) => !deletedSet.has(c.id));
         const otherIds = Array.from(new Set(list.map((c) => (c.buyer_id === user.id ? c.seller_id : c.buyer_id))));
         const convIds = list.map((c) => c.id);
 
@@ -275,13 +303,21 @@ function InboxPage() {
               const status = c.listings?.status;
               const badge = counterpartBadge(c.other_stats, c.other_profile?.is_verified ?? false);
               return (
-                <li key={c.id}>
-                  <Link
-                    to="/inbox/$conversationId"
-                    params={{ conversationId: c.id }}
+                <li key={c.id} className="relative group/row">
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate({ to: "/inbox/$conversationId", params: { conversationId: c.id } })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        void navigate({ to: "/inbox/$conversationId", params: { conversationId: c.id } });
+                      }
+                    }}
                     className={cn(
-                      "group flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-soft transition",
+                      "group flex cursor-pointer items-center gap-3 rounded-2xl border border-border bg-card p-3 pr-12 shadow-soft transition",
                       "hover:border-primary/30 hover:shadow-card",
+                      deletingId === c.id && "opacity-50",
                     )}
                   >
                     <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-muted shrink-0 ring-1 ring-border">
@@ -341,7 +377,19 @@ function InboxPage() {
                       </span>
                       {c.unread && <span className="h-2.5 w-2.5 rounded-full bg-accent shadow-soft" />}
                     </div>
-                  </Link>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void deleteConversation(c.id);
+                    }}
+                    disabled={deletingId === c.id}
+                    aria-label="Radera konversation"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive focus:opacity-100 md:opacity-0 md:group-hover/row:opacity-100"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </li>
               );
             })}
