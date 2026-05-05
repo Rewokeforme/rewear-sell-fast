@@ -386,7 +386,7 @@ function InboxPage() {
                     }}
                     disabled={deletingId === c.id}
                     aria-label="Radera konversation"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-muted-foreground opacity-0 transition hover:bg-destructive/10 hover:text-destructive group-hover/row:opacity-100 focus:opacity-100 md:opacity-0"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive focus:opacity-100 md:opacity-0 md:group-hover/row:opacity-100"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
