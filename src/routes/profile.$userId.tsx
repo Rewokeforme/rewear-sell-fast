@@ -10,6 +10,7 @@ import { Flag, ShieldCheck, Star, UserMinus } from "lucide-react";
 import { computeSellerBadge, type SellerStatsLite } from "@/lib/rewear";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { ReportDialog } from "@/components/ReportDialog";
 
 type Stats = SellerStatsLite & {
   rating_count: number;
