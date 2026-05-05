@@ -151,12 +151,14 @@ function ConversationPage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // Mark incoming as read
+  // Mark incoming as read (and optimistically update locally)
   useEffect(() => {
     if (!user || messages.length === 0) return;
     const unreadIds = messages.filter((m) => m.sender_id !== user.id && !m.read_at).map((m) => m.id);
     if (unreadIds.length === 0) return;
-    void supabase.from("messages").update({ read_at: new Date().toISOString() }).in("id", unreadIds);
+    const now = new Date().toISOString();
+    setMessages((arr) => arr.map((m) => (unreadIds.includes(m.id) ? { ...m, read_at: now } : m)));
+    void supabase.from("messages").update({ read_at: now }).in("id", unreadIds);
   }, [user, messages]);
 
   const isSeller = useMemo(() => Boolean(conv && user && conv.seller_id === user.id), [conv, user]);
