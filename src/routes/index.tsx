@@ -170,9 +170,6 @@ function HomePage() {
                 Följer
               </FeedTabBtn>
             </div>
-            <Link to="/search" className="text-eyebrow text-muted-foreground hover:text-foreground">
-              Visa alla
-            </Link>
           </div>
 
           {feedTab === "discover" && categories.length > 0 && (
