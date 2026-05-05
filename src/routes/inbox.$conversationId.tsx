@@ -479,6 +479,22 @@ function ConversationPage() {
           </div>
         </form>
       </div>
+
+      <ReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        title="Rapportera konversation"
+        description="Berätta kort vad som är fel — vårt team granskar alla rapporter och kan vidta åtgärder."
+        presets={[
+          "Bedrägeriförsök",
+          "Vill betala utanför Rewear",
+          "Trakasserier",
+          "Spam",
+          "Olämpligt språk",
+          "Annat",
+        ]}
+        onSubmit={submitReport}
+      />
     </div>
   );
 }
