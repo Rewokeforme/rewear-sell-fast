@@ -51,6 +51,7 @@ function SellPage() {
   const [previewActiveImg, setPreviewActiveImg] = useState(0);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [sellerStats, setSellerStats] = useState<SellerStatsLite | null>(null);
+  const [sellerProfile, setSellerProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);
   const [co2Kg, setCo2Kg] = useState<number>(4);
   const fileInput = useRef<HTMLInputElement>(null);
   const showShipping = deliveryMethod === "shipping" || deliveryMethod === "both";
@@ -75,6 +76,14 @@ function SellPage() {
       .maybeSingle()
       .then(({ data }) => {
         if (data) setSellerStats(data as unknown as SellerStatsLite);
+      });
+    supabase
+      .from("profiles")
+      .select("full_name, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setSellerProfile(data as { full_name: string | null; avatar_url: string | null });
       });
   }, [user]);
 
@@ -214,9 +223,9 @@ function SellPage() {
   const titleWordCount = title.trim() ? title.trim().split(/\s+/).length : 0;
   const titleNeedsImprovement = !!title.trim() && (titleWordCount < 3 || title.trim().length < 12);
   const sellerBadge = computeSellerBadge(sellerStats);
-  const sellerName = (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? "Du";
+  const sellerName = sellerProfile?.full_name ?? (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? "Du";
   const sellerInitial = sellerName?.[0]?.toUpperCase() ?? "?";
-  const sellerAvatarUrl = (user?.user_metadata?.avatar_url as string | undefined) ?? null;
+  const sellerAvatarUrl = sellerProfile?.avatar_url ?? (user?.user_metadata?.avatar_url as string | undefined) ?? null;
 
   function openPreview() {
     setSubmitAttempted(true);
