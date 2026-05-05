@@ -140,13 +140,16 @@ function ListingPage() {
     navigate({ to: "/inbox/$conversationId", params: { conversationId: convId } });
   }
 
-  async function reportListing() {
+  function openReport() {
     if (!user || !listing) {
       navigate({ to: "/login" });
       return;
     }
-    const reason = window.prompt("Beskriv kort varför du rapporterar annonsen:");
-    if (!reason) return;
+    setReportOpen(true);
+  }
+
+  async function submitReport(reason: string) {
+    if (!user || !listing) return;
     const { error } = await supabase.from("reports").insert({
       reporter_id: user.id,
       listing_id: listing.id,
