@@ -49,12 +49,21 @@ function counterpartBadge(stats: ConvSummary["other_stats"], verified: boolean):
 function InboxPage() {
   const { user, loading } = useAuth();
   const [items, setItems] = useState<ConvSummary[]>([]);
+  const [adminMsgs, setAdminMsgs] = useState<AdminMsgItem[]>([]);
   const [busy, setBusy] = useState(true);
   const [tab, setTab] = useState<Tab>("all");
 
   useEffect(() => {
     if (!user) return;
     (async () => {
+      // Admin messages
+      const { data: am } = await supabase
+        .from("admin_messages")
+        .select("id, subject, body, is_read, created_at, related_listing_id, listing:listings!admin_messages_related_listing_id_fkey(title, listing_images(url))")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      setAdminMsgs(((am ?? []) as unknown) as AdminMsgItem[]);
+
       const { data: convs } = await supabase
         .from("conversations")
         .select("id, listing_id, buyer_id, seller_id, last_message_at, listings(title, status, price_sek, listing_images(url))")
