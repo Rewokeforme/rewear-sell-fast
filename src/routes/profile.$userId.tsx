@@ -34,6 +34,7 @@ function PublicProfilePage() {
   const [items, setItems] = useState<ListingWithDetails[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [blocked, setBlocked] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
