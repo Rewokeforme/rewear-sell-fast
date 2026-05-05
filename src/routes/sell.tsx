@@ -406,20 +406,49 @@ function SellPage() {
               <Field label="Titel" full error={liveErrors.title}>
                 <input className={inputCls(liveErrors.title)} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Mörkblå ulljacka" />
               </Field>
-              <Field label="Kategori" error={liveErrors.categoryId}>
-                <select className={inputCls(liveErrors.categoryId)} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+              <Field label="Huvudkategori" error={liveErrors.mainCategory}>
+                <select
+                  className={inputCls(liveErrors.mainCategory)}
+                  value={mainCategory}
+                  onChange={(e) => setMainCategory(e.target.value as MainCategory | "")}
+                >
                   <option value="">Välj…</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name_sv}</option>
-                  ))}
+                  {MAIN_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </Field>
-              <Field label="Storlek" error={liveErrors.size}>
+              <Field label="Underkategori" error={liveErrors.subCategory}>
+                <select
+                  className={inputCls(liveErrors.subCategory)}
+                  value={subCategory}
+                  onChange={(e) => setSubCategory(e.target.value)}
+                  disabled={!mainCategory}
+                >
+                  <option value="">{mainCategory ? "Välj…" : "Välj huvudkategori först"}</option>
+                  {mainCategory && SUB_CATEGORIES[mainCategory].map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </Field>
+              <Field label={sizeInfo.label} error={liveErrors.size}>
                 <select className={inputCls(liveErrors.size)} value={size} onChange={(e) => setSize(e.target.value)}>
-                  <option value="">Välj…</option>
-                  {SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  <option value="">{sizeInfo.optional ? "Valfritt" : "Välj…"}</option>
+                  {sizeInfo.sizes.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </Field>
+              {showJeansSizes && (
+                <>
+                  <Field label="Midja (waist)">
+                    <select className={inputCls()} value={waistSize} onChange={(e) => setWaistSize(e.target.value)}>
+                      <option value="">Välj…</option>
+                      {WAIST_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="Längd (length)">
+                    <select className={inputCls()} value={lengthSize} onChange={(e) => setLengthSize(e.target.value)}>
+                      <option value="">Välj…</option>
+                      {LENGTH_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </Field>
+                </>
+              )}
               <Field label="Skick" error={liveErrors.condition}>
                 <select className={inputCls(liveErrors.condition)} value={condition} onChange={(e) => setCondition(e.target.value)}>
                   {CONDITIONS.map((c) => <option key={c} value={c}>{c}</option>)}
