@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Flag, Handshake, Heart, Leaf, MapPin, MessageCircle, ShieldCheck, Star, Truck } from "lucide-react";
+import { Bookmark, Eye, Flag, Handshake, Heart, Leaf, MapPin, MessageCircle, ShieldCheck, Star, Truck } from "lucide-react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { FollowButton } from "@/components/FollowButton";

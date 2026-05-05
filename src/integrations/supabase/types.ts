@@ -196,6 +196,7 @@ export type Database = {
           status: Database["public"]["Enums"]["listing_status"]
           sub_category: string | null
           title: string
+          views_count: number
           waist_size: string | null
         }
         Insert: {
@@ -224,6 +225,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["listing_status"]
           sub_category?: string | null
           title: string
+          views_count?: number
           waist_size?: string | null
         }
         Update: {
@@ -252,6 +254,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["listing_status"]
           sub_category?: string | null
           title?: string
+          views_count?: number
           waist_size?: string | null
         }
         Relationships: [
@@ -571,6 +574,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_listing_views: {
+        Args: { _listing_id: string }
+        Returns: undefined
       }
       is_conversation_member: {
         Args: { _conv_id: string; _user_id: string }
