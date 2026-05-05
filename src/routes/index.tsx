@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { ListingCard } from "@/components/ListingCard";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import type { CategoryRow, ListingWithDetails } from "@/lib/database.types";
-import { demoListings, trendingBrands } from "@/lib/demoListings";
+import { trendingBrands } from "@/lib/demoListings";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 
@@ -79,8 +79,8 @@ function HomePage() {
     });
   }, [activeCat, feedTab, followingIds]);
 
-  const showDemo = !loading && feedTab === "discover" && listings.length === 0;
-  const feed = showDemo ? demoListings : listings;
+  const showDiscoverEmpty = !loading && feedTab === "discover" && listings.length === 0;
+  const feed = listings;
   const showFollowingEmpty =
     !loading && feedTab === "following" && listings.length === 0;
 
@@ -177,7 +177,7 @@ function HomePage() {
           </div>
 
           {feedTab === "discover" && categories.length > 0 && (
-            <div className="-mx-4 mb-4 overflow-x-auto px-4 scrollbar-none">
+            <div className="mb-4 overflow-x-auto scrollbar-none">
               <div className="flex gap-2">
                 <CategoryPill active={activeCat === null} onClick={() => setActiveCat(null)}>
                   Alla
@@ -199,15 +199,14 @@ function HomePage() {
             </div>
           ) : showFollowingEmpty ? (
             <FollowingEmpty hasUser={Boolean(user)} />
+          ) : showDiscoverEmpty ? (
+            <EmptyStateBanner />
           ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
-                {feed.map((l) => (
-                  <ListingCard key={l.id} listing={l} />
-                ))}
-              </div>
-              {showDemo && <EmptyStateBanner />}
-            </>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
+              {feed.map((l) => (
+                <ListingCard key={l.id} listing={l} />
+              ))}
+            </div>
           )}
         </section>
       </main>
