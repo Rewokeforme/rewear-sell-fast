@@ -8,6 +8,7 @@ import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import type { CategoryRow, ListingWithDetails } from "@/lib/database.types";
 import { demoListings, trendingBrands } from "@/lib/demoListings";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
