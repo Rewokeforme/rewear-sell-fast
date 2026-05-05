@@ -162,27 +162,28 @@ function HomePage() {
 
         {/* Feed */}
         <section>
-          <div className="mb-4 flex items-baseline justify-between">
-            <h2 className="font-display text-2xl">
-              {showDemo ? "Inspiration" : "Nyligen upplagt"}
-            </h2>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="flex gap-1 rounded-full border border-border bg-card p-1 text-xs">
+              <FeedTabBtn active={feedTab === "discover"} onClick={() => setFeedTab("discover")}>
+                Upptäck
+              </FeedTabBtn>
+              <FeedTabBtn active={feedTab === "following"} onClick={() => setFeedTab("following")}>
+                Följer
+              </FeedTabBtn>
+            </div>
             <Link to="/search" className="text-eyebrow text-muted-foreground hover:text-foreground">
               Visa alla
             </Link>
           </div>
 
-          {categories.length > 0 && (
+          {feedTab === "discover" && categories.length > 0 && (
             <div className="-mx-4 mb-4 overflow-x-auto px-4 scrollbar-none">
               <div className="flex gap-2">
                 <CategoryPill active={activeCat === null} onClick={() => setActiveCat(null)}>
                   Alla
                 </CategoryPill>
                 {categories.map((c) => (
-                  <CategoryPill
-                    key={c.id}
-                    active={activeCat === c.id}
-                    onClick={() => setActiveCat(c.id)}
-                  >
+                  <CategoryPill key={c.id} active={activeCat === c.id} onClick={() => setActiveCat(c.id)}>
                     {c.name_sv}
                   </CategoryPill>
                 ))}
@@ -196,6 +197,8 @@ function HomePage() {
                 <div key={i} className="aspect-[3/4] animate-pulse rounded-xl bg-muted" />
               ))}
             </div>
+          ) : showFollowingEmpty ? (
+            <FollowingEmpty hasUser={Boolean(user)} />
           ) : (
             <>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
@@ -209,6 +212,46 @@ function HomePage() {
         </section>
       </main>
       <BottomNav />
+    </div>
+  );
+}
+
+function FeedTabBtn({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "rounded-full px-4 py-1.5 font-medium transition",
+        active ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function FollowingEmpty({ hasUser }: { hasUser: boolean }) {
+  return (
+    <div className="rounded-3xl border border-dashed border-border bg-card/50 p-10 text-center">
+      <p className="text-eyebrow text-primary">Tomt här ännu</p>
+      <h3 className="mt-2 font-display text-2xl">Följ säljare du gillar</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+        När de lägger ut nya plagg visas de här.
+      </p>
+      <Link
+        to={hasUser ? "/search" : "/login"}
+        className="mt-5 inline-flex items-center rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition hover:opacity-90"
+      >
+        {hasUser ? "Hitta säljare" : "Logga in"}
+      </Link>
     </div>
   );
 }
