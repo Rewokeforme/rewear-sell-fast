@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Sparkles, Camera, X, MapPin, Truck, Handshake, Info } from "lucide-react";
+import { Sparkles, Camera, X, MapPin, Truck, Handshake, Info, Leaf, Eye } from "lucide-react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { CategoryRow } from "@/lib/database.types";
@@ -15,6 +16,10 @@ export const Route = createFileRoute("/sell")({
 
 const CONDITIONS = ["Nyskick", "Mycket bra", "Bra", "Sliten"] as const;
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "34", "36", "38", "40", "42", "44"];
+
+const DRAFT_KEY = "rewear:sell:draft";
+
+type DeliveryMethod = "shipping" | "pickup" | "both";
 
 function SellPage() {
   const { user, loading } = useAuth();
@@ -31,15 +36,19 @@ function SellPage() {
   const [description, setDescription] = useState("");
   const [city, setCity] = useState("");
   const [area, setArea] = useState("");
-  const [deliveryMethod, setDeliveryMethod] = useState<"shipping" | "pickup" | "both">("shipping");
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("shipping");
   const [buyerPaysShipping, setBuyerPaysShipping] = useState(true);
   const [shippingPrice, setShippingPrice] = useState<string>("");
   const [shipsWithin, setShipsWithin] = useState<"1" | "2-3" | "4-7">("2-3");
   const [busy, setBusy] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPreview, setShowPreview] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const showShipping = deliveryMethod === "shipping" || deliveryMethod === "both";
   const showPickup = deliveryMethod === "pickup" || deliveryMethod === "both";
+  const hasImages = files.length > 0;
 
   useEffect(() => {
     supabase
@@ -82,11 +91,7 @@ function SellPage() {
   }
 
   function aiSuggest() {
-    if (files.length === 0) {
-      toast.info("Ladda upp en bild först.");
-      return;
-    }
-    // Placeholder — riktig AI kopplas in senare
+    if (!hasImages) return;
     toast.success("AI-förslag inlagda (placeholder)");
     if (!brand) setBrand("Acne Studios");
     if (!title) setTitle("Mörkblå ulljacka");
@@ -97,34 +102,83 @@ function SellPage() {
     if (!price) setPrice("950");
   }
 
+  function validate(): Record<string, string> {
+    const e: Record<string, string> = {};
+    if (files.length === 0) e.images = "Lägg till minst en bild.";
+    if (!brand.trim()) e.brand = "Ange märke.";
+    if (!title.trim()) e.title = "Ange titel.";
+    if (!categoryId) e.categoryId = "Välj kategori.";
+    if (!size) e.size = "Välj storlek.";
+    if (!condition) e.condition = "Välj skick.";
+    const priceNum = Number(price);
+    if (!price || !Number.isFinite(priceNum) || priceNum <= 0) e.price = "Ange ett pris över 0.";
+    if (!city.trim()) e.city = "Ange stad.";
+    if (!deliveryMethod) e.deliveryMethod = "Välj leveranssätt.";
+    return e;
+  }
+
+  const liveErrors = useMemo(() => (submitAttempted ? validate() : errors), [submitAttempted, errors, files, brand, title, categoryId, size, condition, price, city, deliveryMethod]);
+
+  function saveDraft() {
+    try {
+      const draft = {
+        brand, title, categoryId, size, condition, price, description,
+        city, area, deliveryMethod, buyerPaysShipping, shippingPrice, shipsWithin,
+      };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      toast.success("Utkast sparat på enheten");
+    } catch {
+      toast.error("Kunde inte spara utkast");
+    }
+  }
+
+  // Restore draft once on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (d.brand) setBrand(d.brand);
+      if (d.title) setTitle(d.title);
+      if (d.categoryId) setCategoryId(d.categoryId);
+      if (d.size) setSize(d.size);
+      if (d.condition) setCondition(d.condition);
+      if (d.price) setPrice(d.price);
+      if (d.description) setDescription(d.description);
+      if (d.city) setCity(d.city);
+      if (d.area) setArea(d.area);
+      if (d.deliveryMethod) setDeliveryMethod(d.deliveryMethod);
+      if (typeof d.buyerPaysShipping === "boolean") setBuyerPaysShipping(d.buyerPaysShipping);
+      if (d.shippingPrice) setShippingPrice(d.shippingPrice);
+      if (d.shipsWithin) setShipsWithin(d.shipsWithin);
+    } catch { /* ignore */ }
+  }, []);
+
+  function openPreview() {
+    setSubmitAttempted(true);
+    const e = validate();
+    setErrors(e);
+    if (Object.keys(e).length > 0) {
+      toast.error("Fyll i fälten som är markerade.");
+      return;
+    }
+    setShowPreview(true);
+  }
+
   async function publish(e: React.FormEvent) {
     e.preventDefault();
+    setSubmitAttempted(true);
     if (!user) {
       toast.error("Du måste vara inloggad.");
       return;
     }
-    if (files.length === 0) {
-      toast.error("Lägg till minst en bild.");
-      return;
-    }
-    if (!categoryId) {
-      toast.error("Välj en kategori.");
+    const errs = validate();
+    setErrors(errs);
+    if (Object.keys(errs).length > 0) {
+      toast.error("Fyll i fälten som är markerade.");
       return;
     }
     const priceNum = Number(price);
-    if (!Number.isFinite(priceNum) || priceNum < 0) {
-      toast.error("Ange ett giltigt pris.");
-      return;
-    }
-
-    if (!city.trim()) {
-      toast.error("Ange stad.");
-      return;
-    }
-    if (!deliveryMethod) {
-      toast.error("Välj leveranssätt.");
-      return;
-    }
 
     setBusy(true);
     try {
@@ -150,7 +204,6 @@ function SellPage() {
         .single();
       if (lErr) throw lErr;
 
-      // Upload images
       const uploads = await Promise.all(
         files.map(async (file, idx) => {
           const ext = file.name.split(".").pop() ?? "jpg";
@@ -167,6 +220,7 @@ function SellPage() {
       const { error: imgErr } = await supabase.from("listing_images").insert(uploads);
       if (imgErr) throw imgErr;
 
+      try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
       toast.success("Annons publicerad!");
       navigate({ to: "/listing/$id", params: { id: listing.id } });
     } catch (err: unknown) {
@@ -198,42 +252,91 @@ function SellPage() {
     );
   }
 
+  const deliveryLabel: Record<DeliveryMethod, string> = {
+    shipping: "Skickas",
+    pickup: "Hämtas",
+    both: "Skickas eller hämtas",
+  };
+
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-40 sm:pb-32">
       <Header subtitle="Ny annons" />
       <main className="mx-auto max-w-2xl px-4 py-4">
         <h1 className="font-display text-2xl">Skapa annons</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Tre steg, klart på under en minut.
+          Ta en bild. AI hjälper dig. Publicera på under en minut.
         </p>
 
-        <form onSubmit={publish} className="mt-6 space-y-6">
+        <form onSubmit={publish} className="mt-6 space-y-6" noValidate>
           {/* Bilder */}
           <section>
             <SectionTitle index={1}>Bilder (1–5)</SectionTitle>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {previews.map((src, i) => (
-                <div key={i} className="relative aspect-[3/4] overflow-hidden rounded-lg bg-muted">
-                  <img src={src} className="h-full w-full object-cover" alt="" />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Första bilden visas som huvudbild i annonsen.
+            </p>
+
+            <div className="mt-3 grid grid-cols-4 gap-2 sm:gap-3">
+              {/* Huvudbild — stor, spänner 2x2 */}
+              <div className="col-span-2 row-span-2">
+                {previews[0] ? (
+                  <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+                    <img src={previews[0]} alt="Huvudbild" className="h-full w-full object-cover" />
+                    <span className="absolute left-2 top-2 rounded-full bg-foreground/90 px-2 py-0.5 text-[10px] font-medium text-background">
+                      Huvudbild
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeImage(0)}
+                      className="absolute right-2 top-2 rounded-full bg-background/90 p-1.5"
+                      aria-label="Ta bort bild"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
                   <button
                     type="button"
-                    onClick={() => removeImage(i)}
-                    className="absolute right-1 top-1 rounded-full bg-background/90 p-1"
+                    onClick={() => fileInput.current?.click()}
+                    className={`flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed text-muted-foreground transition hover:border-foreground/40 ${liveErrors.images ? "border-destructive/60 bg-destructive/5" : "border-border"}`}
                   >
-                    <X className="h-3 w-3" />
+                    <Camera className="h-6 w-6" />
+                    <span className="text-xs font-medium">Lägg till huvudbild</span>
                   </button>
-                </div>
-              ))}
-              {files.length < 5 && (
-                <button
-                  type="button"
-                  onClick={() => fileInput.current?.click()}
-                  className="flex aspect-[3/4] flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-border text-muted-foreground transition hover:border-foreground/40"
-                >
-                  <Camera className="h-5 w-5" />
-                  <span className="text-xs">Lägg till</span>
-                </button>
-              )}
+                )}
+              </div>
+
+              {/* 4 mindre slots */}
+              {[1, 2, 3, 4].map((slot) => {
+                const src = previews[slot];
+                if (src) {
+                  return (
+                    <div key={slot} className="relative aspect-square overflow-hidden rounded-lg bg-muted">
+                      <img src={src} className="h-full w-full object-cover" alt="" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(slot)}
+                        className="absolute right-1 top-1 rounded-full bg-background/90 p-1"
+                        aria-label="Ta bort bild"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  );
+                }
+                const canAdd = files.length >= slot; // only show + on next available slot? allow any
+                return (
+                  <button
+                    key={slot}
+                    type="button"
+                    disabled={!hasImages && slot > 1}
+                    onClick={() => fileInput.current?.click()}
+                    className="flex aspect-square items-center justify-center rounded-lg border-2 border-dashed border-border text-muted-foreground transition hover:border-foreground/40 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Camera className="h-4 w-4" />
+                  </button>
+                );
+              })}
+
               <input
                 ref={fileInput}
                 type="file"
@@ -246,6 +349,7 @@ function SellPage() {
                 }}
               />
             </div>
+            {liveErrors.images && <FieldError>{liveErrors.images}</FieldError>}
           </section>
 
           {/* AI */}
@@ -254,51 +358,61 @@ function SellPage() {
             <button
               type="button"
               onClick={aiSuggest}
-              className="mt-3 inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-4 py-2 text-sm font-medium text-accent transition hover:bg-accent/20"
+              disabled={!hasImages}
+              className="mt-3 inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-4 py-2 text-sm font-medium text-accent transition hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-accent/10"
             >
               <Sparkles className="h-4 w-4" />
               Föreslå med AI
             </button>
             <p className="mt-2 text-xs text-muted-foreground">
-              AI känner igen märke, föreslår pris och skriver beskrivning.
-              (Placeholder tills riktig modell kopplas in.)
+              {hasImages
+                ? "AI känner igen märke, föreslår pris och skriver beskrivning. (Placeholder tills riktig modell kopplas in.)"
+                : "Lägg till minst en bild för att aktivera AI-förslag."}
             </p>
           </section>
 
           {/* Detaljer */}
           <section>
             <SectionTitle index={3}>Detaljer</SectionTitle>
-            <div className="mt-3 grid grid-cols-2 gap-3">
-              <Field label="Märke" full>
-                <input className="input" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Acne, COS…" />
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="Märke" full error={liveErrors.brand}>
+                <input className={inputCls(liveErrors.brand)} value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Acne, COS…" />
               </Field>
-              <Field label="Titel" full>
-                <input className="input" required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Mörkblå ulljacka" />
+              <Field label="Titel" full error={liveErrors.title}>
+                <input className={inputCls(liveErrors.title)} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Mörkblå ulljacka" />
               </Field>
-              <Field label="Kategori">
-                <select className="input" required value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+              <Field label="Kategori" error={liveErrors.categoryId}>
+                <select className={inputCls(liveErrors.categoryId)} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
                   <option value="">Välj…</option>
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>{c.name_sv}</option>
                   ))}
                 </select>
               </Field>
-              <Field label="Storlek">
-                <select className="input" value={size} onChange={(e) => setSize(e.target.value)}>
+              <Field label="Storlek" error={liveErrors.size}>
+                <select className={inputCls(liveErrors.size)} value={size} onChange={(e) => setSize(e.target.value)}>
                   <option value="">Välj…</option>
                   {SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </Field>
-              <Field label="Skick">
-                <select className="input" value={condition} onChange={(e) => setCondition(e.target.value)}>
+              <Field label="Skick" error={liveErrors.condition}>
+                <select className={inputCls(liveErrors.condition)} value={condition} onChange={(e) => setCondition(e.target.value)}>
                   {CONDITIONS.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </Field>
-              <Field label="Pris (SEK)">
-                <input className="input" type="number" min={0} required value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" />
+              <Field label="Pris (SEK)" error={liveErrors.price}>
+                <input
+                  className={inputCls(liveErrors.price)}
+                  type="number"
+                  min={1}
+                  inputMode="numeric"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="Ex. 450"
+                />
               </Field>
               <Field label="Beskrivning" full>
-                <textarea className="input min-h-[100px]" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Material, passform, eventuella defekter…" />
+                <textarea className={inputCls()} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Material, passform, eventuella defekter…" />
               </Field>
             </div>
 
@@ -315,11 +429,10 @@ function SellPage() {
           {/* Plats & leverans */}
           <section>
             <SectionTitle index={4}>Plats & leverans</SectionTitle>
-            <div className="mt-3 grid grid-cols-2 gap-3">
-              <Field label="Stad" full>
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="Stad" full error={liveErrors.city}>
                 <input
-                  className="input"
-                  required
+                  className={inputCls(liveErrors.city)}
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="Ex. Stockholm, Göteborg, Malmö"
@@ -328,7 +441,7 @@ function SellPage() {
               </Field>
               <Field label="Område (valfritt)" full>
                 <input
-                  className="input"
+                  className={inputCls()}
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
                   placeholder="Ex. Södermalm, Majorna, Hisingen"
@@ -343,13 +456,13 @@ function SellPage() {
                 {([
                   { v: "shipping", label: "Skickas", icon: Truck },
                   { v: "pickup", label: "Hämtas", icon: Handshake },
-                  { v: "both", label: "Både", icon: MapPin },
+                  { v: "both", label: "Skickas eller hämtas", icon: MapPin },
                 ] as const).map(({ v, label, icon: Icon }) => (
                   <button
                     key={v}
                     type="button"
                     onClick={() => setDeliveryMethod(v)}
-                    className={`flex flex-col items-center gap-1 rounded-xl border px-3 py-3 text-xs font-medium transition ${
+                    className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-3 text-[11px] font-medium leading-tight text-center transition ${
                       deliveryMethod === v
                         ? "border-foreground bg-foreground text-background"
                         : "border-border bg-card text-foreground hover:border-foreground/40"
@@ -381,10 +494,10 @@ function SellPage() {
                     Säljaren betalar
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <Field label="Fraktpris (valfritt)">
                     <input
-                      className="input"
+                      className={inputCls()}
                       type="number"
                       min={0}
                       value={shippingPrice}
@@ -394,7 +507,7 @@ function SellPage() {
                   </Field>
                   <Field label="Skickas inom">
                     <select
-                      className="input"
+                      className={inputCls()}
                       value={shipsWithin}
                       onChange={(e) => setShipsWithin(e.target.value as "1" | "2-3" | "4-7")}
                     >
@@ -411,28 +524,154 @@ function SellPage() {
               <div className="mt-3 flex gap-2 rounded-xl bg-secondary p-3 text-xs text-muted-foreground">
                 <Info className="h-4 w-4 shrink-0 text-foreground/70" />
                 <p>
-                  Visa bara stad eller område. Bestäm exakt mötesplats i chatten och träffas gärna på offentlig plats.
+                  Visa aldrig exakt adress i annonsen. Bestäm mötesplats i chatten och träffas gärna på offentlig plats.
                 </p>
               </div>
             )}
           </section>
 
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-card transition disabled:opacity-50"
-          >
-            {busy ? "Publicerar…" : "Publicera annons"}
-          </button>
+          {/* Desktop actions */}
+          <div className="hidden gap-2 sm:flex">
+            <button
+              type="button"
+              onClick={saveDraft}
+              className="flex-1 rounded-full border border-border bg-card px-5 py-3 text-sm font-medium text-foreground transition hover:bg-secondary"
+            >
+              Spara som utkast
+            </button>
+            <button
+              type="button"
+              onClick={openPreview}
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm font-medium text-foreground transition hover:bg-secondary"
+            >
+              <Eye className="h-4 w-4" /> Förhandsgranska
+            </button>
+            <button
+              type="submit"
+              disabled={busy}
+              className="flex-1 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-card transition disabled:opacity-50"
+            >
+              {busy ? "Publicerar…" : "Publicera annons"}
+            </button>
+          </div>
         </form>
       </main>
+
+      {/* Sticky mobile actions */}
+      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:hidden">
+        <div className="mx-auto flex max-w-2xl gap-2">
+          <button
+            type="button"
+            onClick={saveDraft}
+            className="rounded-full border border-border bg-card px-3 py-2.5 text-xs font-medium"
+          >
+            Utkast
+          </button>
+          <button
+            type="button"
+            onClick={openPreview}
+            className="inline-flex items-center justify-center gap-1 rounded-full border border-border bg-card px-3 py-2.5 text-xs font-medium"
+          >
+            <Eye className="h-3.5 w-3.5" /> Förhandsgranska
+          </button>
+          <button
+            type="button"
+            onClick={(e) => publish(e as unknown as React.FormEvent)}
+            disabled={busy}
+            className="flex-1 rounded-full bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground shadow-card disabled:opacity-50"
+          >
+            {busy ? "Publicerar…" : "Publicera"}
+          </button>
+        </div>
+      </div>
+
       <BottomNav />
+
+      {/* Preview modal */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Förhandsgranskning</DialogTitle>
+          </DialogHeader>
+
+          <div className="overflow-hidden rounded-xl bg-card">
+            {previews[0] && (
+              <div className="relative aspect-[3/4] overflow-hidden bg-muted">
+                <img src={previews[0]} alt={title} className="h-full w-full object-cover" />
+                <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-background/85 px-2 py-0.5 text-[10px] font-medium text-foreground backdrop-blur">
+                  <Leaf className="h-3 w-3 text-primary" />−4 kg CO₂
+                </span>
+              </div>
+            )}
+            <div className="space-y-1 p-3">
+              {brand && <p className="text-eyebrow text-muted-foreground">{brand}</p>}
+              <p className="font-medium">{title || "Titel"}</p>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs text-muted-foreground">{size || "–"} · {condition}</span>
+                <span className="font-display text-base text-primary">
+                  {price ? formatSEK(Number(price)) : "–"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {city || "Stad"}{area ? `, ${area}` : ""}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  {deliveryMethod === "shipping" && <><Truck className="h-3 w-3" /> Skickas</>}
+                  {deliveryMethod === "pickup" && <><Handshake className="h-3 w-3" /> Hämtas</>}
+                  {deliveryMethod === "both" && <><Truck className="h-3 w-3" /><Handshake className="h-3 w-3" /> Båda</>}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {previews.length > 1 && (
+            <div className="grid grid-cols-4 gap-2">
+              {previews.slice(1).map((p, i) => (
+                <div key={i} className="aspect-square overflow-hidden rounded-lg bg-muted">
+                  <img src={p} className="h-full w-full object-cover" alt="" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {description && (
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{description}</p>
+          )}
+
+          <div className="flex gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setShowPreview(false)}
+              className="flex-1 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium"
+            >
+              Tillbaka
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { setShowPreview(false); publish(e as unknown as React.FormEvent); }}
+              disabled={busy}
+              className="flex-1 rounded-full bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-card disabled:opacity-50"
+            >
+              {busy ? "Publicerar…" : "Publicera annons"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <style>{`
-        .input { width:100%; border-radius:.75rem; border:1px solid var(--border); background:var(--card); padding:.65rem .85rem; font-size:.875rem; outline:none; }
-        .input:focus { border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 20%, transparent); }
+        .rw-input { width:100%; border-radius:.75rem; border:1px solid var(--border); background:var(--card); padding:.65rem .85rem; font-size:.875rem; outline:none; transition:border-color .15s, box-shadow .15s; }
+        .rw-input:focus { border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 20%, transparent); }
+        .rw-input.error { border-color: var(--destructive); background: color-mix(in oklab, var(--destructive) 5%, var(--card)); }
+        textarea.rw-input { min-height: 100px; }
       `}</style>
     </div>
   );
+}
+
+function inputCls(error?: string) {
+  return `rw-input${error ? " error" : ""}`;
 }
 
 function SectionTitle({ index, children }: { index: number; children: React.ReactNode }) {
@@ -446,11 +685,16 @@ function SectionTitle({ index, children }: { index: number; children: React.Reac
   );
 }
 
-function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
+function Field({ label, children, full, error }: { label: string; children: React.ReactNode; full?: boolean; error?: string }) {
   return (
-    <label className={full ? "col-span-2 block" : "block"}>
+    <label className={full ? "sm:col-span-2 block" : "block"}>
       <span className="mb-1 block text-xs font-medium text-muted-foreground">{label}</span>
       {children}
+      {error && <FieldError>{error}</FieldError>}
     </label>
   );
+}
+
+function FieldError({ children }: { children: React.ReactNode }) {
+  return <span className="mt-1 block text-[11px] font-medium text-destructive">{children}</span>;
 }
