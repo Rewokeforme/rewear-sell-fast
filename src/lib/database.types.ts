@@ -65,7 +65,7 @@ export type Database = {
       favorites: {
         Row: { user_id: string; listing_id: string; created_at: string };
         Insert: { user_id: string; listing_id: string };
-        Update: never;
+        Update: Partial<{ user_id: string; listing_id: string }>;
       };
       conversations: {
         Row: {
