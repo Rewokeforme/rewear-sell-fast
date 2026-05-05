@@ -183,13 +183,64 @@ function InboxPage() {
           ))}
         </div>
 
+        {/* Admin messages — show on "all" and "unread" tabs */}
+        {!busy && (tab === "all" || tab === "unread") && adminMsgs.length > 0 && (
+          <ul className="mb-3 space-y-2.5">
+            {adminMsgs
+              .filter((m) => (tab === "unread" ? !m.is_read : true))
+              .map((m) => (
+                <li key={m.id}>
+                  <Link
+                    to="/inbox/admin/$id"
+                    params={{ id: m.id }}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-2xl border bg-card p-3 shadow-soft transition hover:shadow-card",
+                      m.is_read ? "border-border" : "border-primary/40 bg-primary/5",
+                    )}
+                  >
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground ring-1 ring-primary/20">
+                      <ShieldCheck className="h-7 w-7" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className={cn("text-sm truncate", m.is_read ? "font-medium" : "font-semibold")}>
+                          Rewear-teamet
+                        </p>
+                        <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">
+                          Officiellt
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {m.subject}
+                        {m.listing && <> · om <span className="text-foreground/80">{m.listing.title}</span></>}
+                      </p>
+                      <p className={cn("mt-0.5 text-xs truncate", m.is_read ? "text-muted-foreground" : "text-foreground font-medium")}>
+                        {m.body}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <span className="text-[10px] text-muted-foreground">
+                        {formatDistanceToNow(new Date(m.created_at), { locale: sv, addSuffix: true })}
+                      </span>
+                      {!m.is_read ? (
+                        <span className="h-2.5 w-2.5 rounded-full bg-primary shadow-soft" />
+                      ) : (
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </div>
+                  </Link>
+                </li>
+              ))}
+          </ul>
+        )}
+
         {busy ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="h-20 animate-pulse rounded-2xl bg-card" />
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : filtered.length === 0 && (tab !== "all" || adminMsgs.length === 0) ? (
           <div className="rounded-2xl border border-dashed border-border bg-card/50 px-6 py-14 text-center">
             <p className="font-display text-lg">
               {tab === "unread" ? "Inga olästa meddelanden" : "Inga konversationer ännu"}
