@@ -390,6 +390,14 @@ function ConversationPage() {
                       <Ban className="h-4 w-4" />
                       Blockera användare
                     </button>
+                    <div className="border-t border-border" />
+                    <button
+                      onClick={deleteConversation}
+                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-destructive hover:bg-secondary"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Radera konversation
+                    </button>
                   </div>
                 </>
               )}
