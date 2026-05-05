@@ -8,7 +8,17 @@ import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { formatSEK } from "@/lib/rewear";
-import { BadgeCheck, Sparkles } from "lucide-react";
+import { BadgeCheck, Sparkles, ShieldCheck, Lock } from "lucide-react";
+
+type AdminMsgItem = {
+  id: string;
+  subject: string;
+  body: string;
+  is_read: boolean;
+  created_at: string;
+  related_listing_id: string | null;
+  listing: { title: string; listing_images: { url: string }[] } | null;
+};
 
 export const Route = createFileRoute("/inbox/")({
   component: InboxPage,
