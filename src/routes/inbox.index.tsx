@@ -303,13 +303,21 @@ function InboxPage() {
               const status = c.listings?.status;
               const badge = counterpartBadge(c.other_stats, c.other_profile?.is_verified ?? false);
               return (
-                <li key={c.id}>
-                  <Link
-                    to="/inbox/$conversationId"
-                    params={{ conversationId: c.id }}
+                <li key={c.id} className="relative group/row">
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate({ to: "/inbox/$conversationId", params: { conversationId: c.id } })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        void navigate({ to: "/inbox/$conversationId", params: { conversationId: c.id } });
+                      }
+                    }}
                     className={cn(
-                      "group flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-soft transition",
+                      "group flex cursor-pointer items-center gap-3 rounded-2xl border border-border bg-card p-3 pr-12 shadow-soft transition",
                       "hover:border-primary/30 hover:shadow-card",
+                      deletingId === c.id && "opacity-50",
                     )}
                   >
                     <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-muted shrink-0 ring-1 ring-border">
@@ -369,7 +377,19 @@ function InboxPage() {
                       </span>
                       {c.unread && <span className="h-2.5 w-2.5 rounded-full bg-accent shadow-soft" />}
                     </div>
-                  </Link>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void deleteConversation(c.id);
+                    }}
+                    disabled={deletingId === c.id}
+                    aria-label="Radera konversation"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-muted-foreground opacity-0 transition hover:bg-destructive/10 hover:text-destructive group-hover/row:opacity-100 focus:opacity-100 md:opacity-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </li>
               );
             })}
