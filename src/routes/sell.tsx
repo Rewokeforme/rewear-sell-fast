@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Sparkles, Camera, X, MapPin, Truck, Handshake, Info, Leaf, Eye } from "lucide-react";
+import { Sparkles, Camera, X, MapPin, Truck, Handshake, Info, Leaf, Eye, ShieldCheck } from "lucide-react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { CategoryRow } from "@/lib/database.types";
@@ -48,6 +48,7 @@ function SellPage() {
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPreview, setShowPreview] = useState(false);
+  const [previewActiveImg, setPreviewActiveImg] = useState(0);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const showShipping = deliveryMethod === "shipping" || deliveryMethod === "both";
@@ -190,6 +191,7 @@ function SellPage() {
       toast.error("Fyll i fälten som är markerade.");
       return;
     }
+    setPreviewActiveImg(0);
     setShowPreview(true);
   }
 
@@ -652,70 +654,160 @@ function SellPage() {
 
       {/* Preview modal */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl">Förhandsgranskning</DialogTitle>
+        <DialogContent className="w-[calc(100vw-1rem)] sm:w-full max-w-[960px] max-h-[92vh] p-0 gap-0 overflow-hidden rounded-2xl border border-border bg-background focus:outline-none focus-visible:outline-none focus:ring-0 [&>button]:hidden">
+          <DialogHeader className="sticky top-0 z-10 flex-row items-start justify-between gap-4 space-y-0 border-b border-border bg-background/95 px-5 py-4 backdrop-blur">
+            <div className="space-y-0.5">
+              <DialogTitle className="font-display text-lg sm:text-xl">Förhandsgranska annons</DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Så här kommer din annons visas för köpare.
+              </DialogDescription>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowPreview(false)}
+              className="rounded-full p-1.5 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+              aria-label="Stäng"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </DialogHeader>
 
-          <div className="overflow-hidden rounded-xl bg-card">
-            {previews[0] && (
-              <div className="relative aspect-[3/4] overflow-hidden bg-muted">
-                <img src={previews[0]} alt={title} className="h-full w-full object-cover" />
-                <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-background/85 px-2 py-0.5 text-[10px] font-medium text-foreground backdrop-blur">
-                  <Leaf className="h-3 w-3 text-primary" />−4 kg CO₂
-                </span>
+          <div className="overflow-y-auto px-4 py-5 sm:px-6 sm:py-6" style={{ maxHeight: "calc(92vh - 64px - 72px)" }}>
+            <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-8">
+              {/* Vänster: bildgalleri */}
+              <div>
+                <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
+                  {previews[previewActiveImg] ? (
+                    <img
+                      src={previews[previewActiveImg]}
+                      alt={title}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+                      Ingen bild
+                    </div>
+                  )}
+                  <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-[10px] font-medium text-foreground shadow-sm backdrop-blur">
+                    <Leaf className="h-3 w-3 text-primary" />
+                    −4 kg CO₂
+                  </span>
+                </div>
+                {previews.length > 1 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {previews.map((p, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setPreviewActiveImg(i)}
+                        className={`h-[72px] w-[72px] overflow-hidden rounded-lg bg-muted transition ${
+                          i === previewActiveImg ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : "opacity-70 hover:opacity-100"
+                        }`}
+                        aria-label={`Visa bild ${i + 1}`}
+                      >
+                        <img src={p} alt="" className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-            <div className="space-y-1 p-3">
-              {brand && <p className="text-eyebrow text-muted-foreground">{brand}</p>}
-              <p className="font-medium">{title || "Titel"}</p>
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-xs text-muted-foreground">{size || "–"} · {condition}</span>
-                <span className="font-display text-base text-primary">
-                  {price ? formatSEK(Number(price)) : "–"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {city || "Stad"}{area ? `, ${area}` : ""}
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  {deliveryMethod === "shipping" && <><Truck className="h-3 w-3" /> Skickas</>}
-                  {deliveryMethod === "pickup" && <><Handshake className="h-3 w-3" /> Hämtas</>}
-                  {deliveryMethod === "both" && <><Truck className="h-3 w-3" /><Handshake className="h-3 w-3" /> Båda</>}
-                </span>
+
+              {/* Höger: produktinfo */}
+              <div className="space-y-5">
+                <div className="space-y-1.5">
+                  <p className="text-eyebrow text-muted-foreground">{brand || "Ej angivet"}</p>
+                  <h3 className="font-display text-2xl leading-tight text-foreground">
+                    {title || "Titel saknas"}
+                  </h3>
+                  <p className="font-display text-3xl text-primary">
+                    {price ? formatSEK(Number(price)) : "Ej angivet"}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {size && <PreviewChip>Storlek {size}</PreviewChip>}
+                  {jeansVisible && waistSize && <PreviewChip>{waistSize}</PreviewChip>}
+                  {jeansVisible && lengthSize && <PreviewChip>{lengthSize}</PreviewChip>}
+                  {condition && <PreviewChip>{condition}</PreviewChip>}
+                  {mainCategory && <PreviewChip>{mainCategory}</PreviewChip>}
+                  {subCategory && <PreviewChip>{subCategory}</PreviewChip>}
+                </div>
+
+                <div className="space-y-2.5 rounded-xl border border-border bg-card p-4">
+                  <p className="text-eyebrow text-muted-foreground">Plats & leverans</p>
+                  <div className="flex items-start gap-2 text-sm">
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                    <p>
+                      <span className="text-muted-foreground">Finns i: </span>
+                      <span className="font-medium">
+                        {city || "Ej angivet"}{area ? `, ${area}` : ""}
+                      </span>
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2 text-sm">
+                    {deliveryMethod === "pickup" ? (
+                      <Handshake className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                    ) : (
+                      <Truck className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <p>
+                      <span className="text-muted-foreground">Leverans: </span>
+                      <span className="font-medium">{deliveryLabel[deliveryMethod]}</span>
+                    </p>
+                  </div>
+                  {showShipping && (
+                    <p className="pl-6 text-sm">
+                      <span className="text-muted-foreground">Frakt: </span>
+                      <span className="font-medium">
+                        {buyerPaysShipping ? "Köparen betalar" : "Säljaren betalar"}
+                        {shippingPrice ? ` ${formatSEK(Number(shippingPrice))}` : ""}
+                        {shipsWithin ? ` · skickas inom ${shipsWithin === "1" ? "1 dag" : shipsWithin + " dagar"}` : ""}
+                      </span>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <p className="text-eyebrow text-muted-foreground mb-1.5">Beskrivning</p>
+                  <p className="whitespace-pre-line text-sm text-foreground">
+                    {description || <span className="text-muted-foreground">Ej angivet</span>}
+                  </p>
+                </div>
+
+                {user && (
+                  <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+                    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-muted text-sm font-medium">
+                      {(user.user_metadata?.full_name as string | undefined)?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? "?"}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="truncate text-sm font-medium">
+                          {(user.user_metadata?.full_name as string | undefined) ?? user.email ?? "Du"}
+                        </p>
+                        <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Säljare · ny annons</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {previews.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
-              {previews.slice(1).map((p, i) => (
-                <div key={i} className="aspect-square overflow-hidden rounded-lg bg-muted">
-                  <img src={p} className="h-full w-full object-cover" alt="" />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {description && (
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{description}</p>
-          )}
-
-          <div className="flex gap-2 pt-2">
+          {/* Sticky footer */}
+          <div className="sticky bottom-0 z-10 flex gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:px-6">
             <button
               type="button"
               onClick={() => setShowPreview(false)}
-              className="flex-1 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium"
+              className="flex-1 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-secondary"
             >
-              Tillbaka
+              Tillbaka och redigera
             </button>
             <button
               type="button"
               onClick={(e) => { setShowPreview(false); publish(e as unknown as React.FormEvent); }}
               disabled={busy}
-              className="flex-1 rounded-full bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-card disabled:opacity-50"
+              className="flex-1 rounded-full bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-card transition hover:bg-primary/90 disabled:opacity-50"
             >
               {busy ? "Publicerar…" : "Publicera annons"}
             </button>
@@ -760,4 +852,8 @@ function Field({ label, children, full, error }: { label: string; children: Reac
 
 function FieldError({ children }: { children: React.ReactNode }) {
   return <span className="mt-1 block text-[11px] font-medium text-destructive">{children}</span>;
+}
+
+function PreviewChip({ children }: { children: React.ReactNode }) {
+  return <span className="rounded-full border border-border bg-card px-3 py-1 text-xs">{children}</span>;
 }
