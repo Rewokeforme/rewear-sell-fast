@@ -88,6 +88,7 @@ function ConversationPage() {
   const [counterpartStats, setCounterpartStats] = useState<SellerStats | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [reportMsgId, setReportMsgId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -206,6 +207,19 @@ function ConversationPage() {
     });
     if (error) toast.error(error.message);
     else toast.success("Tack — rapporten är skickad.");
+  }
+
+  async function submitMessageReport(reason: string) {
+    if (!user || !reportMsgId) return;
+    const { error } = await supabase.from("user_reports").insert({
+      reporter_id: user.id,
+      reported_conversation_id: conversationId,
+      reported_message_id: reportMsgId,
+      reason,
+    });
+    if (error) toast.error(error.message);
+    else toast.success("Tack — meddelandet har rapporterats.");
+    setReportMsgId(null);
   }
 
   async function blockUser() {
