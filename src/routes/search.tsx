@@ -31,7 +31,7 @@ function SearchPage() {
   // Reset sub-category when main changes
   useEffect(() => { setSubCategory(""); setSize(""); }, [mainCategory]);
 
-  const sizeInfo = useMemo(() => sizesForCategory(mainCategory, subCategory), [mainCategory, subCategory]);
+  const sizeInfo = useMemo(() => getSizeRule(mainCategory, subCategory), [mainCategory, subCategory]);
 
   useEffect(() => {
     setLoading(true);
