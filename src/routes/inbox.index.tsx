@@ -150,11 +150,12 @@ function InboxPage() {
     );
   }
 
+  const unreadAdmin = adminMsgs.filter((m) => !m.is_read).length;
   const counts = {
-    all: items.length,
+    all: items.length + adminMsgs.length,
     buy: items.filter((c) => user && c.buyer_id === user.id).length,
     sell: items.filter((c) => user && c.seller_id === user.id).length,
-    unread: items.filter((c) => c.unread).length,
+    unread: items.filter((c) => c.unread).length + unreadAdmin,
   };
 
   return (
