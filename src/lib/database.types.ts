@@ -49,12 +49,18 @@ export type Database = {
           ai_suggested_price: number | null;
           ai_generated_description: string | null;
           co2_saved_kg: number;
+          city: string;
+          area: string | null;
+          delivery_method: "shipping" | "pickup" | "both";
+          shipping_price: number | null;
+          buyer_pays_shipping: boolean;
+          ships_within_days: "1" | "2-3" | "4-7" | null;
           created_at: string;
         };
         Insert: Omit<
           Database["public"]["Tables"]["listings"]["Row"],
-          "id" | "created_at" | "co2_saved_kg" | "status"
-        > & { id?: string; status?: "active" | "sold" | "removed"; co2_saved_kg?: number };
+          "id" | "created_at" | "co2_saved_kg" | "status" | "buyer_pays_shipping" | "area" | "shipping_price" | "ships_within_days"
+        > & { id?: string; status?: "active" | "sold" | "removed"; co2_saved_kg?: number; area?: string | null; shipping_price?: number | null; buyer_pays_shipping?: boolean; ships_within_days?: "1" | "2-3" | "4-7" | null };
         Update: Partial<Database["public"]["Tables"]["listings"]["Row"]>;
       };
       listing_images: {

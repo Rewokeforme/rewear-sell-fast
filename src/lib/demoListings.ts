@@ -12,6 +12,8 @@ const make = (
     co2: number;
     image: string;
     category: { slug: string; name_sv: string };
+    city?: string;
+    delivery_method?: "shipping" | "pickup" | "both";
   },
 ): ListingWithDetails => ({
   id: `demo-${i}`,
@@ -28,6 +30,12 @@ const make = (
   ai_suggested_price: null,
   ai_generated_description: null,
   co2_saved_kg: data.co2,
+  city: data.city ?? "Stockholm",
+  area: null,
+  delivery_method: data.delivery_method ?? "both",
+  shipping_price: null,
+  buyer_pays_shipping: true,
+  ships_within_days: "2-3",
   created_at: new Date().toISOString(),
   listing_images: [{ id: `img-${i}`, listing_id: `demo-${i}`, url: data.image, position: 0 }],
   profiles: null,

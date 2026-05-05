@@ -174,15 +174,21 @@ export type Database = {
           ai_detected_brand: string | null
           ai_generated_description: string | null
           ai_suggested_price: number | null
+          area: string | null
           brand: string | null
+          buyer_pays_shipping: boolean
           category_id: string | null
+          city: string
           co2_saved_kg: number
           condition: string | null
           created_at: string
+          delivery_method: string
           description: string | null
           id: string
           price_sek: number
           seller_id: string
+          shipping_price: number | null
+          ships_within_days: string | null
           size: string | null
           status: Database["public"]["Enums"]["listing_status"]
           title: string
@@ -191,15 +197,21 @@ export type Database = {
           ai_detected_brand?: string | null
           ai_generated_description?: string | null
           ai_suggested_price?: number | null
+          area?: string | null
           brand?: string | null
+          buyer_pays_shipping?: boolean
           category_id?: string | null
+          city: string
           co2_saved_kg?: number
           condition?: string | null
           created_at?: string
+          delivery_method: string
           description?: string | null
           id?: string
           price_sek: number
           seller_id: string
+          shipping_price?: number | null
+          ships_within_days?: string | null
           size?: string | null
           status?: Database["public"]["Enums"]["listing_status"]
           title: string
@@ -208,15 +220,21 @@ export type Database = {
           ai_detected_brand?: string | null
           ai_generated_description?: string | null
           ai_suggested_price?: number | null
+          area?: string | null
           brand?: string | null
+          buyer_pays_shipping?: boolean
           category_id?: string | null
+          city?: string
           co2_saved_kg?: number
           condition?: string | null
           created_at?: string
+          delivery_method?: string
           description?: string | null
           id?: string
           price_sek?: number
           seller_id?: string
+          shipping_price?: number | null
+          ships_within_days?: string | null
           size?: string | null
           status?: Database["public"]["Enums"]["listing_status"]
           title?: string
