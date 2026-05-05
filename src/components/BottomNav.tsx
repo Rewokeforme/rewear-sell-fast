@@ -2,13 +2,14 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { Home, Search, PlusSquare, MessageCircle, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const items = [
+type Item = { to: "/" | "/search" | "/sell" | "/inbox" | "/me"; label: string; icon: typeof Home; cta?: boolean };
+const items: Item[] = [
   { to: "/", label: "Hem", icon: Home },
   { to: "/search", label: "Sök", icon: Search },
   { to: "/sell", label: "Sälj", icon: PlusSquare, cta: true },
   { to: "/inbox", label: "Inkorg", icon: MessageCircle },
   { to: "/me", label: "Profil", icon: User },
-] as const;
+];
 
 export function BottomNav() {
   const { pathname } = useLocation();
