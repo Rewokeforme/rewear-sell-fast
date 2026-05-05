@@ -161,12 +161,14 @@ function AdminPage() {
   }
 
   async function toggleIdentityVerified(id: string, current: boolean) {
-    const update: Record<string, unknown> = {
-      identity_verified: !current,
-      identity_provider: !current ? "manual" : null,
-      identity_verified_at: !current ? new Date().toISOString() : null,
-    };
-    const { error } = await supabase.from("profiles").update(update).eq("id", id);
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        identity_verified: !current,
+        identity_provider: !current ? "manual" : null,
+        identity_verified_at: !current ? new Date().toISOString() : null,
+      })
+      .eq("id", id);
     if (error) return toast.error(error.message);
     setUsers((p) => p.map((u) => (u.id === id ? { ...u, identity_verified: !current } : u)));
     toast.success(!current ? "Markerad som ID-verifierad" : "ID-verifiering borttagen");
