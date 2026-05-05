@@ -25,6 +25,7 @@ function ListingPage() {
   const [saved, setSaved] = useState(false);
   const [stats, setStats] = useState<SellerStatsLite & { rating_count: number; followers_count: number } | null>(null);
   const [savesCount, setSavesCount] = useState<number>(0);
+  const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
     supabase
