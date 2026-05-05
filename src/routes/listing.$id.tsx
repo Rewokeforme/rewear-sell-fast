@@ -7,7 +7,8 @@ import { BottomNav } from "@/components/BottomNav";
 import { FollowButton } from "@/components/FollowButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { computeSellerBadge, formatSEK, type SellerStatsLite } from "@/lib/rewear";
+import { computeAllBadges, formatSEK, type SellerStatsLite, type VerificationFlags } from "@/lib/rewear";
+import { TrustBadges } from "@/components/TrustBadges";
 import type { ListingWithDetails } from "@/lib/database.types";
 import { ReportDialog } from "@/components/ReportDialog";
 
@@ -24,6 +25,7 @@ function ListingPage() {
   const [activeImg, setActiveImg] = useState(0);
   const [saved, setSaved] = useState(false);
   const [stats, setStats] = useState<SellerStatsLite & { rating_count: number; followers_count: number } | null>(null);
+  const [sellerVerification, setSellerVerification] = useState<VerificationFlags | null>(null);
   const [savesCount, setSavesCount] = useState<number>(0);
   const [reportOpen, setReportOpen] = useState(false);
 
@@ -81,6 +83,12 @@ function ListingPage() {
       .eq("user_id", listing.profiles.id)
       .maybeSingle()
       .then(({ data }) => setStats(data as typeof stats));
+    supabase
+      .from("profiles")
+      .select("email_verified, phone_verified, identity_verified, full_name, city")
+      .eq("id", listing.profiles.id)
+      .maybeSingle()
+      .then(({ data }) => setSellerVerification((data as VerificationFlags) ?? null));
   }, [listing?.profiles?.id]);
 
   async function toggleSave() {
@@ -183,7 +191,7 @@ function ListingPage() {
   }
 
   const seller = listing.profiles;
-  const sellerBadge = computeSellerBadge(stats);
+  const sellerBadges = computeAllBadges(stats, sellerVerification);
   const images = [...(listing.listing_images ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
 
   return (
@@ -339,7 +347,7 @@ function ListingPage() {
                       <span>· {stats?.sold_count ?? 0} sålda</span>
                       <span>· {stats?.followers_count ?? 0} följare</span>
                     </div>
-                    {sellerBadge && <span className="text-eyebrow text-primary">{sellerBadge}</span>}
+                    {sellerBadges.length > 0 && <TrustBadges badges={sellerBadges} className="mt-1" />}
                   </div>
                 </Link>
                 <FollowButton sellerId={seller.id} size="sm" />
