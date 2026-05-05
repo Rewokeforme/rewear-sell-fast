@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Bell, Heart, Leaf, LogOut, Package, ShieldCheck, Star, Users } from "lucide-react";
+import { Bell, Camera, Heart, Leaf, LogOut, Package, ShieldCheck, Star, Users } from "lucide-react";
 import { computeSellerBadge, type SellerStatsLite } from "@/lib/rewear";
 
 export const Route = createFileRoute("/me")({
@@ -27,6 +27,42 @@ function MePage() {
     rewear_score: number; is_verified: boolean;
   } | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (!file.type.startsWith("image/")) {
+      alert("Välj en bildfil");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Bilden får vara max 5 MB");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { cacheControl: "3600", upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = pub.publicUrl;
+      const { error: updErr } = await supabase
+        .from("profiles")
+        .update({ avatar_url: url })
+        .eq("id", user.id);
+      if (updErr) throw updErr;
+      setProfile((p) => (p ? { ...p, avatar_url: url } : p));
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
 
   useEffect(() => {
     if (!user) return;
@@ -68,7 +104,7 @@ function MePage() {
       <Header subtitle="Profil" />
       <main className="mx-auto max-w-2xl px-4 py-4 space-y-6">
         <section className="flex items-center gap-4">
-          <div className="h-16 w-16 overflow-hidden rounded-full bg-muted">
+          <label className="relative h-16 w-16 cursor-pointer overflow-hidden rounded-full bg-muted">
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
             ) : (
@@ -76,7 +112,17 @@ function MePage() {
                 {(profile?.full_name ?? user?.email ?? "?")[0].toUpperCase()}
               </div>
             )}
-          </div>
+            <div className="absolute inset-0 flex items-center justify-center bg-foreground/40 opacity-0 transition group-hover:opacity-100 hover:opacity-100">
+              <Camera className="h-5 w-5 text-background" />
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={handleAvatarChange}
+              disabled={uploading}
+            />
+          </label>
           <div className="flex-1">
             <div className="flex items-center gap-1.5">
               <h1 className="font-display text-xl">{profile?.full_name ?? "Namnlös"}</h1>
