@@ -104,7 +104,7 @@ function MePage() {
       <Header subtitle="Profil" />
       <main className="mx-auto max-w-2xl px-4 py-4 space-y-6">
         <section className="flex items-center gap-4">
-          <div className="h-16 w-16 overflow-hidden rounded-full bg-muted">
+          <label className="relative h-16 w-16 cursor-pointer overflow-hidden rounded-full bg-muted">
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
             ) : (
@@ -112,7 +112,17 @@ function MePage() {
                 {(profile?.full_name ?? user?.email ?? "?")[0].toUpperCase()}
               </div>
             )}
-          </div>
+            <div className="absolute inset-0 flex items-center justify-center bg-foreground/40 opacity-0 transition group-hover:opacity-100 hover:opacity-100">
+              <Camera className="h-5 w-5 text-background" />
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={handleAvatarChange}
+              disabled={uploading}
+            />
+          </label>
           <div className="flex-1">
             <div className="flex items-center gap-1.5">
               <h1 className="font-display text-xl">{profile?.full_name ?? "Namnlös"}</h1>
