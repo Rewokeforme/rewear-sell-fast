@@ -81,6 +81,7 @@ function badgeFor(stats: SellerStats | null, isVerified: boolean): string | null
 function ConversationPage() {
   const { conversationId } = Route.useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [body, setBody] = useState("");
   const [conv, setConv] = useState<Conv | null>(null);
