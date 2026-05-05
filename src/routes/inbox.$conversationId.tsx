@@ -21,6 +21,7 @@ import { format, isToday, isYesterday } from "date-fns";
 import { sv } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ReportDialog } from "@/components/ReportDialog";
 
 export const Route = createFileRoute("/inbox/$conversationId")({
   component: ConversationPage,
