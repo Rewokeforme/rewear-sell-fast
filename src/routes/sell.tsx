@@ -191,6 +191,7 @@ function SellPage() {
       toast.error("Fyll i fälten som är markerade.");
       return;
     }
+    setPreviewActiveImg(0);
     setShowPreview(true);
   }
 
