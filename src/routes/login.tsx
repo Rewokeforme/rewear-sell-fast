@@ -13,6 +13,7 @@ function LoginPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -21,7 +22,15 @@ function LoginPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        if (password.length < 6) {
+          toast.error("Lösenordet måste vara minst 6 tecken.");
+          return;
+        }
+        if (password !== confirmPassword) {
+          toast.error("Lösenorden matchar inte.");
+          return;
+        }
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -29,14 +38,29 @@ function LoginPage() {
             emailRedirectTo: window.location.origin,
           },
         });
-        if (error) throw error;
+        if (error) {
+          console.error("[signup] error:", error);
+          throw error;
+        }
+        // Om e-postbekräftelse är på finns ingen session direkt
+        if (!data.session) {
+          toast.success(
+            "Konto skapat. Kolla din e-post och bekräfta för att logga in.",
+          );
+          setMode("signin");
+          return;
+        }
         toast.success("Konto skapat. Du är inloggad.");
+        navigate({ to: "/" });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          console.error("[signin] error:", error);
+          throw error;
+        }
         toast.success("Välkommen tillbaka.");
+        navigate({ to: "/" });
       }
-      navigate({ to: "/" });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Okänt fel";
       toast.error(msg);
@@ -65,6 +89,7 @@ function LoginPage() {
                 required
                 className="input"
                 placeholder="Ditt namn"
+                autoComplete="name"
               />
             </Field>
           )}
@@ -91,6 +116,25 @@ function LoginPage() {
               autoComplete={mode === "signin" ? "current-password" : "new-password"}
             />
           </Field>
+          {mode === "signup" && (
+            <Field label="Bekräfta lösenord">
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="input"
+                placeholder="Skriv lösenordet igen"
+                autoComplete="new-password"
+              />
+              {confirmPassword.length > 0 && confirmPassword !== password && (
+                <p className="mt-1 text-xs text-destructive">
+                  Lösenorden matchar inte.
+                </p>
+              )}
+            </Field>
+          )}
 
           <button
             type="submit"
@@ -103,11 +147,23 @@ function LoginPage() {
 
         <div className="mt-4 text-center text-sm">
           {mode === "signin" ? (
-            <button onClick={() => setMode("signup")} className="text-primary underline">
+            <button
+              onClick={() => {
+                setMode("signup");
+                setConfirmPassword("");
+              }}
+              className="text-primary underline"
+            >
               Inget konto? Skapa här
             </button>
           ) : (
-            <button onClick={() => setMode("signin")} className="text-primary underline">
+            <button
+              onClick={() => {
+                setMode("signin");
+                setConfirmPassword("");
+              }}
+              className="text-primary underline"
+            >
               Har du redan konto? Logga in
             </button>
           )}
