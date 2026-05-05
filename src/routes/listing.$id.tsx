@@ -342,17 +342,14 @@ function ListingPage() {
             </div>
           )}
 
-          <div className="flex gap-2 pt-2">
+          <div className="pt-2">
             <button
-              onClick={() => startConversation(`Hej! Är "${listing.title}" fortfarande ledig?`)}
-              className="flex-1 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-card"
+              onClick={() => startConversation("")}
+              className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-card"
             >
               Skicka meddelande
             </button>
-            <button
-              onClick={() => startConversation("")}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background"
-              aria-label="Öppna chatt"
+          </div>
             >
               <MessageCircle className="h-5 w-5" />
             </button>
