@@ -178,12 +178,29 @@ function AdminPage() {
         toast.error(upErr.message);
         return;
       }
+      const { data: adminMsg, error: amErr } = await supabase
+        .from("admin_messages")
+        .insert({
+          user_id: replyTarget.reporter_id,
+          sent_by: user.id,
+          subject: "Svar från Rewear-teamet",
+          body: reply,
+          related_listing_id: replyTarget.listing_id,
+          related_report_id: replyTarget.id,
+        })
+        .select("id")
+        .maybeSingle();
+      if (amErr) {
+        toast.error(amErr.message);
+        return;
+      }
       const { error: nErr } = await supabase.from("notifications").insert({
         user_id: replyTarget.reporter_id,
         type: "admin_reply",
         title: "Svar från Rewear-teamet",
         body: reply,
         related_listing_id: replyTarget.listing_id,
+        related_conversation_id: adminMsg?.id ?? null,
       });
       if (nErr) {
         toast.error(nErr.message);
@@ -205,12 +222,29 @@ function AdminPage() {
         toast.error(upErr.message);
         return;
       }
+      const { data: adminMsg, error: amErr } = await supabase
+        .from("admin_messages")
+        .insert({
+          user_id: replyTarget.reporter_id,
+          sent_by: user.id,
+          subject: "Svar från Rewear-teamet",
+          body: reply,
+          related_conversation_id: replyTarget.reported_conversation_id,
+          related_user_id: replyTarget.reported_user_id,
+          related_report_id: replyTarget.id,
+        })
+        .select("id")
+        .maybeSingle();
+      if (amErr) {
+        toast.error(amErr.message);
+        return;
+      }
       const { error: nErr } = await supabase.from("notifications").insert({
         user_id: replyTarget.reporter_id,
         type: "admin_reply",
         title: "Svar från Rewear-teamet",
         body: reply,
-        related_conversation_id: replyTarget.reported_conversation_id,
+        related_conversation_id: adminMsg?.id ?? null,
         related_user_id: replyTarget.reported_user_id,
       });
       if (nErr) {
@@ -225,7 +259,7 @@ function AdminPage() {
         ),
       );
     }
-    toast.success("Svar skickat till rapportören");
+    toast.success("Svar skickat — landar i användarens inkorg");
   }
 
   return (
