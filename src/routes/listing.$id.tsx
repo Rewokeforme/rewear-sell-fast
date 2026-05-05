@@ -157,7 +157,7 @@ function ListingPage() {
 
   const seller = listing.profiles;
   const sellerBadge = computeSellerBadge(stats);
-  const images = listing.listing_images ?? [];
+  const images = [...(listing.listing_images ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
 
   return (
     <div className="min-h-screen bg-background pb-32">
@@ -185,6 +185,20 @@ function ListingPage() {
             <Heart className={`h-5 w-5 ${saved ? "fill-accent text-accent" : ""}`} />
           </button>
         </div>
+
+        {images.length > 1 && (
+          <div className="px-4 pt-3 flex gap-2 overflow-x-auto">
+            {images.map((img, i) => (
+              <button
+                key={img.id}
+                onClick={() => setActiveImg(i)}
+                className={`relative h-20 w-16 flex-shrink-0 overflow-hidden rounded-lg border-2 transition ${i === activeImg ? "border-foreground" : "border-transparent opacity-70 hover:opacity-100"}`}
+              >
+                <img src={img.url} alt={`${listing.title} ${i + 1}`} className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="px-4 py-5 space-y-4">
           {listing.brand && <p className="text-eyebrow text-muted-foreground">{listing.brand}</p>}
