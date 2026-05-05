@@ -456,6 +456,7 @@ function ConversationPage() {
                             {mine && (m.read_at ? " · Läst" : " · Skickat")}
                           </p>
                         </div>
+                        </div>
                       </div>
                     );
                   })}
