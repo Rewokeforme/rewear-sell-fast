@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Flag, Handshake, Heart, Leaf, MapPin, MessageCircle, ShieldCheck, Star, Truck } from "lucide-react";
+import { Bookmark, Eye, Flag, Handshake, Heart, Leaf, MapPin, MessageCircle, ShieldCheck, Star, Truck } from "lucide-react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { FollowButton } from "@/components/FollowButton";
@@ -23,6 +23,7 @@ function ListingPage() {
   const [activeImg, setActiveImg] = useState(0);
   const [saved, setSaved] = useState(false);
   const [stats, setStats] = useState<SellerStatsLite & { rating_count: number; followers_count: number } | null>(null);
+  const [savesCount, setSavesCount] = useState<number>(0);
 
   useEffect(() => {
     supabase
@@ -37,6 +38,27 @@ function ListingPage() {
         setLoading(false);
       });
   }, [id]);
+
+  // Räkna en visning per annons per webbläsarsession
+  useEffect(() => {
+    if (!id || typeof window === "undefined") return;
+    const key = `viewed:${id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    supabase.rpc("increment_listing_views", { _listing_id: id }).then(() => {
+      setListing((prev) => (prev ? ({ ...prev, views_count: ((prev as unknown as { views_count?: number }).views_count ?? 0) + 1 } as ListingWithDetails) : prev));
+    });
+  }, [id]);
+
+  // Hämta antal som sparat annonsen
+  useEffect(() => {
+    if (!id) return;
+    supabase
+      .from("favorites")
+      .select("listing_id", { count: "exact", head: true })
+      .eq("listing_id", id)
+      .then(({ count }) => setSavesCount(count ?? 0));
+  }, [id, saved]);
 
   useEffect(() => {
     if (!user || !listing) return;
@@ -213,6 +235,12 @@ function ListingPage() {
             {listing.categories?.name_sv && <Chip>{listing.categories.name_sv}</Chip>}
           </div>
 
+          {/* Engagemang */}
+          <div className="flex items-center gap-2">
+            <StatPill icon={<Eye className="h-3.5 w-3.5" />} value={(listing as unknown as { views_count?: number }).views_count ?? 0} label={((listing as unknown as { views_count?: number }).views_count ?? 0) === 1 ? "visning" : "visningar"} />
+            <StatPill icon={<Bookmark className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} />} value={savesCount} label={savesCount === 1 ? "sparad" : "sparade"} highlight={saved} />
+          </div>
+
           {listing.co2_saved_kg > 0 && (
             <div className="flex items-center gap-3 rounded-xl bg-primary/10 p-3 text-sm">
               <Leaf className="h-5 w-5 text-primary" />
@@ -345,4 +373,30 @@ function ListingPage() {
 
 function Chip({ children }: { children: React.ReactNode }) {
   return <span className="rounded-full border border-border bg-card px-3 py-1 text-xs">{children}</span>;
+}
+
+function StatPill({
+  icon,
+  value,
+  label,
+  highlight = false,
+}: {
+  icon: React.ReactNode;
+  value: number;
+  label: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition ${
+        highlight
+          ? "border-accent/30 bg-accent/10 text-accent"
+          : "border-border bg-card text-muted-foreground"
+      }`}
+    >
+      <span className={highlight ? "text-accent" : "text-foreground/70"}>{icon}</span>
+      <span className="font-medium tabular-nums text-foreground">{value.toLocaleString("sv-SE")}</span>
+      <span>{label}</span>
+    </div>
+  );
 }
