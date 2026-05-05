@@ -275,7 +275,7 @@ function SellPage() {
               Första bilden visas som huvudbild i annonsen.
             </p>
 
-            <div className="mt-3 grid grid-cols-4 gap-2 sm:gap-3">
+            <div className="mt-3 grid grid-cols-4 grid-rows-2 gap-2 sm:gap-3">
               {/* Huvudbild — stor, spänner 2x2 */}
               <div className="col-span-2 row-span-2">
                 {previews[0] ? (
