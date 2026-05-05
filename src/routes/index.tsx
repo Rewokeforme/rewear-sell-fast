@@ -177,7 +177,7 @@ function HomePage() {
           </div>
 
           {feedTab === "discover" && categories.length > 0 && (
-            <div className="-mx-4 mb-4 overflow-x-auto px-4 scrollbar-none">
+            <div className="mb-4 overflow-x-auto scrollbar-none">
               <div className="flex gap-2">
                 <CategoryPill active={activeCat === null} onClick={() => setActiveCat(null)}>
                   Alla
