@@ -876,7 +876,18 @@ function SellPage() {
             </button>
             <button
               type="button"
-              onClick={(e) => { setShowPreview(false); publish(e as unknown as React.FormEvent); }}
+              onClick={(e) => {
+                const errs = validate();
+                setSubmitAttempted(true);
+                setErrors(errs);
+                if (Object.keys(errs).length > 0) {
+                  setShowPreview(false);
+                  toast.error("Fyll i fälten som är markerade.");
+                  return;
+                }
+                setShowPreview(false);
+                publish(e as unknown as React.FormEvent);
+              }}
               disabled={busy}
               className="flex-1 rounded-full bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-card transition hover:bg-primary/90 disabled:opacity-50"
             >
