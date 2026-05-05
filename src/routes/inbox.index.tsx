@@ -85,13 +85,20 @@ function InboxPage() {
           })),
         );
 
-        const { data: convs } = await supabase
-          .from("conversations")
-          .select("id, listing_id, buyer_id, seller_id, last_message_at, listings(title, status, price_sek, listing_images(url))")
-          .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-          .order("last_message_at", { ascending: false });
-
-        const list = (convs ?? []) as Array<Omit<ConvSummary, "other_profile" | "other_stats" | "last_message" | "unread">>;
+        const [convsRes, deletionsRes] = await Promise.all([
+          supabase
+            .from("conversations")
+            .select("id, listing_id, buyer_id, seller_id, last_message_at, listings(title, status, price_sek, listing_images(url))")
+            .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+            .order("last_message_at", { ascending: false }),
+          supabase
+            .from("conversation_deletions")
+            .select("conversation_id")
+            .eq("user_id", user.id),
+        ]);
+        const deletedSet = new Set((deletionsRes.data ?? []).map((d) => d.conversation_id));
+        const list = ((convsRes.data ?? []) as Array<Omit<ConvSummary, "other_profile" | "other_stats" | "last_message" | "unread">>)
+          .filter((c) => !deletedSet.has(c.id));
         const otherIds = Array.from(new Set(list.map((c) => (c.buyer_id === user.id ? c.seller_id : c.buyer_id))));
         const convIds = list.map((c) => c.id);
 
