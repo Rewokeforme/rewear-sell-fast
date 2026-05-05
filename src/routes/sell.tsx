@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { CategoryRow } from "@/lib/database.types";
 import { priceGuideRange, formatSEK } from "@/lib/rewear";
+import { MAIN_CATEGORIES, SUB_CATEGORIES, sizesForCategory, isJeans, WAIST_SIZES, LENGTH_SIZES, type MainCategory } from "@/lib/taxonomy";
 
 export const Route = createFileRoute("/sell")({
   component: SellPage,
