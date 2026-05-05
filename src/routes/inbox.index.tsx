@@ -54,78 +54,96 @@ function InboxPage() {
   const [tab, setTab] = useState<Tab>("all");
 
   useEffect(() => {
-    if (!user) return;
-    (async () => {
-      // Admin messages (with related listing info fetched separately — no FK on admin_messages)
-      const { data: am } = await supabase
-        .from("admin_messages")
-        .select("id, subject, body, is_read, created_at, related_listing_id")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      const amRows = (am ?? []) as Array<Omit<AdminMsgItem, "listing">>;
-      const amListingIds = Array.from(new Set(amRows.map((m) => m.related_listing_id).filter((x): x is string => !!x)));
-      const { data: amListings } = amListingIds.length
-        ? await supabase.from("listings").select("id, title, listing_images(url)").in("id", amListingIds)
-        : { data: [] as Array<{ id: string; title: string; listing_images: { url: string }[] }> };
-      const amListingMap = new Map((amListings ?? []).map((l) => [l.id, l]));
-      setAdminMsgs(
-        amRows.map((m) => ({
-          ...m,
-          listing: m.related_listing_id ? amListingMap.get(m.related_listing_id) ?? null : null,
-        })),
-      );
-
-      const { data: convs } = await supabase
-        .from("conversations")
-        .select("id, listing_id, buyer_id, seller_id, last_message_at, listings(title, status, price_sek, listing_images(url))")
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .order("last_message_at", { ascending: false });
-
-      const list = (convs ?? []) as Array<Omit<ConvSummary, "other_profile" | "other_stats" | "last_message" | "unread">>;
-      const otherIds = Array.from(new Set(list.map((c) => (c.buyer_id === user.id ? c.seller_id : c.buyer_id))));
-      const convIds = list.map((c) => c.id);
-
-      const [{ data: profs }, { data: stats }, { data: msgs }] = await Promise.all([
-        otherIds.length
-          ? supabase.from("profiles").select("id, full_name, avatar_url, is_verified").in("id", otherIds)
-          : Promise.resolve({ data: [] as Array<{ id: string; full_name: string | null; avatar_url: string | null; is_verified: boolean }> }),
-        otherIds.length
-          ? supabase.from("seller_stats").select("user_id, sold_count, average_rating").in("user_id", otherIds)
-          : Promise.resolve({ data: [] as Array<{ user_id: string; sold_count: number; average_rating: number }> }),
-        convIds.length
-          ? supabase
-              .from("messages")
-              .select("conversation_id, body, sender_id, read_at, created_at")
-              .in("conversation_id", convIds)
-              .order("created_at", { ascending: false })
-          : Promise.resolve({ data: [] as Array<{ conversation_id: string; body: string; sender_id: string; read_at: string | null; created_at: string }> }),
-      ]);
-
-      const profMap = new Map((profs ?? []).map((p) => [p.id, p]));
-      const statsMap = new Map((stats ?? []).map((s) => [s.user_id, s]));
-      const lastByConv = new Map<string, { body: string; sender_id: string; read_at: string | null; created_at: string }>();
-      for (const m of msgs ?? []) {
-        if (!lastByConv.has(m.conversation_id)) lastByConv.set(m.conversation_id, m);
-      }
-
-      setItems(
-        list.map((c) => {
-          const otherId = c.buyer_id === user.id ? c.seller_id : c.buyer_id;
-          const last = lastByConv.get(c.id) ?? null;
-          const unread = Boolean(last && last.sender_id !== user.id && !last.read_at);
-          const s = statsMap.get(otherId);
-          return {
-            ...c,
-            other_profile: profMap.get(otherId) ?? null,
-            other_stats: s ? { sold_count: s.sold_count, average_rating: s.average_rating } : null,
-            last_message: last,
-            unread,
-          };
-        }),
-      );
+    if (loading) return;
+    if (!user) {
       setBusy(false);
+      return;
+    }
+    let cancelled = false;
+    setBusy(true);
+
+    (async () => {
+      try {
+        // Admin messages (with related listing info fetched separately — no FK on admin_messages)
+        const { data: am } = await supabase
+          .from("admin_messages")
+          .select("id, subject, body, is_read, created_at, related_listing_id")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+        const amRows = (am ?? []) as Array<Omit<AdminMsgItem, "listing">>;
+        const amListingIds = Array.from(new Set(amRows.map((m) => m.related_listing_id).filter((x): x is string => !!x)));
+        const amListingsRes = amListingIds.length
+          ? await supabase.from("listings").select("id, title, listing_images(url)").in("id", amListingIds)
+          : { data: [] as Array<{ id: string; title: string; listing_images: { url: string }[] }> };
+        const amListingMap = new Map((amListingsRes.data ?? []).map((l) => [l.id, l]));
+        if (cancelled) return;
+        setAdminMsgs(
+          amRows.map((m) => ({
+            ...m,
+            listing: m.related_listing_id ? amListingMap.get(m.related_listing_id) ?? null : null,
+          })),
+        );
+
+        const { data: convs } = await supabase
+          .from("conversations")
+          .select("id, listing_id, buyer_id, seller_id, last_message_at, listings(title, status, price_sek, listing_images(url))")
+          .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+          .order("last_message_at", { ascending: false });
+
+        const list = (convs ?? []) as Array<Omit<ConvSummary, "other_profile" | "other_stats" | "last_message" | "unread">>;
+        const otherIds = Array.from(new Set(list.map((c) => (c.buyer_id === user.id ? c.seller_id : c.buyer_id))));
+        const convIds = list.map((c) => c.id);
+
+        const [profsRes, statsRes, msgsRes] = await Promise.all([
+          otherIds.length
+            ? supabase.from("profiles").select("id, full_name, avatar_url, is_verified").in("id", otherIds)
+            : Promise.resolve({ data: [] as Array<{ id: string; full_name: string | null; avatar_url: string | null; is_verified: boolean }> }),
+          otherIds.length
+            ? supabase.from("seller_stats").select("user_id, sold_count, average_rating").in("user_id", otherIds)
+            : Promise.resolve({ data: [] as Array<{ user_id: string; sold_count: number; average_rating: number }> }),
+          convIds.length
+            ? supabase
+                .from("messages")
+                .select("conversation_id, body, sender_id, read_at, created_at")
+                .in("conversation_id", convIds)
+                .order("created_at", { ascending: false })
+            : Promise.resolve({ data: [] as Array<{ conversation_id: string; body: string; sender_id: string; read_at: string | null; created_at: string }> }),
+        ]);
+
+        const profMap = new Map((profsRes.data ?? []).map((p) => [p.id, p]));
+        const statsMap = new Map((statsRes.data ?? []).map((s) => [s.user_id, s]));
+        const lastByConv = new Map<string, { body: string; sender_id: string; read_at: string | null; created_at: string }>();
+        for (const m of msgsRes.data ?? []) {
+          if (!lastByConv.has(m.conversation_id)) lastByConv.set(m.conversation_id, m);
+        }
+
+        if (cancelled) return;
+        setItems(
+          list.map((c) => {
+            const otherId = c.buyer_id === user.id ? c.seller_id : c.buyer_id;
+            const last = lastByConv.get(c.id) ?? null;
+            const unread = Boolean(last && last.sender_id !== user.id && !last.read_at);
+            const s = statsMap.get(otherId);
+            return {
+              ...c,
+              other_profile: profMap.get(otherId) ?? null,
+              other_stats: s ? { sold_count: s.sold_count, average_rating: s.average_rating } : null,
+              last_message: last,
+              unread,
+            };
+          }),
+        );
+      } catch (err) {
+        console.error("Inbox load failed:", err);
+      } finally {
+        if (!cancelled) setBusy(false);
+      }
     })();
-  }, [user]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, loading]);
 
   const filtered = useMemo(() => {
     if (!user) return items;
