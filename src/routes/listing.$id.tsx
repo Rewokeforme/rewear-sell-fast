@@ -350,10 +350,6 @@ function ListingPage() {
               Skicka meddelande
             </button>
           </div>
-            >
-              <MessageCircle className="h-5 w-5" />
-            </button>
-          </div>
 
           <button
             onClick={reportListing}
