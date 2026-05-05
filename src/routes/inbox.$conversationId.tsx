@@ -21,6 +21,7 @@ import { format, isToday, isYesterday } from "date-fns";
 import { sv } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ReportDialog } from "@/components/ReportDialog";
 
 export const Route = createFileRoute("/inbox/$conversationId")({
   component: ConversationPage,
@@ -86,6 +87,7 @@ function ConversationPage() {
   const [counterpart, setCounterpart] = useState<{ id: string; full_name: string | null; avatar_url: string | null; is_verified: boolean } | null>(null);
   const [counterpartStats, setCounterpartStats] = useState<SellerStats | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -181,11 +183,14 @@ function ConversationPage() {
     }
   }
 
-  async function reportConversation() {
+  function reportConversation() {
     setMenuOpen(false);
     if (!user) return;
-    const reason = window.prompt("Beskriv kort varför du rapporterar:");
-    if (!reason) return;
+    setReportOpen(true);
+  }
+
+  async function submitReport(reason: string) {
+    if (!user) return;
     const { error } = await supabase.from("user_reports").insert({
       reporter_id: user.id,
       reported_conversation_id: conversationId,
@@ -474,6 +479,22 @@ function ConversationPage() {
           </div>
         </form>
       </div>
+
+      <ReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        title="Rapportera konversation"
+        description="Berätta kort vad som är fel — vårt team granskar alla rapporter och kan vidta åtgärder."
+        presets={[
+          "Bedrägeriförsök",
+          "Vill betala utanför Rewear",
+          "Trakasserier",
+          "Spam",
+          "Olämpligt språk",
+          "Annat",
+        ]}
+        onSubmit={submitReport}
+      />
     </div>
   );
 }

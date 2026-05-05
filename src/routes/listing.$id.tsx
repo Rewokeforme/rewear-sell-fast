@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { computeSellerBadge, formatSEK, type SellerStatsLite } from "@/lib/rewear";
 import type { ListingWithDetails } from "@/lib/database.types";
+import { ReportDialog } from "@/components/ReportDialog";
 
 export const Route = createFileRoute("/listing/$id")({
   component: ListingPage,
@@ -24,6 +25,7 @@ function ListingPage() {
   const [saved, setSaved] = useState(false);
   const [stats, setStats] = useState<SellerStatsLite & { rating_count: number; followers_count: number } | null>(null);
   const [savesCount, setSavesCount] = useState<number>(0);
+  const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
     supabase
@@ -138,13 +140,16 @@ function ListingPage() {
     navigate({ to: "/inbox/$conversationId", params: { conversationId: convId } });
   }
 
-  async function reportListing() {
+  function openReport() {
     if (!user || !listing) {
       navigate({ to: "/login" });
       return;
     }
-    const reason = window.prompt("Beskriv kort varför du rapporterar annonsen:");
-    if (!reason) return;
+    setReportOpen(true);
+  }
+
+  async function submitReport(reason: string) {
+    if (!user || !listing) return;
     const { error } = await supabase.from("reports").insert({
       reporter_id: user.id,
       listing_id: listing.id,
@@ -352,7 +357,7 @@ function ListingPage() {
           </div>
 
           <button
-            onClick={reportListing}
+            onClick={openReport}
             className="mt-2 flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
           >
             <Flag className="h-3 w-3" /> Rapportera annonsen
@@ -360,6 +365,7 @@ function ListingPage() {
         </div>
       </main>
       <BottomNav />
+      <ReportDialog open={reportOpen} onOpenChange={setReportOpen} onSubmit={submitReport} />
     </div>
   );
 }
