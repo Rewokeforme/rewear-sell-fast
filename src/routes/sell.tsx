@@ -28,9 +28,13 @@ function SellPage() {
   const [previews, setPreviews] = useState<string[]>([]);
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [categoryId, setCategoryId] = useState<string>("");
+  const [mainCategory, setMainCategory] = useState<MainCategory | "">("");
+  const [subCategory, setSubCategory] = useState<string>("");
   const [brand, setBrand] = useState("");
   const [title, setTitle] = useState("");
   const [size, setSize] = useState("");
+  const [waistSize, setWaistSize] = useState("");
+  const [lengthSize, setLengthSize] = useState("");
   const [condition, setCondition] = useState<string>(CONDITIONS[1]);
   const [price, setPrice] = useState<string>("");
   const [description, setDescription] = useState("");
