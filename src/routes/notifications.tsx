@@ -74,7 +74,10 @@ function NotificationsPage() {
                 <li key={n.id}>
                   <button
                     onClick={() => {
-                      if (n.related_conversation_id) {
+                      if (isAdminReply && n.related_conversation_id) {
+                        // For admin replies, related_conversation_id stores the admin_messages.id
+                        navigate({ to: "/inbox/admin/$id", params: { id: n.related_conversation_id } });
+                      } else if (n.related_conversation_id) {
                         navigate({ to: "/inbox/$conversationId", params: { conversationId: n.related_conversation_id } });
                       } else if (n.related_listing_id) {
                         navigate({ to: "/listing/$id", params: { id: n.related_listing_id } });
