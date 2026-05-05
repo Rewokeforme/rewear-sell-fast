@@ -707,7 +707,7 @@ function SellPage() {
             </button>
           </DialogHeader>
 
-          <div className="overflow-y-auto px-4 py-5 sm:px-6 sm:py-6" style={{ maxHeight: "calc(92vh - 64px - 72px)" }}>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6 sm:py-6" style={{ maxHeight: "calc(100dvh - 64px - 72px)" }}>
             <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-8">
               {/* Vänster: bildgalleri */}
               <div>
