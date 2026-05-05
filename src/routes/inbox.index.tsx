@@ -49,10 +49,30 @@ function counterpartBadge(stats: ConvSummary["other_stats"], verified: boolean):
 
 function InboxPage() {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [items, setItems] = useState<ConvSummary[]>([]);
   const [adminMsgs, setAdminMsgs] = useState<AdminMsgItem[]>([]);
   const [busy, setBusy] = useState(true);
   const [tab, setTab] = useState<Tab>("all");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  async function deleteConversation(convId: string) {
+    if (!user) return;
+    if (!window.confirm("Radera denna konversation från din inkorg? Den dyker upp igen om motparten skickar ett nytt meddelande.")) return;
+    setDeletingId(convId);
+    const prev = items;
+    setItems((arr) => arr.filter((c) => c.id !== convId));
+    const { error } = await supabase
+      .from("conversation_deletions")
+      .insert({ conversation_id: convId, user_id: user.id });
+    setDeletingId(null);
+    if (error) {
+      setItems(prev);
+      toast.error(error.message);
+    } else {
+      toast.success("Konversationen är raderad.");
+    }
+  }
 
   useEffect(() => {
     if (loading) return;
