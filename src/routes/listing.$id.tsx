@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Flag, Heart, Leaf, MessageCircle, ShieldCheck, Star } from "lucide-react";
+import { Flag, Handshake, Heart, Leaf, MapPin, MessageCircle, ShieldCheck, Star, Truck } from "lucide-react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { FollowButton } from "@/components/FollowButton";
@@ -215,6 +215,53 @@ function ListingPage() {
               <p className="text-sm whitespace-pre-line">{listing.description}</p>
             </div>
           )}
+
+          {/* Plats & leverans */}
+          <div className="rounded-xl border border-border bg-card p-3 space-y-2">
+            <h2 className="text-eyebrow text-muted-foreground">Plats & leverans</h2>
+            <div className="flex items-start gap-2 text-sm">
+              <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground shrink-0" />
+              <div>
+                <span className="text-muted-foreground">Finns i: </span>
+                <span className="font-medium">
+                  {listing.city}{listing.area ? `, ${listing.area}` : ""}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 text-sm">
+              {listing.delivery_method === "pickup" ? (
+                <Handshake className="mt-0.5 h-4 w-4 text-muted-foreground shrink-0" />
+              ) : (
+                <Truck className="mt-0.5 h-4 w-4 text-muted-foreground shrink-0" />
+              )}
+              <div>
+                <span className="text-muted-foreground">Leverans: </span>
+                <span className="font-medium">
+                  {listing.delivery_method === "shipping" && "Skickas"}
+                  {listing.delivery_method === "pickup" && "Lokal upphämtning"}
+                  {listing.delivery_method === "both" && "Skickas eller hämtas"}
+                </span>
+              </div>
+            </div>
+            {(listing.delivery_method === "shipping" || listing.delivery_method === "both") && (
+              <div className="text-sm text-muted-foreground pl-6">
+                Frakt:{" "}
+                <span className="text-foreground">
+                  {listing.shipping_price != null
+                    ? formatSEK(listing.shipping_price) + (listing.buyer_pays_shipping ? " (köparen betalar)" : " (säljaren betalar)")
+                    : listing.buyer_pays_shipping ? "Köparen betalar" : "Säljaren betalar"}
+                </span>
+                {listing.ships_within_days && (
+                  <> · Skickas inom {listing.ships_within_days === "1" ? "1 dag" : listing.ships_within_days + " dagar"}</>
+                )}
+              </div>
+            )}
+            {(listing.delivery_method === "pickup" || listing.delivery_method === "both") && (
+              <p className="text-xs text-muted-foreground pl-6">
+                Bestäm exakt mötesplats i chatten och träffas gärna på offentlig plats.
+              </p>
+            )}
+          </div>
 
           {/* Säljare */}
           {seller && (
