@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SellRouteImport } from './routes/sell'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -30,6 +31,11 @@ const SellRoute = SellRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MeRoute = MeRouteImport.update({
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRouteWithChildren
+  '/notifications': typeof NotificationsRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/inbox/$conversationId': typeof InboxConversationIdRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRouteWithChildren
+  '/notifications': typeof NotificationsRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/inbox/$conversationId': typeof InboxConversationIdRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRouteWithChildren
+  '/notifications': typeof NotificationsRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/inbox/$conversationId': typeof InboxConversationIdRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/login'
     | '/me'
+    | '/notifications'
     | '/search'
     | '/sell'
     | '/inbox/$conversationId'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/login'
     | '/me'
+    | '/notifications'
     | '/search'
     | '/sell'
     | '/inbox/$conversationId'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/login'
     | '/me'
+    | '/notifications'
     | '/search'
     | '/sell'
     | '/inbox/$conversationId'
@@ -176,6 +188,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   LoginRoute: typeof LoginRoute
   MeRoute: typeof MeRouteWithChildren
+  NotificationsRoute: typeof NotificationsRoute
   SearchRoute: typeof SearchRoute
   SellRoute: typeof SellRoute
   InboxConversationIdRoute: typeof InboxConversationIdRoute
@@ -198,6 +211,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/me': {
@@ -290,6 +310,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   LoginRoute: LoginRoute,
   MeRoute: MeRouteWithChildren,
+  NotificationsRoute: NotificationsRoute,
   SearchRoute: SearchRoute,
   SellRoute: SellRoute,
   InboxConversationIdRoute: InboxConversationIdRoute,

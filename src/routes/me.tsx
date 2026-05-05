@@ -4,40 +4,46 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Heart, Leaf, LogOut, Package, ShieldCheck, Star } from "lucide-react";
-import { badgeForSeller } from "@/lib/rewear";
+import { Bell, Heart, Leaf, LogOut, Package, ShieldCheck, Star, Users } from "lucide-react";
+import { computeSellerBadge, type SellerStatsLite } from "@/lib/rewear";
 
 export const Route = createFileRoute("/me")({
   component: MePage,
 });
 
+type Stats = SellerStatsLite & {
+  rating_count: number;
+  active_listings_count: number;
+  followers_count: number;
+  total_co2_saved: number;
+  rewear_score: number;
+};
+
 function MePage() {
   const { user, loading, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<{ full_name: string | null; city: string | null; avatar_url: string | null; rewear_score: number; is_verified: boolean } | null>(null);
-  const [stats, setStats] = useState({ active: 0, sold: 0, co2: 0, rating: 0, ratingCount: 0 });
+  const [profile, setProfile] = useState<{
+    full_name: string | null; city: string | null; avatar_url: string | null;
+    rewear_score: number; is_verified: boolean;
+  } | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: p } = await supabase.from("profiles").select("full_name, city, avatar_url, rewear_score, is_verified").eq("id", user.id).maybeSingle();
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("full_name, city, avatar_url, rewear_score, is_verified")
+        .eq("id", user.id)
+        .maybeSingle();
       setProfile(p as typeof profile);
 
-      const [active, sold, co2sold, reviews] = await Promise.all([
-        supabase.from("listings").select("id", { count: "exact", head: true }).eq("seller_id", user.id).eq("status", "active"),
-        supabase.from("listings").select("id", { count: "exact", head: true }).eq("seller_id", user.id).eq("status", "sold"),
-        supabase.from("listings").select("co2_saved_kg").eq("seller_id", user.id).eq("status", "sold"),
-        supabase.from("reviews").select("rating").eq("reviewee_id", user.id),
-      ]);
-      const co2 = ((co2sold.data ?? []) as Array<{ co2_saved_kg: number }>).reduce((acc, r) => acc + Number(r.co2_saved_kg ?? 0), 0);
-      const ratings = ((reviews.data ?? []) as Array<{ rating: number }>).map((r) => r.rating);
-      setStats({
-        active: active.count ?? 0,
-        sold: sold.count ?? 0,
-        co2,
-        rating: ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0,
-        ratingCount: ratings.length,
-      });
+      const { data: s } = await supabase
+        .from("seller_stats")
+        .select("first_listing_at, sold_count, average_rating, rating_count, active_listings_count, followers_count, total_co2_saved, rewear_score")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setStats(s as Stats);
     })();
   }, [user]);
 
@@ -55,7 +61,7 @@ function MePage() {
     );
   }
 
-  const badge = badgeForSeller(stats.sold, stats.rating);
+  const badge = computeSellerBadge(stats);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -77,31 +83,28 @@ function MePage() {
               {profile?.is_verified && <ShieldCheck className="h-4 w-4 text-primary" />}
             </div>
             <p className="text-xs text-muted-foreground">{profile?.city ?? user?.email}</p>
-            <span className="mt-1 inline-block text-eyebrow text-primary">{badge}</span>
+            {badge && <span className="mt-1 inline-block text-eyebrow text-primary">{badge}</span>}
           </div>
         </section>
 
         <section className="grid grid-cols-2 gap-3">
-          <Stat label="Rewear Score" value={profile?.rewear_score ?? 0} />
-          <Stat label="Aktiva annonser" value={stats.active} />
-          <Stat label="Sålda plagg" value={stats.sold} />
+          <Stat label="Rewear Score" value={stats?.rewear_score ?? profile?.rewear_score ?? 0} />
+          <Stat label="Aktiva annonser" value={stats?.active_listings_count ?? 0} />
+          <Stat label="Sålda plagg" value={stats?.sold_count ?? 0} />
+          <Stat label="Följare" value={stats?.followers_count ?? 0} />
           <Stat
             label="Betyg"
-            value={stats.ratingCount ? `${stats.rating.toFixed(1)}` : "–"}
-            sub={stats.ratingCount ? `${stats.ratingCount} omdömen` : undefined}
+            value={stats && stats.rating_count ? stats.average_rating.toFixed(1) : "–"}
+            sub={stats && stats.rating_count ? `${stats.rating_count} omdömen` : undefined}
           />
-          <div className="col-span-2 rounded-xl bg-primary/10 p-4">
-            <p className="text-eyebrow text-primary flex items-center gap-1">
-              <Leaf className="h-3 w-3" /> CO₂ sparad
-            </p>
-            <p className="mt-1 font-display text-3xl">{Math.round(stats.co2)} kg</p>
-            <p className="text-xs text-muted-foreground">Tack för att du säljer second hand.</p>
-          </div>
+          <Stat label="CO₂ sparad" value={`${Math.round(Number(stats?.total_co2_saved ?? 0))} kg`} />
         </section>
 
         <nav className="space-y-2">
           <RowLink to="/me/listings" icon={Package} label="Mina annonser" />
           <RowLink to="/me/favorites" icon={Heart} label="Sparade" />
+          <RowLink to="/notifications" icon={Bell} label="Notiser" />
+          <RowLink to="/inbox" icon={Users} label="Inkorg" />
           {isAdmin && <RowLink to="/admin" icon={Star} label="Adminpanel" />}
           <button
             onClick={async () => {
@@ -114,6 +117,11 @@ function MePage() {
             Logga ut
           </button>
         </nav>
+
+        <p className="pt-2 text-center text-xs text-muted-foreground">
+          <Leaf className="mr-1 inline h-3 w-3 text-primary" />
+          Tack för att du säljer second hand.
+        </p>
       </main>
       <BottomNav />
     </div>
@@ -130,7 +138,15 @@ function Stat({ label, value, sub }: { label: string; value: string | number; su
   );
 }
 
-function RowLink({ to, icon: Icon, label }: { to: "/me/listings" | "/me/favorites" | "/admin"; icon: typeof Heart; label: string }) {
+function RowLink({
+  to,
+  icon: Icon,
+  label,
+}: {
+  to: "/me/listings" | "/me/favorites" | "/notifications" | "/inbox" | "/admin";
+  icon: typeof Heart;
+  label: string;
+}) {
   return (
     <Link to={to} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm transition hover:bg-secondary">
       <Icon className="h-4 w-4" />
