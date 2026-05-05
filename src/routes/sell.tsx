@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { CategoryRow } from "@/lib/database.types";
 import { priceGuideRange, formatSEK } from "@/lib/rewear";
-import { MAIN_CATEGORIES, SUB_CATEGORIES, getSizeRule, showJeansSizes, isValidSizeForCategory, WAIST_SIZES, LENGTH_SIZES, type MainCategory } from "@/lib/taxonomy";
+import { MAIN_CATEGORIES, SUB_CATEGORIES, getSizeRule, jeansVisible , isValidSizeForCategory, WAIST_SIZES, LENGTH_SIZES, type MainCategory } from "@/lib/taxonomy";
 
 export const Route = createFileRoute("/sell")({
   component: SellPage,
@@ -107,7 +107,7 @@ function SellPage() {
   }
 
   const sizeInfo = useMemo(() => getSizeRule(mainCategory, subCategory), [mainCategory, subCategory]);
-  const jeansVisible = showJeansSizes(mainCategory, subCategory);
+  const jeansVisible = jeansVisible (mainCategory, subCategory);
 
   function validate(): Record<string, string> {
     const e: Record<string, string> = {};
@@ -212,8 +212,8 @@ function SellPage() {
           brand: brand || null,
           size: size || null,
           shoe_size: mainCategory === "Skor" ? size || null : null,
-          waist_size: showJeansSizes ? waistSize || null : null,
-          length_size: showJeansSizes ? lengthSize || null : null,
+          waist_size: jeansVisible ? waistSize || null : null,
+          length_size: jeansVisible ? lengthSize || null : null,
           condition,
           price_sek: priceNum,
           description: description || null,
@@ -433,7 +433,7 @@ function SellPage() {
                   {sizeInfo.sizes.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </Field>
-              {showJeansSizes && (
+              {jeansVisible && (
                 <>
                   <Field label="Midja (waist)">
                     <select className={inputCls()} value={waistSize} onChange={(e) => setWaistSize(e.target.value)}>
