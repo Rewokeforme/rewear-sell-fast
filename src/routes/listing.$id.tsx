@@ -39,6 +39,27 @@ function ListingPage() {
       });
   }, [id]);
 
+  // Räkna en visning per annons per webbläsarsession
+  useEffect(() => {
+    if (!id || typeof window === "undefined") return;
+    const key = `viewed:${id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    supabase.rpc("increment_listing_views", { _listing_id: id }).then(() => {
+      setListing((prev) => (prev ? { ...prev, views_count: (prev.views_count ?? 0) + 1 } : prev));
+    });
+  }, [id]);
+
+  // Hämta antal som sparat annonsen
+  useEffect(() => {
+    if (!id) return;
+    supabase
+      .from("favorites")
+      .select("listing_id", { count: "exact", head: true })
+      .eq("listing_id", id)
+      .then(({ count }) => setSavesCount(count ?? 0));
+  }, [id, saved]);
+
   useEffect(() => {
     if (!user || !listing) return;
     supabase
