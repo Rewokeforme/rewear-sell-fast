@@ -27,7 +27,7 @@ function ConversationPage() {
         .select("listing_id, listings(id, title, price_sek, listing_images(url))")
         .eq("id", conversationId)
         .maybeSingle();
-      if (conv) setListing((conv as { listings: typeof listing }).listings);
+      if (conv) setListing((conv as unknown as { listings: typeof listing }).listings);
 
       const { data: msgs } = await supabase
         .from("messages")

@@ -43,7 +43,7 @@ function AdminPage() {
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("listings").select("co2_saved_kg").eq("status", "sold"),
       ]);
-      setListings((l.data ?? []) as AdminListing[]);
+      setListings(((l.data ?? []) as unknown) as AdminListing[]);
       setUsers((u.data ?? []) as AdminUser[]);
       setReports((r.data ?? []) as AdminReport[]);
       setStats({

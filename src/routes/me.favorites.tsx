@@ -22,7 +22,7 @@ function FavoritesPage() {
         .from("favorites")
         .select("listing_id, listings(*, listing_images(*), profiles(id,full_name,city,avatar_url,rewear_score,is_verified), categories(slug,name_sv))")
         .eq("user_id", user.id);
-      setItems(((data ?? []) as Array<{ listings: ListingWithDetails | null }>).map((d) => d.listings).filter(Boolean) as ListingWithDetails[]);
+      setItems((((data ?? []) as unknown) as Array<{ listings: ListingWithDetails | null }>).map((d) => d.listings).filter(Boolean) as ListingWithDetails[]);
     })();
   }, [user]);
 
