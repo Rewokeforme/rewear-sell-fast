@@ -73,10 +73,8 @@ function PublicProfilePage() {
       .then(({ data }) => setBlocked(Boolean(data)));
   }, [user, userId]);
 
-  async function reportUser() {
+  async function submitReport(reason: string) {
     if (!user) return;
-    const reason = window.prompt("Beskriv kort varför du rapporterar användaren:");
-    if (!reason) return;
     const { error } = await supabase.from("user_reports").insert({
       reporter_id: user.id,
       reported_user_id: userId,
