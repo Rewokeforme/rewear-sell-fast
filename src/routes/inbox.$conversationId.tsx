@@ -151,12 +151,14 @@ function ConversationPage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // Mark incoming as read
+  // Mark incoming as read (and optimistically update locally)
   useEffect(() => {
     if (!user || messages.length === 0) return;
     const unreadIds = messages.filter((m) => m.sender_id !== user.id && !m.read_at).map((m) => m.id);
     if (unreadIds.length === 0) return;
-    void supabase.from("messages").update({ read_at: new Date().toISOString() }).in("id", unreadIds);
+    const now = new Date().toISOString();
+    setMessages((arr) => arr.map((m) => (unreadIds.includes(m.id) ? { ...m, read_at: now } : m)));
+    void supabase.from("messages").update({ read_at: now }).in("id", unreadIds);
   }, [user, messages]);
 
   const isSeller = useMemo(() => Boolean(conv && user && conv.seller_id === user.id), [conv, user]);
@@ -415,8 +417,17 @@ function ConversationPage() {
                     const mine = m.sender_id === user?.id;
                     const prev = g.items[i - 1];
                     const grouped = prev && prev.sender_id === m.sender_id;
+                    const senderName = mine
+                      ? "Du"
+                      : counterpart?.full_name ?? "Användare";
                     return (
-                      <div key={m.id} className={cn("group/msg flex", mine ? "justify-end" : "justify-start", grouped ? "mt-0.5" : "mt-2")}>
+                      <div key={m.id} className={cn("group/msg flex flex-col", mine ? "items-end" : "items-start", grouped ? "mt-0.5" : "mt-3")}>
+                        {!grouped && (
+                          <p className={cn("mb-1 px-1 text-[11px] font-medium text-muted-foreground", mine ? "text-right" : "text-left")}>
+                            {senderName}
+                          </p>
+                        )}
+                        <div className={cn("flex w-full", mine ? "justify-end" : "justify-start")}>
                         <div className={cn("flex max-w-[75%] flex-col", mine ? "items-end" : "items-start")}>
                           <div className={cn("flex items-center gap-1.5", mine ? "flex-row-reverse" : "flex-row")}>
                             <div
@@ -444,6 +455,7 @@ function ConversationPage() {
                             {format(new Date(m.created_at), "HH:mm")}
                             {mine && (m.read_at ? " · Läst" : " · Skickat")}
                           </p>
+                        </div>
                         </div>
                       </div>
                     );
