@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth";
+import { Footer } from "@/components/Footer";
 
 import appCss from "../styles.css?url";
 
@@ -85,6 +86,7 @@ function RootComponent() {
   return (
     <AuthProvider>
       <Outlet />
+      <Footer />
       <Toaster position="top-center" richColors />
     </AuthProvider>
   );
