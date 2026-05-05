@@ -374,3 +374,29 @@ function ListingPage() {
 function Chip({ children }: { children: React.ReactNode }) {
   return <span className="rounded-full border border-border bg-card px-3 py-1 text-xs">{children}</span>;
 }
+
+function StatPill({
+  icon,
+  value,
+  label,
+  highlight = false,
+}: {
+  icon: React.ReactNode;
+  value: number;
+  label: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition ${
+        highlight
+          ? "border-accent/30 bg-accent/10 text-accent"
+          : "border-border bg-card text-muted-foreground"
+      }`}
+    >
+      <span className={highlight ? "text-accent" : "text-foreground/70"}>{icon}</span>
+      <span className="font-medium tabular-nums text-foreground">{value.toLocaleString("sv-SE")}</span>
+      <span>{label}</span>
+    </div>
+  );
+}
