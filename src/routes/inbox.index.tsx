@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -8,7 +8,8 @@ import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { formatSEK } from "@/lib/rewear";
-import { BadgeCheck, Sparkles, ShieldCheck, Lock } from "lucide-react";
+import { BadgeCheck, Sparkles, ShieldCheck, Lock, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 type AdminMsgItem = {
   id: string;
