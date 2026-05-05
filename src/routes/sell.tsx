@@ -205,10 +205,15 @@ function SellPage() {
         .from("listings")
         .insert({
           seller_id: user.id,
-          category_id: categoryId,
+          category_id: categoryId || null,
+          main_category: mainCategory || null,
+          sub_category: subCategory || null,
           title,
           brand: brand || null,
           size: size || null,
+          shoe_size: mainCategory === "Skor" ? size || null : null,
+          waist_size: showJeansSizes ? waistSize || null : null,
+          length_size: showJeansSizes ? lengthSize || null : null,
           condition,
           price_sek: priceNum,
           description: description || null,
