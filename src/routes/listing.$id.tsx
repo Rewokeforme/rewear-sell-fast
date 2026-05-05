@@ -357,7 +357,7 @@ function ListingPage() {
           </div>
 
           <button
-            onClick={reportListing}
+            onClick={openReport}
             className="mt-2 flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
           >
             <Flag className="h-3 w-3" /> Rapportera annonsen
@@ -365,6 +365,7 @@ function ListingPage() {
         </div>
       </main>
       <BottomNav />
+      <ReportDialog open={reportOpen} onOpenChange={setReportOpen} onSubmit={submitReport} />
     </div>
   );
 }
