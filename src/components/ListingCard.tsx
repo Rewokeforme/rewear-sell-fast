@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, Leaf } from "lucide-react";
+import { Heart, Leaf, MapPin, Truck, Handshake } from "lucide-react";
 import { useState } from "react";
 import { formatSEK } from "@/lib/rewear";
 import { cn } from "@/lib/utils";
