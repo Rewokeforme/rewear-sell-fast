@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { CategoryRow } from "@/lib/database.types";
 import { priceGuideRange, formatSEK } from "@/lib/rewear";
-import { MAIN_CATEGORIES, SUB_CATEGORIES, sizesForCategory, isJeans, WAIST_SIZES, LENGTH_SIZES, type MainCategory } from "@/lib/taxonomy";
+import { MAIN_CATEGORIES, SUB_CATEGORIES, getSizeRule, showJeansSizes, isValidSizeForCategory, WAIST_SIZES, LENGTH_SIZES, type MainCategory } from "@/lib/taxonomy";
 
 export const Route = createFileRoute("/sell")({
   component: SellPage,
@@ -106,8 +106,8 @@ function SellPage() {
     if (!price) setPrice("950");
   }
 
-  const sizeInfo = useMemo(() => sizesForCategory(mainCategory, subCategory), [mainCategory, subCategory]);
-  const showJeansSizes = isJeans(subCategory);
+  const sizeInfo = useMemo(() => getSizeRule(mainCategory, subCategory), [mainCategory, subCategory]);
+  const jeansVisible = showJeansSizes(mainCategory, subCategory);
 
   function validate(): Record<string, string> {
     const e: Record<string, string> = {};
@@ -167,10 +167,19 @@ function SellPage() {
   }, []);
 
   // Reset sub-category when main changes
+  useEffect(() => { setSubCategory(""); }, [mainCategory]);
+
+  // Nollställ storlek om den inte längre är giltig för vald kategori
   useEffect(() => {
-    setSubCategory("");
-    setSize("");
-  }, [mainCategory]);
+    if (size && !isValidSizeForCategory(mainCategory, subCategory, size)) {
+      setSize("");
+    }
+    if (!jeansVisible) {
+      if (waistSize) setWaistSize("");
+      if (lengthSize) setLengthSize("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mainCategory, subCategory]);
 
 
   function openPreview() {
@@ -212,8 +221,8 @@ function SellPage() {
           brand: brand || null,
           size: size || null,
           shoe_size: mainCategory === "Skor" ? size || null : null,
-          waist_size: showJeansSizes ? waistSize || null : null,
-          length_size: showJeansSizes ? lengthSize || null : null,
+          waist_size: jeansVisible ? waistSize || null : null,
+          length_size: jeansVisible ? lengthSize || null : null,
           condition,
           price_sek: priceNum,
           description: description || null,
@@ -433,7 +442,7 @@ function SellPage() {
                   {sizeInfo.sizes.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </Field>
-              {showJeansSizes && (
+              {jeansVisible && (
                 <>
                   <Field label="Midja (waist)">
                     <select className={inputCls()} value={waistSize} onChange={(e) => setWaistSize(e.target.value)}>

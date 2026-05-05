@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { ListingCard } from "@/components/ListingCard";
 import { supabase } from "@/integrations/supabase/client";
 import type { ListingWithDetails } from "@/lib/database.types";
-import { MAIN_CATEGORIES, SUB_CATEGORIES, sizesForCategory, type MainCategory } from "@/lib/taxonomy";
+import { MAIN_CATEGORIES, SUB_CATEGORIES, getSizeRule, type MainCategory } from "@/lib/taxonomy";
 
 export const Route = createFileRoute("/search")({
   component: SearchPage,
@@ -31,7 +31,7 @@ function SearchPage() {
   // Reset sub-category when main changes
   useEffect(() => { setSubCategory(""); setSize(""); }, [mainCategory]);
 
-  const sizeInfo = useMemo(() => sizesForCategory(mainCategory, subCategory), [mainCategory, subCategory]);
+  const sizeInfo = useMemo(() => getSizeRule(mainCategory, subCategory), [mainCategory, subCategory]);
 
   useEffect(() => {
     setLoading(true);
