@@ -154,6 +154,7 @@ function MePage() {
         <nav className="space-y-2">
           <RowLink to="/me/listings" icon={Package} label="Mina annonser" />
           <RowLink to="/me/favorites" icon={Heart} label="Sparade" />
+          <RowLink to="/me/following" icon={Users} label="Säljare jag följer" />
           <RowLink to="/notifications" icon={Bell} label="Notiser" />
           <RowLink to="/inbox" icon={Users} label="Inkorg" />
           {isAdmin && <RowLink to="/admin" icon={Star} label="Adminpanel" />}
