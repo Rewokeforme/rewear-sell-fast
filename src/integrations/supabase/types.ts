@@ -185,13 +185,18 @@ export type Database = {
           delivery_method: string
           description: string | null
           id: string
+          length_size: string | null
+          main_category: string | null
           price_sek: number
           seller_id: string
           shipping_price: number | null
           ships_within_days: string | null
+          shoe_size: string | null
           size: string | null
           status: Database["public"]["Enums"]["listing_status"]
+          sub_category: string | null
           title: string
+          waist_size: string | null
         }
         Insert: {
           ai_detected_brand?: string | null
@@ -208,13 +213,18 @@ export type Database = {
           delivery_method: string
           description?: string | null
           id?: string
+          length_size?: string | null
+          main_category?: string | null
           price_sek: number
           seller_id: string
           shipping_price?: number | null
           ships_within_days?: string | null
+          shoe_size?: string | null
           size?: string | null
           status?: Database["public"]["Enums"]["listing_status"]
+          sub_category?: string | null
           title: string
+          waist_size?: string | null
         }
         Update: {
           ai_detected_brand?: string | null
@@ -231,13 +241,18 @@ export type Database = {
           delivery_method?: string
           description?: string | null
           id?: string
+          length_size?: string | null
+          main_category?: string | null
           price_sek?: number
           seller_id?: string
           shipping_price?: number | null
           ships_within_days?: string | null
+          shoe_size?: string | null
           size?: string | null
           status?: Database["public"]["Enums"]["listing_status"]
+          sub_category?: string | null
           title?: string
+          waist_size?: string | null
         }
         Relationships: [
           {

@@ -5,25 +5,33 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { ListingCard } from "@/components/ListingCard";
 import { supabase } from "@/integrations/supabase/client";
-import type { CategoryRow, ListingWithDetails } from "@/lib/database.types";
+import type { ListingWithDetails } from "@/lib/database.types";
+import { MAIN_CATEGORIES, SUB_CATEGORIES, sizesForCategory, type MainCategory } from "@/lib/taxonomy";
 
 export const Route = createFileRoute("/search")({
   component: SearchPage,
 });
 
+const CONDITIONS = ["Nyskick", "Mycket bra", "Bra", "Sliten"];
+
 function SearchPage() {
   const [q, setQ] = useState("");
-  const [categories, setCategories] = useState<CategoryRow[]>([]);
-  const [catId, setCatId] = useState<string>("");
+  const [mainCategory, setMainCategory] = useState<MainCategory | "">("");
+  const [subCategory, setSubCategory] = useState("");
   const [size, setSize] = useState("");
+  const [brand, setBrand] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [condition, setCondition] = useState("");
+  const [city, setCity] = useState("");
+  const [delivery, setDelivery] = useState("");
   const [sort, setSort] = useState<"new" | "low" | "high">("new");
   const [results, setResults] = useState<ListingWithDetails[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    supabase.from("categories").select("*").order("sort_order").then(({ data }) => setCategories(data ?? []));
-  }, []);
+  // Reset sub-category when main changes
+  useEffect(() => { setSubCategory(""); setSize(""); }, [mainCategory]);
+
+  const sizeInfo = useMemo(() => sizesForCategory(mainCategory, subCategory), [mainCategory, subCategory]);
 
   useEffect(() => {
     setLoading(true);
@@ -34,9 +42,14 @@ function SearchPage() {
       .limit(60);
 
     if (q) query = query.or(`title.ilike.%${q}%,brand.ilike.%${q}%`);
-    if (catId) query = query.eq("category_id", catId);
+    if (mainCategory) query = query.eq("main_category", mainCategory);
+    if (subCategory) query = query.eq("sub_category", subCategory);
     if (size) query = query.eq("size", size);
+    if (brand) query = query.ilike("brand", `%${brand}%`);
     if (maxPrice) query = query.lte("price_sek", Number(maxPrice));
+    if (condition) query = query.eq("condition", condition);
+    if (city) query = query.ilike("city", `%${city}%`);
+    if (delivery) query = query.eq("delivery_method", delivery);
     if (sort === "new") query = query.order("created_at", { ascending: false });
     if (sort === "low") query = query.order("price_sek", { ascending: true });
     if (sort === "high") query = query.order("price_sek", { ascending: false });
@@ -48,9 +61,9 @@ function SearchPage() {
       });
     }, 200);
     return () => clearTimeout(t);
-  }, [q, catId, size, maxPrice, sort]);
+  }, [q, mainCategory, subCategory, size, brand, maxPrice, condition, city, delivery, sort]);
 
-  const sizes = useMemo(() => ["XS", "S", "M", "L", "XL", "36", "38", "40"], []);
+  const chip = "rounded-full border border-border bg-card px-3 py-1.5 text-xs outline-none focus:border-ring";
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -66,23 +79,33 @@ function SearchPage() {
           />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto -mx-4 px-4">
-          <select className="rounded-full border border-border bg-card px-3 py-1.5 text-xs" value={catId} onChange={(e) => setCatId(e.target.value)}>
-            <option value="">Kategori</option>
-            {categories.map((c) => <option key={c.id} value={c.id}>{c.name_sv}</option>)}
+        <div className="flex flex-wrap gap-2">
+          <select className={chip} value={mainCategory} onChange={(e) => setMainCategory(e.target.value as MainCategory | "")}>
+            <option value="">Huvudkategori</option>
+            {MAIN_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
-          <select className="rounded-full border border-border bg-card px-3 py-1.5 text-xs" value={size} onChange={(e) => setSize(e.target.value)}>
+          <select className={chip} value={subCategory} onChange={(e) => setSubCategory(e.target.value)} disabled={!mainCategory}>
+            <option value="">Underkategori</option>
+            {mainCategory && SUB_CATEGORIES[mainCategory].map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select className={chip} value={size} onChange={(e) => setSize(e.target.value)}>
             <option value="">Storlek</option>
-            {sizes.map((s) => <option key={s} value={s}>{s}</option>)}
+            {sizeInfo.sizes.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          <input
-            type="number"
-            placeholder="Max kr"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-            className="w-24 rounded-full border border-border bg-card px-3 py-1.5 text-xs"
-          />
-          <select className="rounded-full border border-border bg-card px-3 py-1.5 text-xs ml-auto" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
+          <input className={`${chip} w-28`} placeholder="Märke" value={brand} onChange={(e) => setBrand(e.target.value)} />
+          <input className={`${chip} w-24`} type="number" placeholder="Max kr" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
+          <select className={chip} value={condition} onChange={(e) => setCondition(e.target.value)}>
+            <option value="">Skick</option>
+            {CONDITIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <input className={`${chip} w-28`} placeholder="Stad" value={city} onChange={(e) => setCity(e.target.value)} />
+          <select className={chip} value={delivery} onChange={(e) => setDelivery(e.target.value)}>
+            <option value="">Leverans</option>
+            <option value="shipping">Skickas</option>
+            <option value="pickup">Hämtas</option>
+            <option value="both">Båda</option>
+          </select>
+          <select className={`${chip} ml-auto`} value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
             <option value="new">Nyast</option>
             <option value="low">Lägst pris</option>
             <option value="high">Högst pris</option>

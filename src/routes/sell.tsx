@@ -9,13 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { CategoryRow } from "@/lib/database.types";
 import { priceGuideRange, formatSEK } from "@/lib/rewear";
+import { MAIN_CATEGORIES, SUB_CATEGORIES, sizesForCategory, isJeans, WAIST_SIZES, LENGTH_SIZES, type MainCategory } from "@/lib/taxonomy";
 
 export const Route = createFileRoute("/sell")({
   component: SellPage,
 });
 
 const CONDITIONS = ["Nyskick", "Mycket bra", "Bra", "Sliten"] as const;
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "34", "36", "38", "40", "42", "44"];
 
 const DRAFT_KEY = "rewear:sell:draft";
 
@@ -28,9 +28,13 @@ function SellPage() {
   const [previews, setPreviews] = useState<string[]>([]);
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [categoryId, setCategoryId] = useState<string>("");
+  const [mainCategory, setMainCategory] = useState<MainCategory | "">("");
+  const [subCategory, setSubCategory] = useState<string>("");
   const [brand, setBrand] = useState("");
   const [title, setTitle] = useState("");
   const [size, setSize] = useState("");
+  const [waistSize, setWaistSize] = useState("");
+  const [lengthSize, setLengthSize] = useState("");
   const [condition, setCondition] = useState<string>(CONDITIONS[1]);
   const [price, setPrice] = useState<string>("");
   const [description, setDescription] = useState("");
@@ -102,13 +106,17 @@ function SellPage() {
     if (!price) setPrice("950");
   }
 
+  const sizeInfo = useMemo(() => sizesForCategory(mainCategory, subCategory), [mainCategory, subCategory]);
+  const showJeansSizes = isJeans(subCategory);
+
   function validate(): Record<string, string> {
     const e: Record<string, string> = {};
     if (files.length === 0) e.images = "Lägg till minst en bild.";
     if (!brand.trim()) e.brand = "Ange märke.";
     if (!title.trim()) e.title = "Ange titel.";
-    if (!categoryId) e.categoryId = "Välj kategori.";
-    if (!size) e.size = "Välj storlek.";
+    if (!mainCategory) e.mainCategory = "Välj huvudkategori.";
+    if (mainCategory && !subCategory) e.subCategory = "Välj underkategori.";
+    if (!sizeInfo.optional && !size) e.size = "Välj storlek.";
     if (!condition) e.condition = "Välj skick.";
     const priceNum = Number(price);
     if (!price || !Number.isFinite(priceNum) || priceNum <= 0) e.price = "Ange ett pris över 0.";
@@ -117,12 +125,12 @@ function SellPage() {
     return e;
   }
 
-  const liveErrors = useMemo(() => (submitAttempted ? validate() : errors), [submitAttempted, errors, files, brand, title, categoryId, size, condition, price, city, deliveryMethod]);
+  const liveErrors = useMemo(() => (submitAttempted ? validate() : errors), [submitAttempted, errors, files, brand, title, mainCategory, subCategory, size, condition, price, city, deliveryMethod, sizeInfo]);
 
   function saveDraft() {
     try {
       const draft = {
-        brand, title, categoryId, size, condition, price, description,
+        brand, title, categoryId, mainCategory, subCategory, size, waistSize, lengthSize, condition, price, description,
         city, area, deliveryMethod, buyerPaysShipping, shippingPrice, shipsWithin,
       };
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -141,7 +149,11 @@ function SellPage() {
       if (d.brand) setBrand(d.brand);
       if (d.title) setTitle(d.title);
       if (d.categoryId) setCategoryId(d.categoryId);
+      if (d.mainCategory) setMainCategory(d.mainCategory);
+      if (d.subCategory) setSubCategory(d.subCategory);
       if (d.size) setSize(d.size);
+      if (d.waistSize) setWaistSize(d.waistSize);
+      if (d.lengthSize) setLengthSize(d.lengthSize);
       if (d.condition) setCondition(d.condition);
       if (d.price) setPrice(d.price);
       if (d.description) setDescription(d.description);
@@ -153,6 +165,13 @@ function SellPage() {
       if (d.shipsWithin) setShipsWithin(d.shipsWithin);
     } catch { /* ignore */ }
   }, []);
+
+  // Reset sub-category when main changes
+  useEffect(() => {
+    setSubCategory("");
+    setSize("");
+  }, [mainCategory]);
+
 
   function openPreview() {
     setSubmitAttempted(true);
@@ -186,10 +205,15 @@ function SellPage() {
         .from("listings")
         .insert({
           seller_id: user.id,
-          category_id: categoryId,
+          category_id: categoryId || null,
+          main_category: mainCategory || null,
+          sub_category: subCategory || null,
           title,
           brand: brand || null,
           size: size || null,
+          shoe_size: mainCategory === "Skor" ? size || null : null,
+          waist_size: showJeansSizes ? waistSize || null : null,
+          length_size: showJeansSizes ? lengthSize || null : null,
           condition,
           price_sek: priceNum,
           description: description || null,
@@ -382,20 +406,49 @@ function SellPage() {
               <Field label="Titel" full error={liveErrors.title}>
                 <input className={inputCls(liveErrors.title)} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Mörkblå ulljacka" />
               </Field>
-              <Field label="Kategori" error={liveErrors.categoryId}>
-                <select className={inputCls(liveErrors.categoryId)} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+              <Field label="Huvudkategori" error={liveErrors.mainCategory}>
+                <select
+                  className={inputCls(liveErrors.mainCategory)}
+                  value={mainCategory}
+                  onChange={(e) => setMainCategory(e.target.value as MainCategory | "")}
+                >
                   <option value="">Välj…</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name_sv}</option>
-                  ))}
+                  {MAIN_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </Field>
-              <Field label="Storlek" error={liveErrors.size}>
+              <Field label="Underkategori" error={liveErrors.subCategory}>
+                <select
+                  className={inputCls(liveErrors.subCategory)}
+                  value={subCategory}
+                  onChange={(e) => setSubCategory(e.target.value)}
+                  disabled={!mainCategory}
+                >
+                  <option value="">{mainCategory ? "Välj…" : "Välj huvudkategori först"}</option>
+                  {mainCategory && SUB_CATEGORIES[mainCategory].map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </Field>
+              <Field label={sizeInfo.label} error={liveErrors.size}>
                 <select className={inputCls(liveErrors.size)} value={size} onChange={(e) => setSize(e.target.value)}>
-                  <option value="">Välj…</option>
-                  {SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  <option value="">{sizeInfo.optional ? "Valfritt" : "Välj…"}</option>
+                  {sizeInfo.sizes.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </Field>
+              {showJeansSizes && (
+                <>
+                  <Field label="Midja (waist)">
+                    <select className={inputCls()} value={waistSize} onChange={(e) => setWaistSize(e.target.value)}>
+                      <option value="">Välj…</option>
+                      {WAIST_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="Längd (length)">
+                    <select className={inputCls()} value={lengthSize} onChange={(e) => setLengthSize(e.target.value)}>
+                      <option value="">Välj…</option>
+                      {LENGTH_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </Field>
+                </>
+              )}
               <Field label="Skick" error={liveErrors.condition}>
                 <select className={inputCls(liveErrors.condition)} value={condition} onChange={(e) => setCondition(e.target.value)}>
                   {CONDITIONS.map((c) => <option key={c} value={c}>{c}</option>)}
