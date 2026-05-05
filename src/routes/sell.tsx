@@ -833,17 +833,31 @@ function SellPage() {
 
                 {user && (
                   <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-                    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-muted text-sm font-medium">
-                      {(user.user_metadata?.full_name as string | undefined)?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? "?"}
+                    <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-muted text-sm font-medium">
+                      {sellerAvatarUrl ? (
+                        <img src={sellerAvatarUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        sellerInitial
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="truncate text-sm font-medium">
-                          {(user.user_metadata?.full_name as string | undefined) ?? user.email ?? "Du"}
-                        </p>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <p className="truncate text-sm font-medium">{sellerName}</p>
                         <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                        {sellerBadge && (
+                          <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground">
+                            {sellerBadge}
+                          </span>
+                        )}
                       </div>
-                      <p className="text-xs text-muted-foreground">Säljare · ny annons</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {sellerStats && sellerStats.average_rating > 0
+                          ? `★ ${sellerStats.average_rating.toFixed(1)}`
+                          : "Ingen recension än"}
+                        {sellerStats && sellerStats.sold_count > 0
+                          ? ` · ${sellerStats.sold_count} sålda plagg`
+                          : ""}
+                      </p>
                     </div>
                   </div>
                 )}
