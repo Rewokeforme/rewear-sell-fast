@@ -312,6 +312,111 @@ function SellPage() {
             )}
           </section>
 
+          {/* Plats & leverans */}
+          <section>
+            <SectionTitle index={4}>Plats & leverans</SectionTitle>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <Field label="Stad" full>
+                <input
+                  className="input"
+                  required
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="Ex. Stockholm, Göteborg, Malmö"
+                  maxLength={80}
+                />
+              </Field>
+              <Field label="Område (valfritt)" full>
+                <input
+                  className="input"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  placeholder="Ex. Södermalm, Majorna, Hisingen"
+                  maxLength={80}
+                />
+              </Field>
+            </div>
+
+            <div className="mt-4">
+              <span className="mb-2 block text-xs font-medium text-muted-foreground">Leveranssätt</span>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { v: "shipping", label: "Skickas", icon: Truck },
+                  { v: "pickup", label: "Hämtas", icon: Handshake },
+                  { v: "both", label: "Både", icon: MapPin },
+                ] as const).map(({ v, label, icon: Icon }) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setDeliveryMethod(v)}
+                    className={`flex flex-col items-center gap-1 rounded-xl border px-3 py-3 text-xs font-medium transition ${
+                      deliveryMethod === v
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-card text-foreground hover:border-foreground/40"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {showShipping && (
+              <div className="mt-4 space-y-3 rounded-xl border border-border bg-card p-3">
+                <p className="text-eyebrow text-muted-foreground">Frakt</p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBuyerPaysShipping(true)}
+                    className={`flex-1 rounded-full border px-3 py-2 text-xs ${buyerPaysShipping ? "border-foreground bg-foreground text-background" : "border-border"}`}
+                  >
+                    Köparen betalar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBuyerPaysShipping(false)}
+                    className={`flex-1 rounded-full border px-3 py-2 text-xs ${!buyerPaysShipping ? "border-foreground bg-foreground text-background" : "border-border"}`}
+                  >
+                    Säljaren betalar
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Fraktpris (valfritt)">
+                    <input
+                      className="input"
+                      type="number"
+                      min={0}
+                      value={shippingPrice}
+                      onChange={(e) => setShippingPrice(e.target.value)}
+                      placeholder="Ex. 59"
+                    />
+                  </Field>
+                  <Field label="Skickas inom">
+                    <select
+                      className="input"
+                      value={shipsWithin}
+                      onChange={(e) => setShipsWithin(e.target.value as "1" | "2-3" | "4-7")}
+                    >
+                      <option value="1">1 dag</option>
+                      <option value="2-3">2–3 dagar</option>
+                      <option value="4-7">4–7 dagar</option>
+                    </select>
+                  </Field>
+                </div>
+              </div>
+            )}
+
+            {showPickup && (
+              <div className="mt-3 flex gap-2 rounded-xl bg-secondary p-3 text-xs text-muted-foreground">
+                <Info className="h-4 w-4 shrink-0 text-foreground/70" />
+                <p>
+                  Visa bara stad eller område. Bestäm exakt mötesplats i chatten och träffas gärna på offentlig plats.
+                </p>
+              </div>
+            )}
+          </section>
+
           <button
             type="submit"
             disabled={busy}
