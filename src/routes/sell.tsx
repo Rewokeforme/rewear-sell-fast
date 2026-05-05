@@ -275,35 +275,44 @@ function SellPage() {
               Första bilden visas som huvudbild i annonsen.
             </p>
 
+            <input
+              ref={fileInput}
+              type="file"
+              accept="image/*"
+              multiple
+              className="sr-only"
+              onChange={(e) => {
+                onFiles(e.target.files);
+                e.target.value = "";
+              }}
+            />
+
             <div className="mt-3 grid grid-cols-4 grid-rows-2 gap-2 sm:gap-3">
               {/* Huvudbild — stor, spänner 2x2 */}
-              <div className="col-span-2 row-span-2">
-                {previews[0] ? (
-                  <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
-                    <img src={previews[0]} alt="Huvudbild" className="h-full w-full object-cover" />
-                    <span className="absolute left-2 top-2 rounded-full bg-foreground/90 px-2 py-0.5 text-[10px] font-medium text-background">
-                      Huvudbild
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => removeImage(0)}
-                      className="absolute right-2 top-2 rounded-full bg-background/90 p-1.5"
-                      aria-label="Ta bort bild"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ) : (
+              {previews[0] ? (
+                <div className="relative col-span-2 row-span-2 aspect-square overflow-hidden rounded-xl bg-muted">
+                  <img src={previews[0]} alt="Huvudbild" className="h-full w-full object-cover" />
+                  <span className="absolute left-2 top-2 rounded-full bg-foreground/90 px-2 py-0.5 text-[10px] font-medium text-background">
+                    Huvudbild
+                  </span>
                   <button
                     type="button"
-                    onClick={() => fileInput.current?.click()}
-                    className={`flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed text-muted-foreground transition hover:border-foreground/40 ${liveErrors.images ? "border-destructive/60 bg-destructive/5" : "border-border"}`}
+                    onClick={() => removeImage(0)}
+                    className="absolute right-2 top-2 rounded-full bg-background/90 p-1.5"
+                    aria-label="Ta bort bild"
                   >
-                    <Camera className="h-6 w-6" />
-                    <span className="text-xs font-medium">Lägg till huvudbild</span>
+                    <X className="h-3.5 w-3.5" />
                   </button>
-                )}
-              </div>
+                </div>
+              ) : (
+                <label
+                  className={`col-span-2 row-span-2 flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed text-muted-foreground transition hover:border-foreground/40 ${liveErrors.images ? "border-destructive/60 bg-destructive/5" : "border-border"}`}
+                  onClick={() => fileInput.current?.click()}
+                >
+                  <Camera className="h-6 w-6" />
+                  <span className="text-xs font-medium">Lägg till huvudbild</span>
+                </label>
+              )}
 
               {/* 4 mindre slots */}
               {[1, 2, 3, 4].map((slot) => {
@@ -323,31 +332,23 @@ function SellPage() {
                     </div>
                   );
                 }
-                const canAdd = files.length >= slot; // only show + on next available slot? allow any
+                const disabled = !hasImages && slot > 1;
                 return (
-                  <button
+                  <label
                     key={slot}
-                    type="button"
-                    disabled={!hasImages && slot > 1}
-                    onClick={() => fileInput.current?.click()}
-                    className="flex aspect-square items-center justify-center rounded-lg border-2 border-dashed border-border text-muted-foreground transition hover:border-foreground/40 disabled:cursor-not-allowed disabled:opacity-40"
+                    onClick={(e) => {
+                      if (disabled) {
+                        e.preventDefault();
+                        return;
+                      }
+                      fileInput.current?.click();
+                    }}
+                    className={`flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-border text-muted-foreground transition hover:border-foreground/40 ${disabled ? "cursor-not-allowed opacity-40" : ""}`}
                   >
                     <Camera className="h-4 w-4" />
-                  </button>
+                  </label>
                 );
               })}
-
-              <input
-                ref={fileInput}
-                type="file"
-                accept="image/*"
-                multiple
-                hidden
-                onChange={(e) => {
-                  onFiles(e.target.files);
-                  e.target.value = "";
-                }}
-              />
             </div>
             {liveErrors.images && <FieldError>{liveErrors.images}</FieldError>}
           </section>
