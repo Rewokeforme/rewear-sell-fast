@@ -14,6 +14,7 @@ import {
   ExternalLink,
   User as UserIcon,
   AlertTriangle,
+  Trash2,
 } from "lucide-react";
 import { formatSEK } from "@/lib/rewear";
 import { buyerQuickReplies, sellerQuickReplies, detectFraudRisk } from "@/lib/quickReplies";
