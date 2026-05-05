@@ -157,7 +157,7 @@ function ListingPage() {
 
   const seller = listing.profiles;
   const sellerBadge = computeSellerBadge(stats);
-  const images = listing.listing_images ?? [];
+  const images = [...(listing.listing_images ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
 
   return (
     <div className="min-h-screen bg-background pb-32">
