@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Camera, Sparkles, Tag, Send, Bot, Leaf, ShieldCheck } from "lucide-react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { ListingCard } from "@/components/ListingCard";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import type { CategoryRow, ListingWithDetails } from "@/lib/database.types";
+import { demoListings, trendingBrands } from "@/lib/demoListings";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -57,74 +59,207 @@ function HomePage() {
     });
   }, [activeCat]);
 
+  const showDemo = !loading && listings.length === 0;
+  const feed = showDemo ? demoListings : listings;
+
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-24 md:pb-12">
       <Header />
-      <main className="mx-auto max-w-2xl px-4 py-4 space-y-6">
-        <section className="pt-2">
-          <p className="text-eyebrow text-primary">Skandinavisk second hand</p>
-          <h1 className="mt-1 font-display text-3xl leading-[1.1]">
-            Sälj dina kläder på{" "}
-            <span className="text-primary">60 sekunder</span>
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Ladda upp en bild. AI föreslår märke, pris och beskrivning.
-          </p>
-          <Link
-            to="/sell"
-            className="mt-4 inline-flex items-center rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground shadow-card transition hover:opacity-90"
-          >
-            Skapa annons
-          </Link>
+      <main className="mx-auto max-w-6xl px-4 py-6 md:py-10 space-y-12 md:space-y-16">
+        {/* HERO */}
+        <section className="grid gap-8 md:grid-cols-2 md:items-center">
+          <div>
+            <p className="text-eyebrow text-primary">Skandinavisk second hand</p>
+            <h1 className="mt-3 font-display text-4xl leading-[1.05] md:text-6xl">
+              Sälj dina kläder på{" "}
+              <span className="text-primary italic">60 sekunder</span>
+            </h1>
+            <p className="mt-4 max-w-md text-base text-muted-foreground">
+              Ladda upp en bild. Vår AI hittar märket, föreslår priset och skriver
+              annonsen åt dig. Du behöver bara godkänna.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                to="/sell"
+                className="inline-flex items-center rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background shadow-card transition hover:opacity-90"
+              >
+                Skapa annons med AI
+              </Link>
+              <Link
+                to="/search"
+                className="inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-medium transition hover:border-foreground/40"
+              >
+                Utforska plagg
+              </Link>
+            </div>
+          </div>
+
+          {/* AI Upload card */}
+          <AiUploadCard />
         </section>
 
-        {!isSupabaseConfigured && (
-          <div className="rounded-lg border border-dashed border-accent/40 bg-accent/10 p-4 text-sm">
-            <p className="font-medium">Supabase är inte konfigurerat ännu.</p>
-            <p className="mt-1 text-muted-foreground">
-              Lägg till <code>VITE_SUPABASE_URL</code> och{" "}
-              <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> i en <code>.env</code> och kör{" "}
-              <code>db/schema.sql</code> i Supabase SQL Editor.
-            </p>
-          </div>
-        )}
+        {/* Social proof */}
+        <section className="grid gap-3 sm:grid-cols-3">
+          <StatCard
+            icon={<Bot className="h-4 w-4" />}
+            title="AI-skapat annonsutkast"
+            body="Märke, pris och beskrivning på sekunder."
+          />
+          <StatCard
+            icon={<Leaf className="h-4 w-4" />}
+            title="CO₂-spårning per plagg"
+            body="Se exakt hur mycket utsläpp du sparar."
+          />
+          <StatCard
+            icon={<ShieldCheck className="h-4 w-4" />}
+            title="Trygg svensk second hand"
+            body="Verifierade säljare, säkra meddelanden."
+          />
+        </section>
 
-        <div className="-mx-4 overflow-x-auto px-4 scrollbar-none">
-          <div className="flex gap-2">
-            <CategoryPill active={activeCat === null} onClick={() => setActiveCat(null)}>
-              Alla
-            </CategoryPill>
-            {categories.map((c) => (
-              <CategoryPill
-                key={c.id}
-                active={activeCat === c.id}
-                onClick={() => setActiveCat(c.id)}
-              >
-                {c.name_sv}
-              </CategoryPill>
-            ))}
+        {/* Trending brands */}
+        <section>
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="font-display text-2xl">Populärt just nu</h2>
+            <span className="text-eyebrow text-muted-foreground">Märken</span>
           </div>
-        </div>
+          <div className="-mx-4 overflow-x-auto px-4 scrollbar-none">
+            <div className="flex gap-2">
+              {trendingBrands.map((b) => (
+                <Link
+                  key={b}
+                  to="/search"
+                  className="shrink-0 rounded-full border border-border bg-card px-4 py-2 text-sm transition hover:border-foreground/40"
+                >
+                  {b}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
 
-        {loading ? (
-          <div className="grid grid-cols-2 gap-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="aspect-[3/4] animate-pulse rounded-xl bg-muted" />
-            ))}
+        {/* Feed */}
+        <section>
+          <div className="mb-4 flex items-baseline justify-between">
+            <h2 className="font-display text-2xl">
+              {showDemo ? "Inspiration" : "Nyligen upplagt"}
+            </h2>
+            <Link to="/search" className="text-eyebrow text-muted-foreground hover:text-foreground">
+              Visa alla
+            </Link>
           </div>
-        ) : listings.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-            Inga annonser ännu. Bli först att lägga upp ett plagg.
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {listings.map((l) => (
-              <ListingCard key={l.id} listing={l} />
-            ))}
-          </div>
-        )}
+
+          {categories.length > 0 && (
+            <div className="-mx-4 mb-4 overflow-x-auto px-4 scrollbar-none">
+              <div className="flex gap-2">
+                <CategoryPill active={activeCat === null} onClick={() => setActiveCat(null)}>
+                  Alla
+                </CategoryPill>
+                {categories.map((c) => (
+                  <CategoryPill
+                    key={c.id}
+                    active={activeCat === c.id}
+                    onClick={() => setActiveCat(c.id)}
+                  >
+                    {c.name_sv}
+                  </CategoryPill>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="aspect-[3/4] animate-pulse rounded-xl bg-muted" />
+              ))}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
+                {feed.map((l) => (
+                  <ListingCard key={l.id} listing={l} />
+                ))}
+              </div>
+              {showDemo && <EmptyStateBanner />}
+            </>
+          )}
+        </section>
       </main>
       <BottomNav />
+    </div>
+  );
+}
+
+function AiUploadCard() {
+  const steps = [
+    { icon: Camera, label: "Ladda upp bild" },
+    { icon: Sparkles, label: "AI hittar märke" },
+    { icon: Tag, label: "AI föreslår pris" },
+    { icon: Send, label: "Publicera annons" },
+  ];
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-card md:p-8">
+      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-2xl" />
+      <div className="relative">
+        <div className="flex items-center justify-between">
+          <p className="text-eyebrow text-primary">AI-flöde</p>
+          <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-medium text-primary">
+            ~60 sek
+          </span>
+        </div>
+        <h3 className="mt-2 font-display text-xl">Från bild till annons</h3>
+        <ol className="mt-5 space-y-3">
+          {steps.map(({ icon: Icon, label }, i) => (
+            <li key={label} className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-background text-primary ring-1 ring-border">
+                <Icon className="h-4 w-4" />
+              </span>
+              <span className="flex-1 text-sm">{label}</span>
+              <span className="text-eyebrow text-muted-foreground">0{i + 1}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({
+  icon,
+  title,
+  body,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+      <div className="flex items-center gap-2 text-primary">
+        {icon}
+        <span className="text-eyebrow">Rewear</span>
+      </div>
+      <p className="mt-2 font-display text-base">{title}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+    </div>
+  );
+}
+
+function EmptyStateBanner() {
+  return (
+    <div className="mt-8 rounded-3xl border border-dashed border-border bg-card/50 p-8 text-center">
+      <p className="text-eyebrow text-primary">Ingen riktig annons ännu</p>
+      <h3 className="mt-2 font-display text-2xl">Bli först att sälja på Rewear</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+        Ladda upp ett plagg och låt AI skapa annonsen åt dig. Det tar under en minut.
+      </p>
+      <Link
+        to="/sell"
+        className="mt-5 inline-flex items-center rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition hover:opacity-90"
+      >
+        Lägg upp ditt första plagg
+      </Link>
     </div>
   );
 }
