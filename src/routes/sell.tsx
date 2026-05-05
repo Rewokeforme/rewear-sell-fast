@@ -801,14 +801,26 @@ function SellPage() {
                     </p>
                   </div>
                   {showShipping && (
-                    <p className="pl-6 text-sm">
-                      <span className="text-muted-foreground">Frakt: </span>
-                      <span className="font-medium">
-                        {buyerPaysShipping ? "Köparen betalar" : "Säljaren betalar"}
-                        {shippingPrice ? ` ${formatSEK(Number(shippingPrice))}` : ""}
-                        {shipsWithin ? ` · skickas inom ${shipsWithin === "1" ? "1 dag" : shipsWithin + " dagar"}` : ""}
-                      </span>
-                    </p>
+                    <>
+                      <div className="flex items-start gap-2 pl-6 text-sm">
+                        <span className="text-muted-foreground">Frakt:</span>
+                        <span className="font-medium">
+                          {!buyerPaysShipping
+                            ? "Ingår i priset"
+                            : shippingPrice
+                              ? `Köparen betalar ${formatSEK(Number(shippingPrice))}`
+                              : "Köparen betalar"}
+                        </span>
+                      </div>
+                      {shipsWithin && (
+                        <div className="flex items-start gap-2 pl-6 text-sm">
+                          <span className="text-muted-foreground">Skickas inom:</span>
+                          <span className="font-medium">
+                            {shipsWithin === "1" ? "1 dag" : `${shipsWithin} dagar`}
+                          </span>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
