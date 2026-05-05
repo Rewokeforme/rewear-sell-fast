@@ -135,7 +135,7 @@ function HomePage() {
           <StatCard
             icon={<ShieldCheck className="h-4 w-4" />}
             title="Trygg svensk second hand"
-            body="Verifierade säljare, säkra meddelanden."
+            body="Profiler, rapportering och säkra meddelanden byggda för tryggare affärer."
           />
         </section>
 
