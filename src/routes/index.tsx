@@ -199,15 +199,14 @@ function HomePage() {
             </div>
           ) : showFollowingEmpty ? (
             <FollowingEmpty hasUser={Boolean(user)} />
+          ) : showDiscoverEmpty ? (
+            <EmptyStateBanner />
           ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
-                {feed.map((l) => (
-                  <ListingCard key={l.id} listing={l} />
-                ))}
-              </div>
-              {showDemo && <EmptyStateBanner />}
-            </>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
+              {feed.map((l) => (
+                <ListingCard key={l.id} listing={l} />
+              ))}
+            </div>
           )}
         </section>
       </main>
