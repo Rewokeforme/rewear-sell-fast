@@ -87,6 +87,7 @@ function ConversationPage() {
   const [counterpart, setCounterpart] = useState<{ id: string; full_name: string | null; avatar_url: string | null; is_verified: boolean } | null>(null);
   const [counterpartStats, setCounterpartStats] = useState<SellerStats | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
