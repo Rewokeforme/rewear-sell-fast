@@ -9,38 +9,218 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SellRouteImport } from './routes/sell'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as MeRouteImport } from './routes/me'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as InboxIndexRouteImport } from './routes/inbox.index'
+import { Route as ProfileUserIdRouteImport } from './routes/profile.$userId'
+import { Route as MeListingsRouteImport } from './routes/me.listings'
+import { Route as MeFavoritesRouteImport } from './routes/me.favorites'
+import { Route as ListingIdRouteImport } from './routes/listing.$id'
+import { Route as InboxConversationIdRouteImport } from './routes/inbox.$conversationId'
 
+const SellRoute = SellRouteImport.update({
+  id: '/sell',
+  path: '/sell',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeRoute = MeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InboxIndexRoute = InboxIndexRouteImport.update({
+  id: '/inbox/',
+  path: '/inbox/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileUserIdRoute = ProfileUserIdRouteImport.update({
+  id: '/profile/$userId',
+  path: '/profile/$userId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeListingsRoute = MeListingsRouteImport.update({
+  id: '/listings',
+  path: '/listings',
+  getParentRoute: () => MeRoute,
+} as any)
+const MeFavoritesRoute = MeFavoritesRouteImport.update({
+  id: '/favorites',
+  path: '/favorites',
+  getParentRoute: () => MeRoute,
+} as any)
+const ListingIdRoute = ListingIdRouteImport.update({
+  id: '/listing/$id',
+  path: '/listing/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InboxConversationIdRoute = InboxConversationIdRouteImport.update({
+  id: '/inbox/$conversationId',
+  path: '/inbox/$conversationId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/login': typeof LoginRoute
+  '/me': typeof MeRouteWithChildren
+  '/search': typeof SearchRoute
+  '/sell': typeof SellRoute
+  '/inbox/$conversationId': typeof InboxConversationIdRoute
+  '/listing/$id': typeof ListingIdRoute
+  '/me/favorites': typeof MeFavoritesRoute
+  '/me/listings': typeof MeListingsRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
+  '/inbox/': typeof InboxIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/login': typeof LoginRoute
+  '/me': typeof MeRouteWithChildren
+  '/search': typeof SearchRoute
+  '/sell': typeof SellRoute
+  '/inbox/$conversationId': typeof InboxConversationIdRoute
+  '/listing/$id': typeof ListingIdRoute
+  '/me/favorites': typeof MeFavoritesRoute
+  '/me/listings': typeof MeListingsRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
+  '/inbox': typeof InboxIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/login': typeof LoginRoute
+  '/me': typeof MeRouteWithChildren
+  '/search': typeof SearchRoute
+  '/sell': typeof SellRoute
+  '/inbox/$conversationId': typeof InboxConversationIdRoute
+  '/listing/$id': typeof ListingIdRoute
+  '/me/favorites': typeof MeFavoritesRoute
+  '/me/listings': typeof MeListingsRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
+  '/inbox/': typeof InboxIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/login'
+    | '/me'
+    | '/search'
+    | '/sell'
+    | '/inbox/$conversationId'
+    | '/listing/$id'
+    | '/me/favorites'
+    | '/me/listings'
+    | '/profile/$userId'
+    | '/inbox/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/login'
+    | '/me'
+    | '/search'
+    | '/sell'
+    | '/inbox/$conversationId'
+    | '/listing/$id'
+    | '/me/favorites'
+    | '/me/listings'
+    | '/profile/$userId'
+    | '/inbox'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/login'
+    | '/me'
+    | '/search'
+    | '/sell'
+    | '/inbox/$conversationId'
+    | '/listing/$id'
+    | '/me/favorites'
+    | '/me/listings'
+    | '/profile/$userId'
+    | '/inbox/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  LoginRoute: typeof LoginRoute
+  MeRoute: typeof MeRouteWithChildren
+  SearchRoute: typeof SearchRoute
+  SellRoute: typeof SellRoute
+  InboxConversationIdRoute: typeof InboxConversationIdRoute
+  ListingIdRoute: typeof ListingIdRoute
+  ProfileUserIdRoute: typeof ProfileUserIdRoute
+  InboxIndexRoute: typeof InboxIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sell': {
+      id: '/sell'
+      path: '/sell'
+      fullPath: '/sell'
+      preLoaderRoute: typeof SellRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,21 +228,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inbox/': {
+      id: '/inbox/'
+      path: '/inbox'
+      fullPath: '/inbox/'
+      preLoaderRoute: typeof InboxIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/$userId': {
+      id: '/profile/$userId'
+      path: '/profile/$userId'
+      fullPath: '/profile/$userId'
+      preLoaderRoute: typeof ProfileUserIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me/listings': {
+      id: '/me/listings'
+      path: '/listings'
+      fullPath: '/me/listings'
+      preLoaderRoute: typeof MeListingsRouteImport
+      parentRoute: typeof MeRoute
+    }
+    '/me/favorites': {
+      id: '/me/favorites'
+      path: '/favorites'
+      fullPath: '/me/favorites'
+      preLoaderRoute: typeof MeFavoritesRouteImport
+      parentRoute: typeof MeRoute
+    }
+    '/listing/$id': {
+      id: '/listing/$id'
+      path: '/listing/$id'
+      fullPath: '/listing/$id'
+      preLoaderRoute: typeof ListingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inbox/$conversationId': {
+      id: '/inbox/$conversationId'
+      path: '/inbox/$conversationId'
+      fullPath: '/inbox/$conversationId'
+      preLoaderRoute: typeof InboxConversationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface MeRouteChildren {
+  MeFavoritesRoute: typeof MeFavoritesRoute
+  MeListingsRoute: typeof MeListingsRoute
+}
+
+const MeRouteChildren: MeRouteChildren = {
+  MeFavoritesRoute: MeFavoritesRoute,
+  MeListingsRoute: MeListingsRoute,
+}
+
+const MeRouteWithChildren = MeRoute._addFileChildren(MeRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  LoginRoute: LoginRoute,
+  MeRoute: MeRouteWithChildren,
+  SearchRoute: SearchRoute,
+  SellRoute: SellRoute,
+  InboxConversationIdRoute: InboxConversationIdRoute,
+  ListingIdRoute: ListingIdRoute,
+  ProfileUserIdRoute: ProfileUserIdRoute,
+  InboxIndexRoute: InboxIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
