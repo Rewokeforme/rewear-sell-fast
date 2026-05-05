@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -21,6 +21,7 @@ type Stats = SellerStatsLite & {
 
 function MePage() {
   const { user, loading, isAdmin, signOut } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<{
     full_name: string | null; city: string | null; avatar_url: string | null;
@@ -82,6 +83,10 @@ function MePage() {
       setStats(s as Stats);
     })();
   }, [user]);
+
+  if (location.pathname !== "/me") {
+    return <Outlet />;
+  }
 
   if (!loading && !user) {
     return (
