@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { CategoryRow } from "@/lib/database.types";
-import { priceGuideRange, formatSEK } from "@/lib/rewear";
+import { priceGuideRange, formatSEK, computeSellerBadge, type SellerStatsLite } from "@/lib/rewear";
 import { MAIN_CATEGORIES, SUB_CATEGORIES, getSizeRule, showJeansSizes, isValidSizeForCategory, WAIST_SIZES, LENGTH_SIZES, type MainCategory } from "@/lib/taxonomy";
 
 export const Route = createFileRoute("/sell")({
@@ -50,6 +50,8 @@ function SellPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [previewActiveImg, setPreviewActiveImg] = useState(0);
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [sellerStats, setSellerStats] = useState<SellerStatsLite | null>(null);
+  const [co2Kg, setCo2Kg] = useState<number>(4);
   const fileInput = useRef<HTMLInputElement>(null);
   const showShipping = deliveryMethod === "shipping" || deliveryMethod === "both";
   const showPickup = deliveryMethod === "pickup" || deliveryMethod === "both";
@@ -62,6 +64,32 @@ function SellPage() {
       .order("sort_order")
       .then(({ data }) => setCategories(data ?? []));
   }, []);
+
+  // Hämta säljarstatistik för preview-säljarkortet
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("seller_stats")
+      .select("first_listing_at, sold_count, average_rating, rating_count")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setSellerStats(data as unknown as SellerStatsLite);
+      });
+  }, [user]);
+
+  // Hämta CO₂-besparing för vald kategori
+  useEffect(() => {
+    if (!categoryId) return;
+    supabase
+      .from("co2_factors")
+      .select("kg_saved")
+      .eq("category_id", categoryId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data && typeof data.kg_saved === "number") setCo2Kg(Number(data.kg_saved));
+      });
+  }, [categoryId]);
 
   useEffect(() => {
     if (!categoryId) {
@@ -182,6 +210,13 @@ function SellPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mainCategory, subCategory]);
 
+
+  const titleWordCount = title.trim() ? title.trim().split(/\s+/).length : 0;
+  const titleNeedsImprovement = !!title.trim() && (titleWordCount < 3 || title.trim().length < 12);
+  const sellerBadge = computeSellerBadge(sellerStats);
+  const sellerName = (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? "Du";
+  const sellerInitial = sellerName?.[0]?.toUpperCase() ?? "?";
+  const sellerAvatarUrl = (user?.user_metadata?.avatar_url as string | undefined) ?? null;
 
   function openPreview() {
     setSubmitAttempted(true);
@@ -654,12 +689,12 @@ function SellPage() {
 
       {/* Preview modal */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="w-[calc(100vw-1rem)] sm:w-full max-w-[960px] max-h-[92vh] p-0 gap-0 overflow-hidden rounded-2xl border border-border bg-background focus:outline-none focus-visible:outline-none focus:ring-0 [&>button]:hidden">
+        <DialogContent className="flex flex-col w-screen h-[100dvh] max-w-none rounded-none sm:w-[calc(100vw-2rem)] sm:h-auto sm:max-w-[960px] sm:max-h-[92vh] sm:rounded-2xl p-0 gap-0 overflow-hidden border border-border bg-background focus:outline-none focus-visible:outline-none focus:ring-0 [&>button]:hidden">
           <DialogHeader className="sticky top-0 z-10 flex-row items-start justify-between gap-4 space-y-0 border-b border-border bg-background/95 px-5 py-4 backdrop-blur">
             <div className="space-y-0.5">
               <DialogTitle className="font-display text-lg sm:text-xl">Förhandsgranska annons</DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Så här kommer din annons visas för köpare.
+                Kontrollera uppgifterna innan du publicerar.
               </DialogDescription>
             </div>
             <button
@@ -672,7 +707,7 @@ function SellPage() {
             </button>
           </DialogHeader>
 
-          <div className="overflow-y-auto px-4 py-5 sm:px-6 sm:py-6" style={{ maxHeight: "calc(92vh - 64px - 72px)" }}>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6 sm:py-6" style={{ maxHeight: "calc(100dvh - 64px - 72px)" }}>
             <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-8">
               {/* Vänster: bildgalleri */}
               <div>
@@ -690,7 +725,7 @@ function SellPage() {
                   )}
                   <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-[10px] font-medium text-foreground shadow-sm backdrop-blur">
                     <Leaf className="h-3 w-3 text-primary" />
-                    −4 kg CO₂
+                    −{co2Kg} kg CO₂
                   </span>
                 </div>
                 {previews.length > 1 && (
@@ -719,8 +754,18 @@ function SellPage() {
                   <h3 className="font-display text-2xl leading-tight text-foreground">
                     {title || "Titel saknas"}
                   </h3>
+                  {titleNeedsImprovement && (
+                    <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                      <Info className="mt-0.5 h-3 w-3 shrink-0 text-amber-600" />
+                      <span>Tips: En tydligare titel gör annonsen enklare att hitta.</span>
+                    </p>
+                  )}
                   <p className="font-display text-3xl text-primary">
                     {price ? formatSEK(Number(price)) : "Ej angivet"}
+                  </p>
+                  <p className="flex items-center gap-1 pt-0.5 text-[11px] text-muted-foreground">
+                    <Leaf className="h-3 w-3 text-primary" />
+                    Denna annons sparar cirka {co2Kg} kg CO₂ jämfört med att köpa nytt.
                   </p>
                 </div>
 
@@ -756,14 +801,26 @@ function SellPage() {
                     </p>
                   </div>
                   {showShipping && (
-                    <p className="pl-6 text-sm">
-                      <span className="text-muted-foreground">Frakt: </span>
-                      <span className="font-medium">
-                        {buyerPaysShipping ? "Köparen betalar" : "Säljaren betalar"}
-                        {shippingPrice ? ` ${formatSEK(Number(shippingPrice))}` : ""}
-                        {shipsWithin ? ` · skickas inom ${shipsWithin === "1" ? "1 dag" : shipsWithin + " dagar"}` : ""}
-                      </span>
-                    </p>
+                    <>
+                      <div className="flex items-start gap-2 pl-6 text-sm">
+                        <span className="text-muted-foreground">Frakt:</span>
+                        <span className="font-medium">
+                          {!buyerPaysShipping
+                            ? "Ingår i priset"
+                            : shippingPrice
+                              ? `Köparen betalar ${formatSEK(Number(shippingPrice))}`
+                              : "Köparen betalar"}
+                        </span>
+                      </div>
+                      {shipsWithin && (
+                        <div className="flex items-start gap-2 pl-6 text-sm">
+                          <span className="text-muted-foreground">Skickas inom:</span>
+                          <span className="font-medium">
+                            {shipsWithin === "1" ? "1 dag" : `${shipsWithin} dagar`}
+                          </span>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -776,17 +833,31 @@ function SellPage() {
 
                 {user && (
                   <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-                    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-muted text-sm font-medium">
-                      {(user.user_metadata?.full_name as string | undefined)?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? "?"}
+                    <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-muted text-sm font-medium">
+                      {sellerAvatarUrl ? (
+                        <img src={sellerAvatarUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        sellerInitial
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="truncate text-sm font-medium">
-                          {(user.user_metadata?.full_name as string | undefined) ?? user.email ?? "Du"}
-                        </p>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <p className="truncate text-sm font-medium">{sellerName}</p>
                         <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                        {sellerBadge && (
+                          <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground">
+                            {sellerBadge}
+                          </span>
+                        )}
                       </div>
-                      <p className="text-xs text-muted-foreground">Säljare · ny annons</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {sellerStats && sellerStats.average_rating > 0
+                          ? `★ ${sellerStats.average_rating.toFixed(1)}`
+                          : "Ingen recension än"}
+                        {sellerStats && sellerStats.sold_count > 0
+                          ? ` · ${sellerStats.sold_count} sålda plagg`
+                          : ""}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -805,7 +876,18 @@ function SellPage() {
             </button>
             <button
               type="button"
-              onClick={(e) => { setShowPreview(false); publish(e as unknown as React.FormEvent); }}
+              onClick={(e) => {
+                const errs = validate();
+                setSubmitAttempted(true);
+                setErrors(errs);
+                if (Object.keys(errs).length > 0) {
+                  setShowPreview(false);
+                  toast.error("Fyll i fälten som är markerade.");
+                  return;
+                }
+                setShowPreview(false);
+                publish(e as unknown as React.FormEvent);
+              }}
               disabled={busy}
               className="flex-1 rounded-full bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-card transition hover:bg-primary/90 disabled:opacity-50"
             >
