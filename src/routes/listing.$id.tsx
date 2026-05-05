@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { computeSellerBadge, formatSEK, type SellerStatsLite } from "@/lib/rewear";
 import type { ListingWithDetails } from "@/lib/database.types";
+import { ReportDialog } from "@/components/ReportDialog";
 
 export const Route = createFileRoute("/listing/$id")({
   component: ListingPage,
