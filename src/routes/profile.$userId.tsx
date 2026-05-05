@@ -159,7 +159,7 @@ function PublicProfilePage() {
         {!isMe && user && (
           <div className="flex gap-2 pt-4 text-xs">
             <button
-              onClick={reportUser}
+              onClick={() => setReportOpen(true)}
               className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full border border-border py-2 text-muted-foreground hover:text-foreground"
             >
               <Flag className="h-3 w-3" /> Rapportera
