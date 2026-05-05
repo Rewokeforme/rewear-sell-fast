@@ -119,6 +119,27 @@ export type Database = {
           },
         ]
       }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          id: string
+          seller_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          id?: string
+          seller_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          id?: string
+          seller_id?: string
+        }
+        Relationships: []
+      }
       listing_images: {
         Row: {
           id: string
@@ -245,6 +266,45 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          related_conversation_id: string | null
+          related_listing_id: string | null
+          related_user_id: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          related_conversation_id?: string | null
+          related_listing_id?: string | null
+          related_user_id?: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          related_conversation_id?: string | null
+          related_listing_id?: string | null
+          related_user_id?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -351,6 +411,96 @@ export type Database = {
           },
         ]
       }
+      seller_stats: {
+        Row: {
+          active_listings_count: number
+          average_rating: number
+          first_listing_at: string | null
+          followers_count: number
+          rating_count: number
+          rewear_score: number
+          sold_count: number
+          total_co2_saved: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_listings_count?: number
+          average_rating?: number
+          first_listing_at?: string | null
+          followers_count?: number
+          rating_count?: number
+          rewear_score?: number
+          sold_count?: number
+          total_co2_saved?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_listings_count?: number
+          average_rating?: number
+          first_listing_at?: string | null
+          followers_count?: number
+          rating_count?: number
+          rewear_score?: number
+          sold_count?: number
+          total_co2_saved?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      user_reports: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string
+          reported_conversation_id: string | null
+          reported_user_id: string | null
+          reporter_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason: string
+          reported_conversation_id?: string | null
+          reported_user_id?: string | null
+          reporter_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string
+          reported_conversation_id?: string | null
+          reported_user_id?: string | null
+          reporter_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -374,6 +524,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      compute_seller_badge: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -386,10 +537,16 @@ export type Database = {
         Returns: boolean
       }
       recompute_rewear_score: { Args: { _user_id: string }; Returns: undefined }
+      recompute_seller_stats: { Args: { _user_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"
       listing_status: "active" | "sold" | "removed"
+      notification_type:
+        | "new_listing"
+        | "new_message"
+        | "new_follower"
+        | "system"
       report_status: "open" | "resolved"
     }
     CompositeTypes: {
@@ -520,6 +677,12 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       listing_status: ["active", "sold", "removed"],
+      notification_type: [
+        "new_listing",
+        "new_message",
+        "new_follower",
+        "system",
+      ],
       report_status: ["open", "resolved"],
     },
   },
