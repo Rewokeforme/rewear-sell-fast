@@ -177,6 +177,13 @@ function PublicProfilePage() {
           <Link to="/" className="text-muted-foreground underline">Till hem</Link>
         </p>
       </main>
+      <ReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        title="Rapportera användare"
+        description="Hjälp oss hålla Rewear tryggt. Berätta kort vad som är fel — vårt team granskar alla rapporter."
+        onSubmit={submitReport}
+      />
       <BottomNav />
     </div>
   );
