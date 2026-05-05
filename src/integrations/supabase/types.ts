@@ -404,27 +404,36 @@ export type Database = {
       }
       reports: {
         Row: {
+          admin_response: string | null
           created_at: string
           id: string
           listing_id: string
           reason: string
           reporter_id: string
+          responded_at: string | null
+          responded_by: string | null
           status: Database["public"]["Enums"]["report_status"]
         }
         Insert: {
+          admin_response?: string | null
           created_at?: string
           id?: string
           listing_id: string
           reason: string
           reporter_id: string
+          responded_at?: string | null
+          responded_by?: string | null
           status?: Database["public"]["Enums"]["report_status"]
         }
         Update: {
+          admin_response?: string | null
           created_at?: string
           id?: string
           listing_id?: string
           reason?: string
           reporter_id?: string
+          responded_at?: string | null
+          responded_by?: string | null
           status?: Database["public"]["Enums"]["report_status"]
         }
         Relationships: [
@@ -537,30 +546,39 @@ export type Database = {
       }
       user_reports: {
         Row: {
+          admin_response: string | null
           created_at: string
           id: string
           reason: string
           reported_conversation_id: string | null
           reported_user_id: string | null
           reporter_id: string
+          responded_at: string | null
+          responded_by: string | null
           status: string
         }
         Insert: {
+          admin_response?: string | null
           created_at?: string
           id?: string
           reason: string
           reported_conversation_id?: string | null
           reported_user_id?: string | null
           reporter_id: string
+          responded_at?: string | null
+          responded_by?: string | null
           status?: string
         }
         Update: {
+          admin_response?: string | null
           created_at?: string
           id?: string
           reason?: string
           reported_conversation_id?: string | null
           reported_user_id?: string | null
           reporter_id?: string
+          responded_at?: string | null
+          responded_by?: string | null
           status?: string
         }
         Relationships: []
@@ -616,6 +634,7 @@ export type Database = {
         | "new_message"
         | "new_follower"
         | "system"
+        | "admin_reply"
       report_status: "open" | "resolved"
     }
     CompositeTypes: {
@@ -752,6 +771,7 @@ export const Constants = {
         "new_message",
         "new_follower",
         "system",
+        "admin_reply",
       ],
       report_status: ["open", "resolved"],
     },
