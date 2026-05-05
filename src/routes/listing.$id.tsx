@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Heart, Leaf, MessageCircle, ShieldCheck, Star } from "lucide-react";
+import { Flag, Heart, Leaf, MessageCircle, ShieldCheck, Star } from "lucide-react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
+import { FollowButton } from "@/components/FollowButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { badgeForSeller, formatSEK } from "@/lib/rewear";
+import { computeSellerBadge, formatSEK, type SellerStatsLite } from "@/lib/rewear";
 import type { ListingWithDetails } from "@/lib/database.types";
 
 export const Route = createFileRoute("/listing/$id")({
@@ -21,7 +22,7 @@ function ListingPage() {
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
   const [saved, setSaved] = useState(false);
-  const [sellerStats, setSellerStats] = useState({ sold: 0, avg: 0, count: 0 });
+  const [stats, setStats] = useState<SellerStatsLite & { rating_count: number; followers_count: number } | null>(null);
 
   useEffect(() => {
     supabase
@@ -50,15 +51,12 @@ function ListingPage() {
 
   useEffect(() => {
     if (!listing?.profiles?.id) return;
-    const sid = listing.profiles.id;
-    Promise.all([
-      supabase.from("listings").select("id", { count: "exact", head: true }).eq("seller_id", sid).eq("status", "sold"),
-      supabase.from("reviews").select("rating").eq("reviewee_id", sid),
-    ]).then(([sold, reviews]) => {
-      const ratings = (reviews.data ?? []).map((r) => r.rating);
-      const avg = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
-      setSellerStats({ sold: sold.count ?? 0, avg, count: ratings.length });
-    });
+    supabase
+      .from("seller_stats")
+      .select("first_listing_at, sold_count, average_rating, rating_count, followers_count")
+      .eq("user_id", listing.profiles.id)
+      .maybeSingle()
+      .then(({ data }) => setStats(data as typeof stats));
   }, [listing?.profiles?.id]);
 
   async function toggleSave() {
@@ -86,12 +84,12 @@ function ListingPage() {
       toast.info("Du kan inte kontakta dig själv.");
       return;
     }
-    // Find or create conversation
     const { data: existing } = await supabase
       .from("conversations")
       .select("id")
       .eq("listing_id", listing.id)
       .eq("buyer_id", user.id)
+      .eq("seller_id", listing.seller_id)
       .maybeSingle();
 
     let convId = existing?.id;
@@ -108,13 +106,30 @@ function ListingPage() {
       convId = created.id;
     }
 
-    await supabase.from("messages").insert({
-      conversation_id: convId,
-      sender_id: user.id,
-      body: message,
-    });
-
+    if (message) {
+      await supabase.from("messages").insert({
+        conversation_id: convId,
+        sender_id: user.id,
+        body: message,
+      });
+    }
     navigate({ to: "/inbox/$conversationId", params: { conversationId: convId } });
+  }
+
+  async function reportListing() {
+    if (!user || !listing) {
+      navigate({ to: "/login" });
+      return;
+    }
+    const reason = window.prompt("Beskriv kort varför du rapporterar annonsen:");
+    if (!reason) return;
+    const { error } = await supabase.from("reports").insert({
+      reporter_id: user.id,
+      listing_id: listing.id,
+      reason,
+    });
+    if (error) toast.error(error.message);
+    else toast.success("Tack — rapporten är skickad.");
   }
 
   if (loading) {
@@ -141,7 +156,7 @@ function ListingPage() {
   }
 
   const seller = listing.profiles;
-  const sellerBadge = badgeForSeller(sellerStats.sold, sellerStats.avg);
+  const sellerBadge = computeSellerBadge(stats);
   const images = listing.listing_images ?? [];
 
   return (
@@ -150,11 +165,7 @@ function ListingPage() {
       <main className="mx-auto max-w-2xl">
         <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted">
           {images[activeImg] ? (
-            <img
-              src={images[activeImg].url}
-              alt={listing.title}
-              className="h-full w-full object-cover"
-            />
+            <img src={images[activeImg].url} alt={listing.title} className="h-full w-full object-cover" />
           ) : null}
           {images.length > 1 && (
             <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
@@ -207,37 +218,39 @@ function ListingPage() {
 
           {/* Säljare */}
           {seller && (
-            <Link
-              to="/profile/$userId"
-              params={{ userId: seller.id }}
-              className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition hover:bg-secondary"
-            >
-              <div className="h-12 w-12 overflow-hidden rounded-full bg-muted">
-                {seller.avatar_url ? (
-                  <img src={seller.avatar_url} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm font-medium">
-                    {(seller.full_name ?? "?")[0]}
+            <div className="rounded-xl border border-border bg-card p-3">
+              <div className="flex items-center gap-3">
+                <Link to="/profile/$userId" params={{ userId: seller.id }} className="flex flex-1 items-center gap-3">
+                  <div className="h-12 w-12 overflow-hidden rounded-full bg-muted">
+                    {seller.avatar_url ? (
+                      <img src={seller.avatar_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-sm font-medium">
+                        {(seller.full_name ?? "?")[0]}
+                      </div>
+                    )}
                   </div>
-                )}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-medium text-sm">{seller.full_name ?? "Säljare"}</p>
+                      {seller.is_verified && <ShieldCheck className="h-3.5 w-3.5 text-primary" />}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      {stats && stats.rating_count > 0 && (
+                        <span className="flex items-center gap-0.5">
+                          <Star className="h-3 w-3 fill-current" />
+                          {stats.average_rating.toFixed(1)} ({stats.rating_count})
+                        </span>
+                      )}
+                      <span>· {stats?.sold_count ?? 0} sålda</span>
+                      <span>· {stats?.followers_count ?? 0} följare</span>
+                    </div>
+                    {sellerBadge && <span className="text-eyebrow text-primary">{sellerBadge}</span>}
+                  </div>
+                </Link>
+                <FollowButton sellerId={seller.id} size="sm" />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-1.5">
-                  <p className="font-medium text-sm">{seller.full_name ?? "Säljare"}</p>
-                  {seller.is_verified && <ShieldCheck className="h-3.5 w-3.5 text-primary" />}
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  {sellerStats.count > 0 && (
-                    <span className="flex items-center gap-0.5">
-                      <Star className="h-3 w-3 fill-current" />
-                      {sellerStats.avg.toFixed(1)} ({sellerStats.count})
-                    </span>
-                  )}
-                  <span>· {sellerStats.sold} sålda</span>
-                </div>
-              </div>
-              <span className="text-eyebrow text-primary">{sellerBadge}</span>
-            </Link>
+            </div>
           )}
 
           <div className="flex gap-2 pt-2">
@@ -245,16 +258,23 @@ function ListingPage() {
               onClick={() => startConversation(`Hej! Är "${listing.title}" fortfarande ledig?`)}
               className="flex-1 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-card"
             >
-              Visa intresse
+              Skicka meddelande
             </button>
             <button
-              onClick={() => startConversation("Hej! Jag har en fråga om plagget.")}
+              onClick={() => startConversation("")}
               className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background"
-              aria-label="Skicka meddelande"
+              aria-label="Öppna chatt"
             >
               <MessageCircle className="h-5 w-5" />
             </button>
           </div>
+
+          <button
+            onClick={reportListing}
+            className="mt-2 flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <Flag className="h-3 w-3" /> Rapportera annonsen
+          </button>
         </div>
       </main>
       <BottomNav />
@@ -263,9 +283,5 @@ function ListingPage() {
 }
 
 function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-full border border-border bg-card px-3 py-1 text-xs">
-      {children}
-    </span>
-  );
+  return <span className="rounded-full border border-border bg-card px-3 py-1 text-xs">{children}</span>;
 }
