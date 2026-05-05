@@ -853,3 +853,7 @@ function Field({ label, children, full, error }: { label: string; children: Reac
 function FieldError({ children }: { children: React.ReactNode }) {
   return <span className="mt-1 block text-[11px] font-medium text-destructive">{children}</span>;
 }
+
+function PreviewChip({ children }: { children: React.ReactNode }) {
+  return <span className="rounded-full border border-border bg-card px-3 py-1 text-xs">{children}</span>;
+}
