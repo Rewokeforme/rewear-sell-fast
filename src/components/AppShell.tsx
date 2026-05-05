@@ -6,7 +6,7 @@ export function AppShell({ subtitle }: { subtitle?: string }) {
   return (
     <div className="min-h-screen bg-background pb-24">
       <Header subtitle={subtitle} />
-      <main className="mx-auto max-w-2xl px-4 py-4">
+      <main className="mx-auto max-w-2xl px-4 py-4 md:max-w-6xl md:py-8">
         <Outlet />
       </main>
       <BottomNav />
