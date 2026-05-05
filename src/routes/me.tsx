@@ -27,6 +27,42 @@ function MePage() {
     rewear_score: number; is_verified: boolean;
   } | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (!file.type.startsWith("image/")) {
+      alert("Välj en bildfil");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Bilden får vara max 5 MB");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { cacheControl: "3600", upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = pub.publicUrl;
+      const { error: updErr } = await supabase
+        .from("profiles")
+        .update({ avatar_url: url })
+        .eq("id", user.id);
+      if (updErr) throw updErr;
+      setProfile((p) => (p ? { ...p, avatar_url: url } : p));
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
 
   useEffect(() => {
     if (!user) return;
