@@ -9,12 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ShippingRouteImport } from './routes/shipping'
+import { Route as SellerGuideRouteImport } from './routes/seller-guide'
 import { Route as SellRouteImport } from './routes/sell'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as SafetyRouteImport } from './routes/safety'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as CookiesRouteImport } from './routes/cookies'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CommunityGuidelinesRouteImport } from './routes/community-guidelines'
+import { Route as BuyerGuideRouteImport } from './routes/buyer-guide'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AdRulesRouteImport } from './routes/ad-rules'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InboxIndexRouteImport } from './routes/inbox.index'
 import { Route as ProfileUserIdRouteImport } from './routes/profile.$userId'
@@ -24,6 +34,21 @@ import { Route as ListingIdRouteImport } from './routes/listing.$id'
 import { Route as InboxConversationIdRouteImport } from './routes/inbox.$conversationId'
 import { Route as InboxAdminIdRouteImport } from './routes/inbox.admin.$id'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShippingRoute = ShippingRouteImport.update({
+  id: '/shipping',
+  path: '/shipping',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SellerGuideRoute = SellerGuideRouteImport.update({
+  id: '/seller-guide',
+  path: '/seller-guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SellRoute = SellRouteImport.update({
   id: '/sell',
   path: '/sell',
@@ -32,6 +57,16 @@ const SellRoute = SellRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafetyRoute = SafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -49,9 +84,34 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityGuidelinesRoute = CommunityGuidelinesRouteImport.update({
+  id: '/community-guidelines',
+  path: '/community-guidelines',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuyerGuideRoute = BuyerGuideRouteImport.update({
+  id: '/buyer-guide',
+  path: '/buyer-guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdRulesRoute = AdRulesRouteImport.update({
+  id: '/ad-rules',
+  path: '/ad-rules',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -97,12 +157,22 @@ const InboxAdminIdRoute = InboxAdminIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ad-rules': typeof AdRulesRoute
   '/admin': typeof AdminRoute
+  '/buyer-guide': typeof BuyerGuideRoute
+  '/community-guidelines': typeof CommunityGuidelinesRoute
+  '/contact': typeof ContactRoute
+  '/cookies': typeof CookiesRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRouteWithChildren
   '/notifications': typeof NotificationsRoute
+  '/privacy': typeof PrivacyRoute
+  '/safety': typeof SafetyRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
+  '/seller-guide': typeof SellerGuideRoute
+  '/shipping': typeof ShippingRoute
+  '/terms': typeof TermsRoute
   '/inbox/$conversationId': typeof InboxConversationIdRoute
   '/listing/$id': typeof ListingIdRoute
   '/me/favorites': typeof MeFavoritesRoute
@@ -113,12 +183,22 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ad-rules': typeof AdRulesRoute
   '/admin': typeof AdminRoute
+  '/buyer-guide': typeof BuyerGuideRoute
+  '/community-guidelines': typeof CommunityGuidelinesRoute
+  '/contact': typeof ContactRoute
+  '/cookies': typeof CookiesRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRouteWithChildren
   '/notifications': typeof NotificationsRoute
+  '/privacy': typeof PrivacyRoute
+  '/safety': typeof SafetyRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
+  '/seller-guide': typeof SellerGuideRoute
+  '/shipping': typeof ShippingRoute
+  '/terms': typeof TermsRoute
   '/inbox/$conversationId': typeof InboxConversationIdRoute
   '/listing/$id': typeof ListingIdRoute
   '/me/favorites': typeof MeFavoritesRoute
@@ -130,12 +210,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ad-rules': typeof AdRulesRoute
   '/admin': typeof AdminRoute
+  '/buyer-guide': typeof BuyerGuideRoute
+  '/community-guidelines': typeof CommunityGuidelinesRoute
+  '/contact': typeof ContactRoute
+  '/cookies': typeof CookiesRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRouteWithChildren
   '/notifications': typeof NotificationsRoute
+  '/privacy': typeof PrivacyRoute
+  '/safety': typeof SafetyRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
+  '/seller-guide': typeof SellerGuideRoute
+  '/shipping': typeof ShippingRoute
+  '/terms': typeof TermsRoute
   '/inbox/$conversationId': typeof InboxConversationIdRoute
   '/listing/$id': typeof ListingIdRoute
   '/me/favorites': typeof MeFavoritesRoute
@@ -148,12 +238,22 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ad-rules'
     | '/admin'
+    | '/buyer-guide'
+    | '/community-guidelines'
+    | '/contact'
+    | '/cookies'
     | '/login'
     | '/me'
     | '/notifications'
+    | '/privacy'
+    | '/safety'
     | '/search'
     | '/sell'
+    | '/seller-guide'
+    | '/shipping'
+    | '/terms'
     | '/inbox/$conversationId'
     | '/listing/$id'
     | '/me/favorites'
@@ -164,12 +264,22 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ad-rules'
     | '/admin'
+    | '/buyer-guide'
+    | '/community-guidelines'
+    | '/contact'
+    | '/cookies'
     | '/login'
     | '/me'
     | '/notifications'
+    | '/privacy'
+    | '/safety'
     | '/search'
     | '/sell'
+    | '/seller-guide'
+    | '/shipping'
+    | '/terms'
     | '/inbox/$conversationId'
     | '/listing/$id'
     | '/me/favorites'
@@ -180,12 +290,22 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/ad-rules'
     | '/admin'
+    | '/buyer-guide'
+    | '/community-guidelines'
+    | '/contact'
+    | '/cookies'
     | '/login'
     | '/me'
     | '/notifications'
+    | '/privacy'
+    | '/safety'
     | '/search'
     | '/sell'
+    | '/seller-guide'
+    | '/shipping'
+    | '/terms'
     | '/inbox/$conversationId'
     | '/listing/$id'
     | '/me/favorites'
@@ -197,12 +317,22 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdRulesRoute: typeof AdRulesRoute
   AdminRoute: typeof AdminRoute
+  BuyerGuideRoute: typeof BuyerGuideRoute
+  CommunityGuidelinesRoute: typeof CommunityGuidelinesRoute
+  ContactRoute: typeof ContactRoute
+  CookiesRoute: typeof CookiesRoute
   LoginRoute: typeof LoginRoute
   MeRoute: typeof MeRouteWithChildren
   NotificationsRoute: typeof NotificationsRoute
+  PrivacyRoute: typeof PrivacyRoute
+  SafetyRoute: typeof SafetyRoute
   SearchRoute: typeof SearchRoute
   SellRoute: typeof SellRoute
+  SellerGuideRoute: typeof SellerGuideRoute
+  ShippingRoute: typeof ShippingRoute
+  TermsRoute: typeof TermsRoute
   InboxConversationIdRoute: typeof InboxConversationIdRoute
   ListingIdRoute: typeof ListingIdRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
@@ -212,6 +342,27 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shipping': {
+      id: '/shipping'
+      path: '/shipping'
+      fullPath: '/shipping'
+      preLoaderRoute: typeof ShippingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/seller-guide': {
+      id: '/seller-guide'
+      path: '/seller-guide'
+      fullPath: '/seller-guide'
+      preLoaderRoute: typeof SellerGuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sell': {
       id: '/sell'
       path: '/sell'
@@ -224,6 +375,20 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safety': {
+      id: '/safety'
+      path: '/safety'
+      fullPath: '/safety'
+      preLoaderRoute: typeof SafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -247,11 +412,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community-guidelines': {
+      id: '/community-guidelines'
+      path: '/community-guidelines'
+      fullPath: '/community-guidelines'
+      preLoaderRoute: typeof CommunityGuidelinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/buyer-guide': {
+      id: '/buyer-guide'
+      path: '/buyer-guide'
+      fullPath: '/buyer-guide'
+      preLoaderRoute: typeof BuyerGuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ad-rules': {
+      id: '/ad-rules'
+      path: '/ad-rules'
+      fullPath: '/ad-rules'
+      preLoaderRoute: typeof AdRulesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -327,12 +527,22 @@ const MeRouteWithChildren = MeRoute._addFileChildren(MeRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdRulesRoute: AdRulesRoute,
   AdminRoute: AdminRoute,
+  BuyerGuideRoute: BuyerGuideRoute,
+  CommunityGuidelinesRoute: CommunityGuidelinesRoute,
+  ContactRoute: ContactRoute,
+  CookiesRoute: CookiesRoute,
   LoginRoute: LoginRoute,
   MeRoute: MeRouteWithChildren,
   NotificationsRoute: NotificationsRoute,
+  PrivacyRoute: PrivacyRoute,
+  SafetyRoute: SafetyRoute,
   SearchRoute: SearchRoute,
   SellRoute: SellRoute,
+  SellerGuideRoute: SellerGuideRoute,
+  ShippingRoute: ShippingRoute,
+  TermsRoute: TermsRoute,
   InboxConversationIdRoute: InboxConversationIdRoute,
   ListingIdRoute: ListingIdRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,
