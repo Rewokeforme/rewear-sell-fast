@@ -46,7 +46,7 @@ function ListingPage() {
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
     supabase.rpc("increment_listing_views", { _listing_id: id }).then(() => {
-      setListing((prev) => (prev ? { ...prev, views_count: (prev.views_count ?? 0) + 1 } : prev));
+      setListing((prev) => (prev ? ({ ...prev, views_count: ((prev as unknown as { views_count?: number }).views_count ?? 0) + 1 } as ListingWithDetails) : prev));
     });
   }, [id]);
 
