@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 export type NotificationRow = {
   id: string;
   user_id: string;
-  type: "new_listing" | "new_message" | "new_follower" | "system";
+  type: "new_listing" | "new_message" | "new_follower" | "system" | "admin_reply";
   title: string;
   body: string | null;
   related_listing_id: string | null;
