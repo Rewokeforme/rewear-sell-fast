@@ -141,9 +141,8 @@ function HomePage() {
 
         {/* Trending brands */}
         <section>
-          <div className="mb-3 flex items-baseline justify-between">
+          <div className="mb-3">
             <h2 className="font-display text-2xl">Populärt just nu</h2>
-            <span className="text-eyebrow text-muted-foreground">Märken</span>
           </div>
           <div className="-mx-4 overflow-x-auto px-4 scrollbar-none">
             <div className="flex gap-2">
@@ -171,9 +170,6 @@ function HomePage() {
                 Följer
               </FeedTabBtn>
             </div>
-            <Link to="/search" className="text-eyebrow text-muted-foreground hover:text-foreground">
-              Visa alla
-            </Link>
           </div>
 
           {feedTab === "discover" && categories.length > 0 && (
