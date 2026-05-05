@@ -211,6 +211,13 @@ function SellPage() {
   }, [mainCategory, subCategory]);
 
 
+  const titleWordCount = title.trim() ? title.trim().split(/\s+/).length : 0;
+  const titleNeedsImprovement = !!title.trim() && (titleWordCount < 3 || title.trim().length < 12);
+  const sellerBadge = computeSellerBadge(sellerStats);
+  const sellerName = (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? "Du";
+  const sellerInitial = sellerName?.[0]?.toUpperCase() ?? "?";
+  const sellerAvatarUrl = (user?.user_metadata?.avatar_url as string | undefined) ?? null;
+
   function openPreview() {
     setSubmitAttempted(true);
     const e = validate();
