@@ -8,7 +8,17 @@ import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { formatSEK } from "@/lib/rewear";
-import { BadgeCheck, Sparkles } from "lucide-react";
+import { BadgeCheck, Sparkles, ShieldCheck, Lock } from "lucide-react";
+
+type AdminMsgItem = {
+  id: string;
+  subject: string;
+  body: string;
+  is_read: boolean;
+  created_at: string;
+  related_listing_id: string | null;
+  listing: { title: string; listing_images: { url: string }[] } | null;
+};
 
 export const Route = createFileRoute("/inbox/")({
   component: InboxPage,
@@ -39,12 +49,32 @@ function counterpartBadge(stats: ConvSummary["other_stats"], verified: boolean):
 function InboxPage() {
   const { user, loading } = useAuth();
   const [items, setItems] = useState<ConvSummary[]>([]);
+  const [adminMsgs, setAdminMsgs] = useState<AdminMsgItem[]>([]);
   const [busy, setBusy] = useState(true);
   const [tab, setTab] = useState<Tab>("all");
 
   useEffect(() => {
     if (!user) return;
     (async () => {
+      // Admin messages (with related listing info fetched separately — no FK on admin_messages)
+      const { data: am } = await supabase
+        .from("admin_messages")
+        .select("id, subject, body, is_read, created_at, related_listing_id")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      const amRows = (am ?? []) as Array<Omit<AdminMsgItem, "listing">>;
+      const amListingIds = Array.from(new Set(amRows.map((m) => m.related_listing_id).filter((x): x is string => !!x)));
+      const { data: amListings } = amListingIds.length
+        ? await supabase.from("listings").select("id, title, listing_images(url)").in("id", amListingIds)
+        : { data: [] as Array<{ id: string; title: string; listing_images: { url: string }[] }> };
+      const amListingMap = new Map((amListings ?? []).map((l) => [l.id, l]));
+      setAdminMsgs(
+        amRows.map((m) => ({
+          ...m,
+          listing: m.related_listing_id ? amListingMap.get(m.related_listing_id) ?? null : null,
+        })),
+      );
+
       const { data: convs } = await supabase
         .from("conversations")
         .select("id, listing_id, buyer_id, seller_id, last_message_at, listings(title, status, price_sek, listing_images(url))")
@@ -120,11 +150,12 @@ function InboxPage() {
     );
   }
 
+  const unreadAdmin = adminMsgs.filter((m) => !m.is_read).length;
   const counts = {
-    all: items.length,
+    all: items.length + adminMsgs.length,
     buy: items.filter((c) => user && c.buyer_id === user.id).length,
     sell: items.filter((c) => user && c.seller_id === user.id).length,
-    unread: items.filter((c) => c.unread).length,
+    unread: items.filter((c) => c.unread).length + unreadAdmin,
   };
 
   return (
@@ -153,13 +184,64 @@ function InboxPage() {
           ))}
         </div>
 
+        {/* Admin messages — show on "all" and "unread" tabs */}
+        {!busy && (tab === "all" || tab === "unread") && adminMsgs.length > 0 && (
+          <ul className="mb-3 space-y-2.5">
+            {adminMsgs
+              .filter((m) => (tab === "unread" ? !m.is_read : true))
+              .map((m) => (
+                <li key={m.id}>
+                  <Link
+                    to="/inbox/admin/$id"
+                    params={{ id: m.id }}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-2xl border bg-card p-3 shadow-soft transition hover:shadow-card",
+                      m.is_read ? "border-border" : "border-primary/40 bg-primary/5",
+                    )}
+                  >
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground ring-1 ring-primary/20">
+                      <ShieldCheck className="h-7 w-7" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className={cn("text-sm truncate", m.is_read ? "font-medium" : "font-semibold")}>
+                          Rewear-teamet
+                        </p>
+                        <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">
+                          Officiellt
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {m.subject}
+                        {m.listing && <> · om <span className="text-foreground/80">{m.listing.title}</span></>}
+                      </p>
+                      <p className={cn("mt-0.5 text-xs truncate", m.is_read ? "text-muted-foreground" : "text-foreground font-medium")}>
+                        {m.body}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <span className="text-[10px] text-muted-foreground">
+                        {formatDistanceToNow(new Date(m.created_at), { locale: sv, addSuffix: true })}
+                      </span>
+                      {!m.is_read ? (
+                        <span className="h-2.5 w-2.5 rounded-full bg-primary shadow-soft" />
+                      ) : (
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </div>
+                  </Link>
+                </li>
+              ))}
+          </ul>
+        )}
+
         {busy ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="h-20 animate-pulse rounded-2xl bg-card" />
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : filtered.length === 0 && (tab !== "all" || adminMsgs.length === 0) ? (
           <div className="rounded-2xl border border-dashed border-border bg-card/50 px-6 py-14 text-center">
             <p className="font-display text-lg">
               {tab === "unread" ? "Inga olästa meddelanden" : "Inga konversationer ännu"}

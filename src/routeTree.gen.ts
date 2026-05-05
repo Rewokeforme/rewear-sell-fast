@@ -22,6 +22,7 @@ import { Route as MeListingsRouteImport } from './routes/me.listings'
 import { Route as MeFavoritesRouteImport } from './routes/me.favorites'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
 import { Route as InboxConversationIdRouteImport } from './routes/inbox.$conversationId'
+import { Route as InboxAdminIdRouteImport } from './routes/inbox.admin.$id'
 
 const SellRoute = SellRouteImport.update({
   id: '/sell',
@@ -88,6 +89,11 @@ const InboxConversationIdRoute = InboxConversationIdRouteImport.update({
   path: '/inbox/$conversationId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InboxAdminIdRoute = InboxAdminIdRouteImport.update({
+  id: '/inbox/admin/$id',
+  path: '/inbox/admin/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/me/listings': typeof MeListingsRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/inbox/': typeof InboxIndexRoute
+  '/inbox/admin/$id': typeof InboxAdminIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/me/listings': typeof MeListingsRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/inbox': typeof InboxIndexRoute
+  '/inbox/admin/$id': typeof InboxAdminIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/me/listings': typeof MeListingsRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/inbox/': typeof InboxIndexRoute
+  '/inbox/admin/$id': typeof InboxAdminIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/me/listings'
     | '/profile/$userId'
     | '/inbox/'
+    | '/inbox/admin/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/me/listings'
     | '/profile/$userId'
     | '/inbox'
+    | '/inbox/admin/$id'
   id:
     | '__root__'
     | '/'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/me/listings'
     | '/profile/$userId'
     | '/inbox/'
+    | '/inbox/admin/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -195,6 +207,7 @@ export interface RootRouteChildren {
   ListingIdRoute: typeof ListingIdRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
   InboxIndexRoute: typeof InboxIndexRoute
+  InboxAdminIdRoute: typeof InboxAdminIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -290,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InboxConversationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inbox/admin/$id': {
+      id: '/inbox/admin/$id'
+      path: '/inbox/admin/$id'
+      fullPath: '/inbox/admin/$id'
+      preLoaderRoute: typeof InboxAdminIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -317,6 +337,7 @@ const rootRouteChildren: RootRouteChildren = {
   ListingIdRoute: ListingIdRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,
   InboxIndexRoute: InboxIndexRoute,
+  InboxAdminIdRoute: InboxAdminIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

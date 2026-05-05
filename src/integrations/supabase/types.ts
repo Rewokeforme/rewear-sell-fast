@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_read: boolean
+          related_conversation_id: string | null
+          related_listing_id: string | null
+          related_report_id: string | null
+          related_user_id: string | null
+          sent_by: string | null
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          related_conversation_id?: string | null
+          related_listing_id?: string | null
+          related_report_id?: string | null
+          related_user_id?: string | null
+          sent_by?: string | null
+          subject?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          related_conversation_id?: string | null
+          related_listing_id?: string | null
+          related_report_id?: string | null
+          related_user_id?: string | null
+          sent_by?: string | null
+          subject?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           id: string
