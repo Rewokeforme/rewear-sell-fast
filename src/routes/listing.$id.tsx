@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Bookmark, Eye, Flag, Handshake, Heart, Leaf, MapPin, MessageCircle, ShieldCheck, Star, Truck } from "lucide-react";
+import { Bookmark, Eye, Flag, Handshake, Heart, Leaf, MapPin, ShieldCheck, Star, Truck } from "lucide-react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { FollowButton } from "@/components/FollowButton";
@@ -342,19 +342,12 @@ function ListingPage() {
             </div>
           )}
 
-          <div className="flex gap-2 pt-2">
-            <button
-              onClick={() => startConversation(`Hej! Är "${listing.title}" fortfarande ledig?`)}
-              className="flex-1 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-card"
-            >
-              Skicka meddelande
-            </button>
+          <div className="pt-2">
             <button
               onClick={() => startConversation("")}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background"
-              aria-label="Öppna chatt"
+              className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-card"
             >
-              <MessageCircle className="h-5 w-5" />
+              Skicka meddelande
             </button>
           </div>
 
