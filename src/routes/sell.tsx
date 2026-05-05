@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Sparkles, Camera, X } from "lucide-react";
+import { Sparkles, Camera, X, MapPin, Truck, Handshake, Info } from "lucide-react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,9 +29,17 @@ function SellPage() {
   const [condition, setCondition] = useState<string>(CONDITIONS[1]);
   const [price, setPrice] = useState<string>("");
   const [description, setDescription] = useState("");
+  const [city, setCity] = useState("");
+  const [area, setArea] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState<"shipping" | "pickup" | "both">("shipping");
+  const [buyerPaysShipping, setBuyerPaysShipping] = useState(true);
+  const [shippingPrice, setShippingPrice] = useState<string>("");
+  const [shipsWithin, setShipsWithin] = useState<"1" | "2-3" | "4-7">("2-3");
   const [busy, setBusy] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const showShipping = deliveryMethod === "shipping" || deliveryMethod === "both";
+  const showPickup = deliveryMethod === "pickup" || deliveryMethod === "both";
 
   useEffect(() => {
     supabase
@@ -109,6 +117,15 @@ function SellPage() {
       return;
     }
 
+    if (!city.trim()) {
+      toast.error("Ange stad.");
+      return;
+    }
+    if (!deliveryMethod) {
+      toast.error("Välj leveranssätt.");
+      return;
+    }
+
     setBusy(true);
     try {
       const { data: listing, error: lErr } = await supabase
@@ -122,6 +139,12 @@ function SellPage() {
           condition,
           price_sek: priceNum,
           description: description || null,
+          city: city.trim(),
+          area: area.trim() || null,
+          delivery_method: deliveryMethod,
+          buyer_pays_shipping: showShipping ? buyerPaysShipping : true,
+          shipping_price: showShipping && shippingPrice ? Number(shippingPrice) : null,
+          ships_within_days: showShipping ? shipsWithin : null,
         })
         .select()
         .single();
