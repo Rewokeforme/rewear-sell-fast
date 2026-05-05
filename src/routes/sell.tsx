@@ -689,7 +689,7 @@ function SellPage() {
 
       {/* Preview modal */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="w-screen h-[100dvh] max-w-none rounded-none sm:w-[calc(100vw-2rem)] sm:h-auto sm:max-w-[960px] sm:max-h-[92vh] sm:rounded-2xl p-0 gap-0 overflow-hidden border border-border bg-background focus:outline-none focus-visible:outline-none focus:ring-0 [&>button]:hidden">
+        <DialogContent className="flex flex-col w-screen h-[100dvh] max-w-none rounded-none sm:w-[calc(100vw-2rem)] sm:h-auto sm:max-w-[960px] sm:max-h-[92vh] sm:rounded-2xl p-0 gap-0 overflow-hidden border border-border bg-background focus:outline-none focus-visible:outline-none focus:ring-0 [&>button]:hidden">
           <DialogHeader className="sticky top-0 z-10 flex-row items-start justify-between gap-4 space-y-0 border-b border-border bg-background/95 px-5 py-4 backdrop-blur">
             <div className="space-y-0.5">
               <DialogTitle className="font-display text-lg sm:text-xl">Förhandsgranska annons</DialogTitle>
