@@ -25,19 +25,30 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  const { user } = useAuth();
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [activeCat, setActiveCat] = useState<string | null>(null);
   const [listings, setListings] = useState<ListingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
+  const [feedTab, setFeedTab] = useState<"discover" | "following">("discover");
+  const [followingIds, setFollowingIds] = useState<string[] | null>(null);
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
-    supabase
-      .from("categories")
-      .select("*")
-      .order("sort_order")
-      .then(({ data }) => setCategories(data ?? []));
+    supabase.from("categories").select("*").order("sort_order").then(({ data }) => setCategories(data ?? []));
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setFollowingIds(null);
+      return;
+    }
+    supabase
+      .from("follows")
+      .select("seller_id")
+      .eq("follower_id", user.id)
+      .then(({ data }) => setFollowingIds(((data ?? []) as Array<{ seller_id: string }>).map((r) => r.seller_id)));
+  }, [user]);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -54,14 +65,24 @@ function HomePage() {
       .order("created_at", { ascending: false })
       .limit(40);
     if (activeCat) q = q.eq("category_id", activeCat);
+    if (feedTab === "following") {
+      if (!followingIds || followingIds.length === 0) {
+        setListings([]);
+        setLoading(false);
+        return;
+      }
+      q = q.in("seller_id", followingIds);
+    }
     q.then(({ data }) => {
       setListings((data as unknown as ListingWithDetails[]) ?? []);
       setLoading(false);
     });
-  }, [activeCat]);
+  }, [activeCat, feedTab, followingIds]);
 
-  const showDemo = !loading && listings.length === 0;
+  const showDemo = !loading && feedTab === "discover" && listings.length === 0;
   const feed = showDemo ? demoListings : listings;
+  const showFollowingEmpty =
+    !loading && feedTab === "following" && listings.length === 0;
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-12">
