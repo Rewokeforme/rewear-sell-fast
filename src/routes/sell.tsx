@@ -50,6 +50,8 @@ function SellPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [previewActiveImg, setPreviewActiveImg] = useState(0);
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [sellerStats, setSellerStats] = useState<SellerStatsLite | null>(null);
+  const [co2Kg, setCo2Kg] = useState<number>(4);
   const fileInput = useRef<HTMLInputElement>(null);
   const showShipping = deliveryMethod === "shipping" || deliveryMethod === "both";
   const showPickup = deliveryMethod === "pickup" || deliveryMethod === "both";
