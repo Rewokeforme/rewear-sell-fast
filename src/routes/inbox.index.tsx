@@ -56,13 +56,24 @@ function InboxPage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      // Admin messages
+      // Admin messages (with related listing info fetched separately — no FK on admin_messages)
       const { data: am } = await supabase
         .from("admin_messages")
-        .select("id, subject, body, is_read, created_at, related_listing_id, listing:listings!admin_messages_related_listing_id_fkey(title, listing_images(url))")
+        .select("id, subject, body, is_read, created_at, related_listing_id")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      setAdminMsgs(((am ?? []) as unknown) as AdminMsgItem[]);
+      const amRows = (am ?? []) as Array<Omit<AdminMsgItem, "listing">>;
+      const amListingIds = Array.from(new Set(amRows.map((m) => m.related_listing_id).filter((x): x is string => !!x)));
+      const { data: amListings } = amListingIds.length
+        ? await supabase.from("listings").select("id, title, listing_images(url)").in("id", amListingIds)
+        : { data: [] as Array<{ id: string; title: string; listing_images: { url: string }[] }> };
+      const amListingMap = new Map((amListings ?? []).map((l) => [l.id, l]));
+      setAdminMsgs(
+        amRows.map((m) => ({
+          ...m,
+          listing: m.related_listing_id ? amListingMap.get(m.related_listing_id) ?? null : null,
+        })),
+      );
 
       const { data: convs } = await supabase
         .from("conversations")
