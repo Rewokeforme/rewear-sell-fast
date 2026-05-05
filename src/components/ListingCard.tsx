@@ -56,6 +56,21 @@ export function ListingCard({ listing }: { listing: ListingWithDetails }) {
             {formatSEK(listing.price_sek)}
           </span>
         </div>
+        {(listing.city || listing.delivery_method) && (
+          <div className="flex items-center justify-between pt-0.5 text-[11px] text-muted-foreground">
+            {listing.city ? (
+              <span className="inline-flex items-center gap-0.5">
+                <MapPin className="h-3 w-3" />
+                {listing.city}
+              </span>
+            ) : <span />}
+            {listing.delivery_method === "shipping" && <Truck className="h-3 w-3" aria-label="Skickas" />}
+            {listing.delivery_method === "pickup" && <Handshake className="h-3 w-3" aria-label="Lokal upphämtning" />}
+            {listing.delivery_method === "both" && (
+              <span className="inline-flex items-center gap-0.5"><Truck className="h-3 w-3" /><Handshake className="h-3 w-3" /></span>
+            )}
+          </div>
+        )}
       </div>
     </>
   );
