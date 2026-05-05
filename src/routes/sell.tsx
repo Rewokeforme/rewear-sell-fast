@@ -65,6 +65,32 @@ function SellPage() {
       .then(({ data }) => setCategories(data ?? []));
   }, []);
 
+  // Hämta säljarstatistik för preview-säljarkortet
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("seller_stats")
+      .select("first_listing_at, sold_count, average_rating, rating_count")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setSellerStats(data as unknown as SellerStatsLite);
+      });
+  }, [user]);
+
+  // Hämta CO₂-besparing för vald kategori
+  useEffect(() => {
+    if (!categoryId) return;
+    supabase
+      .from("co2_factors")
+      .select("kg_saved")
+      .eq("category_id", categoryId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data && typeof data.kg_saved === "number") setCo2Kg(Number(data.kg_saved));
+      });
+  }, [categoryId]);
+
   useEffect(() => {
     if (!categoryId) {
       setPriceRange(null);
