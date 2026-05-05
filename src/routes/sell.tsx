@@ -687,7 +687,7 @@ function SellPage() {
             <div className="space-y-0.5">
               <DialogTitle className="font-display text-lg sm:text-xl">Förhandsgranska annons</DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Så här kommer din annons visas för köpare.
+                Kontrollera uppgifterna innan du publicerar.
               </DialogDescription>
             </div>
             <button
