@@ -106,8 +106,8 @@ function SellPage() {
     if (!price) setPrice("950");
   }
 
-  const sizeInfo = useMemo(() => sizesForCategory(mainCategory, subCategory), [mainCategory, subCategory]);
-  const showJeansSizes = isJeans(subCategory);
+  const sizeInfo = useMemo(() => getSizeRule(mainCategory, subCategory), [mainCategory, subCategory]);
+  const jeansVisible = showJeansSizes(mainCategory, subCategory);
 
   function validate(): Record<string, string> {
     const e: Record<string, string> = {};
