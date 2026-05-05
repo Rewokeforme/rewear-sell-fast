@@ -238,6 +238,20 @@ function ConversationPage() {
     else toast.success("Användaren är blockerad.");
   }
 
+  async function deleteConversation() {
+    setMenuOpen(false);
+    if (!user) return;
+    if (!window.confirm("Radera denna konversation från din inkorg? Den dyker upp igen om motparten skickar ett nytt meddelande.")) return;
+    const { error } = await supabase
+      .from("conversation_deletions")
+      .insert({ conversation_id: conversationId, user_id: user.id });
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Konversationen är raderad.");
+      void navigate({ to: "/inbox" });
+    }
+  }
   // Group messages by day
   const groups = useMemo(() => {
     const out: { day: string; items: Msg[] }[] = [];
