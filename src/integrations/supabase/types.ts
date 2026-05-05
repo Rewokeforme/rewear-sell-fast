@@ -64,24 +64,36 @@ export type Database = {
           created_at: string
           id: string
           last_message_at: string
+          last_message_preview: string | null
           listing_id: string
           seller_id: string
+          status: Database["public"]["Enums"]["conversation_status"]
+          unread_count_for_buyer: number
+          unread_count_for_seller: number
         }
         Insert: {
           buyer_id: string
           created_at?: string
           id?: string
           last_message_at?: string
+          last_message_preview?: string | null
           listing_id: string
           seller_id: string
+          status?: Database["public"]["Enums"]["conversation_status"]
+          unread_count_for_buyer?: number
+          unread_count_for_seller?: number
         }
         Update: {
           buyer_id?: string
           created_at?: string
           id?: string
           last_message_at?: string
+          last_message_preview?: string | null
           listing_id?: string
           seller_id?: string
+          status?: Database["public"]["Enums"]["conversation_status"]
+          unread_count_for_buyer?: number
+          unread_count_for_seller?: number
         }
         Relationships: [
           {
@@ -279,7 +291,10 @@ export type Database = {
           body: string
           conversation_id: string
           created_at: string
+          flag_reason: string | null
+          flagged: boolean
           id: string
+          is_read: boolean
           read_at: string | null
           sender_id: string
         }
@@ -287,7 +302,10 @@ export type Database = {
           body: string
           conversation_id: string
           created_at?: string
+          flag_reason?: string | null
+          flagged?: boolean
           id?: string
+          is_read?: boolean
           read_at?: string | null
           sender_id: string
         }
@@ -295,7 +313,10 @@ export type Database = {
           body?: string
           conversation_id?: string
           created_at?: string
+          flag_reason?: string | null
+          flagged?: boolean
           id?: string
+          is_read?: boolean
           read_at?: string | null
           sender_id?: string
         }
@@ -588,6 +609,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      conversation_status: "active" | "archived" | "blocked"
       listing_status: "active" | "sold" | "removed"
       notification_type:
         | "new_listing"
@@ -723,6 +745,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      conversation_status: ["active", "archived", "blocked"],
       listing_status: ["active", "sold", "removed"],
       notification_type: [
         "new_listing",
