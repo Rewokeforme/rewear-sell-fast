@@ -51,7 +51,7 @@ function SellPage() {
   const [previewActiveImg, setPreviewActiveImg] = useState(0);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [sellerStats, setSellerStats] = useState<SellerStatsLite | null>(null);
-  const [sellerProfile, setSellerProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);
+  const [sellerProfile, setSellerProfile] = useState<{ full_name: string | null; avatar_url: string | null; city: string | null; email_verified: boolean; phone_verified: boolean; identity_verified: boolean; is_verified: boolean } | null>(null);
   const [co2Kg, setCo2Kg] = useState<number>(4);
   const fileInput = useRef<HTMLInputElement>(null);
   const showShipping = deliveryMethod === "shipping" || deliveryMethod === "both";
