@@ -1,96 +1,108 @@
 ## Mål
+Bygg hela orderflödet i ReWoke utan riktig betalningsintegration. Stripe kopplas in senare — nu simulerar vi "Fortsätt till betalning" så ordern blir `paid`.
 
-Admin ska kunna se, hantera och svara på alla inskickade rapporter direkt i adminportalen. När admin svarar på en rapport ska personen som rapporterade få en notis i sin inkorg (under "Notiser") med svaret från Admin.
+## 1. Databas (migration)
 
-## Vad som byggs
+### Ny enum
+```
+order_status: pending_payment | paid | shipped | delivered | completed | cancelled | disputed | refunded
+```
 
-### 1. Databas (migration)
+### Ny tabell `orders`
+- `id` uuid PK
+- `listing_id` uuid → listings
+- `buyer_id` uuid
+- `seller_id` uuid
+- `status` order_status default `pending_payment`
+- `item_price` integer (SEK)
+- `shipping_price` integer default 0
+- `platform_fee` integer default 0
+- `total_amount` integer
+- `currency` text default `SEK`
+- `delivery_method` text (`shipping` | `pickup` | `both`)
+- `created_at`, `updated_at` timestamptz
 
-Två tabeller hanterar redan rapporter:
-- `reports` — rapporter på **annonser** (från annonssidan)
-- `user_reports` — rapporter på **konversationer/användare** (från chatten)
+Index på `buyer_id`, `seller_id`, `listing_id`, `status`.
 
-Lägg till för båda:
-- `admin_response` (text) — admins svarstext
-- `responded_by` (uuid) — admin-id
-- `responded_at` (timestamptz)
+### Ny status på listings
+Lägg till `'reserved'` i `listing_status`-enum (utöver active/sold/removed).
 
-Säkerhet:
-- RLS på `reports`: lägg till en `UPDATE`-policy så att enbart admin (via `has_role`) kan uppdatera status och skriva svar. Idag finns ingen update-policy alls på `reports`, vilket gör knappen "Lös" trasig — fixas nu.
-- `user_reports` har redan admin-update-policy.
-- Utöka `notifications.type`-enumen med ett nytt värde `admin_reply` så vi kan visa svaren snyggt i inkorgen.
+### Triggers
+- `set_updated_at` på orders.
+- När order skapas (`pending_payment` eller `paid`) → sätt listing.status = `reserved` (om den var `active`).
+- När order → `completed` → listing.status = `sold`.
+- När order → `cancelled` / `refunded` → listing.status tillbaka till `active` (om reserved).
 
-Ingen automatisk trigger — admins svar skickas explicit från admin-UI:t (en `INSERT` i `notifications` med `user_id = reporter_id`, `type = 'admin_reply'`, `title = "Svar från ReWoke-teamet"`, `body = svaret`, `related_listing_id` eller `related_conversation_id` beroende på rapporttyp).
+### Validering
+- BEFORE INSERT trigger: kasta fel om `buyer_id = seller_id`.
+- BEFORE INSERT trigger: säkerställ att listing.status inte redan är `sold` eller `reserved` av annan order.
 
-### 2. Adminportalen (`src/routes/admin.tsx`)
+### RLS
+- SELECT: `auth.uid() = buyer_id OR auth.uid() = seller_id OR has_role(auth.uid(),'admin')`
+- INSERT: `auth.uid() = buyer_id` AND `buyer_id <> seller_id` (kontroll i WITH CHECK + trigger)
+- UPDATE: 
+  - Köpare får uppdatera till `paid` (simulering), `delivered`, `completed`, `disputed`.
+  - Säljare får uppdatera till `shipped`, `cancelled`.
+  - Admin får allt.
+  - Implementeras säkrast via två policies + en SECURITY DEFINER-funktion `can_transition_order(order_id, new_status)`.
 
-Bygg om "Rapporter"-fliken till en riktig hanteringsvy:
+## 2. Frontend
 
-- **Två underflikar**: "Annonser" och "Konversationer/användare", med antalsbadge för öppna rapporter.
-- **Filter**: Öppna · Besvarade · Alla.
-- **Rapportkort** visar:
-  - Rapporterad anledning + ev. fri beskrivning
-  - Vem som rapporterade (namn → länk till profil)
-  - Länk till annonsen eller konversationen
-  - Datum
-  - Status-pill (Öppen / Besvarad / Stängd)
-  - Tidigare svar om sådant finns (admin + tidsstämpel)
-- **Åtgärdsknappar**: "Svara", "Markera som löst", "Ignorera".
-- **Svar-dialog** (återanvänd vår nya `ReportDialog`-mönstring men i ny `AdminReplyDialog`-komponent) med:
-  - Snabbsvar-pillar: "Tack för rapporten — vi har granskat och åtgärdat", "Vi behöver mer information", "Annonsen följer våra regler", "Vi har varnat användaren", "Annonsen har tagits bort".
-  - Fritextfält (obligatoriskt).
-  - Skicka → uppdaterar rapporten med svar/responded_by/responded_at, sätter status till `resolved`, och skapar en notis till rapportören.
+### `src/lib/orders.ts` (ny)
+Helpers: `createOrder`, `simulatePayment`, `markShipped`, `markDelivered`, `markCompleted`, `cancelOrder`, `getMyPurchases`, `getMySales`.
 
-### 3. Inkorg/notiser (`src/routes/notifications.tsx`, `src/lib/notifications.ts`)
+### Plaggsida (`src/routes/listing.$id.tsx`)
+- Visa knappar beroende på listing.status och ägarskap:
+  - `active` + ej egen + inloggad → **Köp nu**, **Skicka meddelande**, **Spara**
+  - `reserved` → badge "Reserverad" (knapp inaktiverad om ej köparen)
+  - `sold` → badge "Såld"
+  - egen annons → ingen Köp nu-knapp
+- "Köp nu" → skapar order med `pending_payment` → navigerar till `/checkout/$orderId`.
 
-- Stöd nya typen `admin_reply` i `NotificationRow`.
-- Rendera admin-svar med distinkt design: liten "Admin"-badge med sköld-ikon, accentfärg, och länk till relaterad annons/konversation om sådan finns.
-- Räknas redan som olästa via befintlig `useUnreadNotifications`.
+### `src/routes/checkout.$orderId.tsx` (ny)
+- Visar orderöversikt (produkt, pris, frakt, totalt).
+- Knapp **Fortsätt till betalning** → uppdaterar status till `paid` (simulering) → redirect till `/orders/$orderId` eller `/me/purchases`.
+- Säkerhet: bara `buyer_id` får se sidan.
 
-### 4. Småfix
+### `src/routes/me.purchases.tsx` (ny) — "Mina köp"
+Lista: produktbild, titel, pris, säljare, status-badge, leveranssätt. Klick → orderdetalj.
 
-- Visa antal öppna rapporter som badge på "Rapporter"-fliken i admin.
-- I admin: gruppera under en gemensam typedef `ReportItem` så annons- och konversationsrapporter kan visas i samma lista vid behov.
+### `src/routes/me.sales.tsx` (ny) — "Mina försäljningar"
+Lista: produktbild, titel, köpare, status-badge. Knapp **Markera som skickad** för `paid`-orders. (Senare: markera levererad/completed.)
+
+### `src/routes/orders.$orderId.tsx` (ny) — orderdetalj
+Visar full info, statushistorik-light, åtgärder beroende på roll och status:
+- Köpare: "Bekräfta mottagen" (delivered → completed), "Öppna tvist".
+- Säljare: "Markera som skickad", "Avbryt order" (om paid och ej shipped).
+
+### Navigation
+Lägg till "Mina köp" och "Mina försäljningar" i `src/routes/me.tsx` (eller header/profilmeny).
+
+### Statusbadge-komponent
+`src/components/OrderStatusBadge.tsx` — översätter statusar till svensk text + färg via design tokens.
+
+## 3. Säkerhet (sammanfattning)
+- DB: RLS + triggers förhindrar self-purchase och otillåtna transitioner.
+- Frontend: dölj knappar baserat på roll, men förlita sig aldrig bara på UI.
+- Reserved-state förhindrar dubbla köp av samma plagg.
+
+## 4. Vad som INTE ingår nu
+- Riktig Stripe-integration (kopplas in i nästa steg där `simulatePayment` byts mot Stripe Checkout).
+- Refund-flöde (status finns men ingen UI ännu).
+- Tvistehantering (status finns, minimal UI).
+- Notifikationer vid statusändring (kan läggas till efter migrationen är godkänd).
 
 ## Tekniska detaljer
+- Priser lagras som heltals-SEK (matchar `listings.price_sek`).
+- `platform_fee` = 0 tills vidare; fältet finns för Stripe-tiden.
+- `total_amount` = `item_price + shipping_price + platform_fee`, sätts via trigger.
+- Migration körs via `supabase--migration`. Efter godkännande: bygg frontend.
 
-**Migration (sammanfattat):**
-```sql
-ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'admin_reply';
-
-ALTER TABLE public.reports
-  ADD COLUMN admin_response text,
-  ADD COLUMN responded_by uuid,
-  ADD COLUMN responded_at timestamptz;
-
-ALTER TABLE public.user_reports
-  ADD COLUMN admin_response text,
-  ADD COLUMN responded_by uuid,
-  ADD COLUMN responded_at timestamptz;
-
-CREATE POLICY "reports admin update"
-ON public.reports FOR UPDATE
-USING (has_role(auth.uid(), 'admin'));
-```
-
-**Notifikations-insert (admin-flödet):**
-```ts
-await supabase.from("notifications").insert({
-  user_id: report.reporter_id,
-  type: "admin_reply",
-  title: "Svar från ReWoke-teamet",
-  body: replyText,
-  related_listing_id: report.listing_id ?? null,
-  related_conversation_id: report.reported_conversation_id ?? null,
-});
-```
-
-**Filer som ändras/skapas:**
-- `supabase/migrations/<ny>.sql` — schema + policy + enum
-- `src/integrations/supabase/types.ts` — regenereras automatiskt efter migrationen
-- `src/routes/admin.tsx` — byggs om för rapportflöden
-- `src/components/AdminReplyDialog.tsx` — ny dialog för admin-svar
-- `src/routes/notifications.tsx` — rendera nya `admin_reply`-typen
-- `src/lib/notifications.ts` — utöka `NotificationRow.type`
-
-Inga edge functions behövs — allt hanteras direkt mot databasen med RLS.
+## Implementationsordning
+1. Migration (orders-tabell, enums, triggers, RLS).
+2. `src/lib/orders.ts` + `OrderStatusBadge`.
+3. Uppdatera `listing.$id.tsx` med ny köp-UI.
+4. `checkout.$orderId.tsx`.
+5. `me.purchases.tsx` + `me.sales.tsx`.
+6. `orders.$orderId.tsx`.
+7. Länkar i `me.tsx`/header.
