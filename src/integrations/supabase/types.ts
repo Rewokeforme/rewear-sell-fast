@@ -441,9 +441,15 @@ export type Database = {
           id: string
           item_price: number
           listing_id: string
+          payment_method: string | null
           platform_fee: number
           seller_id: string
+          shipping_city: string | null
+          shipping_full_name: string | null
+          shipping_phone: string | null
+          shipping_postal_code: string | null
           shipping_price: number
+          shipping_street: string | null
           status: Database["public"]["Enums"]["order_status"]
           total_amount: number
           updated_at: string
@@ -456,9 +462,15 @@ export type Database = {
           id?: string
           item_price: number
           listing_id: string
+          payment_method?: string | null
           platform_fee?: number
           seller_id: string
+          shipping_city?: string | null
+          shipping_full_name?: string | null
+          shipping_phone?: string | null
+          shipping_postal_code?: string | null
           shipping_price?: number
+          shipping_street?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
           updated_at?: string
@@ -471,9 +483,15 @@ export type Database = {
           id?: string
           item_price?: number
           listing_id?: string
+          payment_method?: string | null
           platform_fee?: number
           seller_id?: string
+          shipping_city?: string | null
+          shipping_full_name?: string | null
+          shipping_phone?: string | null
+          shipping_postal_code?: string | null
           shipping_price?: number
+          shipping_street?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
           updated_at?: string

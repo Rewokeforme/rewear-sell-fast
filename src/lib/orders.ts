@@ -10,6 +10,8 @@ export type OrderStatus =
   | "disputed"
   | "refunded";
 
+export type PaymentMethod = "klarna" | "card" | "swish";
+
 export type OrderRow = {
   id: string;
   listing_id: string;
@@ -24,6 +26,12 @@ export type OrderRow = {
   delivery_method: string;
   created_at: string;
   updated_at: string;
+  shipping_full_name: string | null;
+  shipping_street: string | null;
+  shipping_postal_code: string | null;
+  shipping_city: string | null;
+  shipping_phone: string | null;
+  payment_method: string | null;
 };
 
 export type OrderWithListing = OrderRow & {
@@ -34,18 +42,14 @@ export type OrderWithListing = OrderRow & {
     listing_images: { url: string; position: number }[];
   } | null;
   buyer: { id: string; full_name: string | null; avatar_url: string | null } | null;
-  seller: { id: string; full_name: string | null; avatar_url: string | null } | null;
+  seller: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+    is_verified?: boolean | null;
+    trust_score?: number | null;
+  } | null;
 };
-
-const SELECT_WITH_RELATIONS = `
-  *,
-  listing:listings!orders_listing_id_fkey(id, title, price_sek, listing_images(url, position)),
-  buyer:profiles!orders_buyer_id_fkey(id, full_name, avatar_url),
-  seller:profiles!orders_seller_id_fkey(id, full_name, avatar_url)
-`;
-
-// Fallback select without explicit FK names (in case relationships aren't named)
-const SELECT_FALLBACK = `*`;
 
 export async function createOrder(params: {
   listingId: string;
@@ -85,39 +89,93 @@ export async function updateOrderStatus(
   return { error: error?.message ?? null };
 }
 
+export async function updateOrderShipping(
+  orderId: string,
+  shipping: {
+    fullName: string;
+    street: string;
+    postalCode: string;
+    city: string;
+    phone: string;
+    paymentMethod: PaymentMethod;
+  },
+): Promise<{ error: string | null }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
+    .from("orders")
+    .update({
+      shipping_full_name: shipping.fullName,
+      shipping_street: shipping.street,
+      shipping_postal_code: shipping.postalCode,
+      shipping_city: shipping.city,
+      shipping_phone: shipping.phone,
+      payment_method: shipping.paymentMethod,
+    })
+    .eq("id", orderId);
+  return { error: error?.message ?? null };
+}
+
+async function hydrateOrder(order: OrderRow | null): Promise<OrderWithListing | null> {
+  if (!order) return null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sb = supabase as any;
+  const [listingRes, buyerRes, sellerRes] = await Promise.all([
+    sb
+      .from("listings")
+      .select("id, title, price_sek, listing_images(url, position)")
+      .eq("id", order.listing_id)
+      .maybeSingle(),
+    sb
+      .from("profiles")
+      .select("id, full_name, avatar_url")
+      .eq("id", order.buyer_id)
+      .maybeSingle(),
+    sb
+      .from("profiles")
+      .select("id, full_name, avatar_url, is_verified, trust_score")
+      .eq("id", order.seller_id)
+      .maybeSingle(),
+  ]);
+  return {
+    ...order,
+    listing: listingRes.data ?? null,
+    buyer: buyerRes.data ?? null,
+    seller: sellerRes.data ?? null,
+  };
+}
+
 export async function getOrder(orderId: string): Promise<OrderWithListing | null> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any)
+  const { data } = await (supabase as any)
     .from("orders")
-    .select(SELECT_WITH_RELATIONS)
+    .select("*")
     .eq("id", orderId)
     .maybeSingle();
-  if (error || !data) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fb = await (supabase as any).from("orders").select(SELECT_FALLBACK).eq("id", orderId).maybeSingle();
-    return (fb.data as OrderWithListing) ?? null;
-  }
-  return data as OrderWithListing;
+  return hydrateOrder(data as OrderRow | null);
 }
 
 export async function getMyPurchases(buyerId: string): Promise<OrderWithListing[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data } = await (supabase as any)
     .from("orders")
-    .select(SELECT_WITH_RELATIONS)
+    .select("*")
     .eq("buyer_id", buyerId)
     .order("created_at", { ascending: false });
-  return (data as OrderWithListing[]) ?? [];
+  const rows = (data as OrderRow[]) ?? [];
+  const hydrated = await Promise.all(rows.map(hydrateOrder));
+  return hydrated.filter(Boolean) as OrderWithListing[];
 }
 
 export async function getMySales(sellerId: string): Promise<OrderWithListing[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data } = await (supabase as any)
     .from("orders")
-    .select(SELECT_WITH_RELATIONS)
+    .select("*")
     .eq("seller_id", sellerId)
     .order("created_at", { ascending: false });
-  return (data as OrderWithListing[]) ?? [];
+  const rows = (data as OrderRow[]) ?? [];
+  const hydrated = await Promise.all(rows.map(hydrateOrder));
+  return hydrated.filter(Boolean) as OrderWithListing[];
 }
 
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
@@ -129,4 +187,10 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   cancelled: "Avbruten",
   disputed: "Tvist",
   refunded: "Återbetald",
+};
+
+export const PAYMENT_METHOD_LABEL: Record<PaymentMethod, string> = {
+  klarna: "Klarna",
+  card: "Kort",
+  swish: "Swish",
 };
