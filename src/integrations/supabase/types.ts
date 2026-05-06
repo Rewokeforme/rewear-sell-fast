@@ -828,6 +828,7 @@ export type Database = {
         Returns: boolean
       }
       compute_seller_badge: { Args: { _user_id: string }; Returns: string }
+      expire_unpaid_orders: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
