@@ -4,10 +4,10 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Användarvillkor — Rewear" },
-      { name: "description", content: "Användarvillkor för Rewear, Sveriges premium second hand-plattform för kläder." },
-      { property: "og:title", content: "Användarvillkor — Rewear" },
-      { property: "og:description", content: "Villkor som gäller mellan dig och Rewear." },
+      { title: "Användarvillkor — ReWoke" },
+      { name: "description", content: "Användarvillkor för ReWoke, Sveriges premium second hand-plattform för kläder." },
+      { property: "og:title", content: "Användarvillkor — ReWoke" },
+      { property: "og:description", content: "Villkor som gäller mellan dig och ReWoke." },
     ],
   }),
   component: TermsPage,
@@ -18,13 +18,13 @@ function TermsPage() {
     <PolicyPage
       eyebrow="Juridiskt"
       title="Användarvillkor"
-      intro="Dessa villkor reglerar din användning av Rewear — en svensk plattform för köp och försäljning av begagnade kläder, skor och accessoarer."
+      intro="Dessa villkor reglerar din användning av ReWoke — en svensk plattform för köp och försäljning av begagnade kläder, skor och accessoarer."
       lastUpdated="5 maj 2026"
       draftNotice
       sections={[
         {
           title: "Om tjänsten",
-          body: <p>Rewear tillhandahåller en digital marknadsplats där privatpersoner kan köpa och sälja begagnade plagg. Vi är inte part i transaktionerna mellan användare utan agerar som teknisk förmedlare.</p>,
+          body: <p>ReWoke tillhandahåller en digital marknadsplats där privatpersoner kan köpa och sälja begagnade plagg. Vi är inte part i transaktionerna mellan användare utan agerar som teknisk förmedlare.</p>,
         },
         {
           title: "Konto och användaransvar",
@@ -35,7 +35,7 @@ function TermsPage() {
         },
         {
           title: "Annonser och innehåll",
-          body: <p>Du behåller rättigheterna till innehåll du lägger upp men ger Rewear en licens att visa det inom tjänsten. Annonser måste följa våra <a href="/ad-rules">regler för annonser</a>.</p>,
+          body: <p>Du behåller rättigheterna till innehåll du lägger upp men ger ReWoke en licens att visa det inom tjänsten. Annonser måste följa våra <a href="/ad-rules">regler för annonser</a>.</p>,
         },
         {
           title: "Köp och försäljning",
@@ -47,15 +47,15 @@ function TermsPage() {
         },
         {
           title: "Meddelanden och kommunikation",
-          body: <p>All kommunikation om köp ska ske inom Rewear. Det skyddar både köpare och säljare och låter oss agera vid eventuella tvister.</p>,
+          body: <p>All kommunikation om köp ska ske inom ReWoke. Det skyddar både köpare och säljare och låter oss agera vid eventuella tvister.</p>,
         },
         {
           title: "Avstängning och moderering",
-          body: <p>Rewear kan ta bort annonser, varna eller stänga av konton som bryter mot dessa villkor eller våra <a href="/community-guidelines">communityregler</a>.</p>,
+          body: <p>ReWoke kan ta bort annonser, varna eller stänga av konton som bryter mot dessa villkor eller våra <a href="/community-guidelines">communityregler</a>.</p>,
         },
         {
           title: "Ansvarsbegränsning",
-          body: <p>Rewear ansvarar inte för transaktioner mellan användare, varors skick eller leveransproblem. Vi arbetar dock aktivt för att hålla plattformen trygg.</p>,
+          body: <p>ReWoke ansvarar inte för transaktioner mellan användare, varors skick eller leveransproblem. Vi arbetar dock aktivt för att hålla plattformen trygg.</p>,
         },
         {
           title: "Ändringar av villkor",
@@ -63,7 +63,7 @@ function TermsPage() {
         },
         {
           title: "Kontakt",
-          body: <p>Frågor om villkoren? Mejla <a href="mailto:support@rewear.se">support@rewear.se</a>.</p>,
+          body: <p>Frågor om villkoren? Mejla <a href="mailto:support@rewoke.se">support@rewoke.se</a>.</p>,
         },
       ]}
     />

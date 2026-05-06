@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ListingCard } from "@/components/ListingCard";
 import type { ListingWithDetails } from "@/lib/database.types";
 import { Flag, ShieldCheck, Star, UserMinus } from "lucide-react";
-import { computeAllBadges, type SellerStatsLite, type VerificationFlags } from "@/lib/rewear";
+import { computeAllBadges, type SellerStatsLite, type VerificationFlags } from "@/lib/rewoke";
 import { TrustBadges } from "@/components/TrustBadges";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
@@ -18,7 +18,7 @@ type Stats = SellerStatsLite & {
   active_listings_count: number;
   followers_count: number;
   total_co2_saved: number;
-  rewear_score: number;
+  rewoke_score: number;
 };
 
 export const Route = createFileRoute("/profile/$userId")({
@@ -30,7 +30,7 @@ function PublicProfilePage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<{
     full_name: string | null; city: string | null; avatar_url: string | null; bio: string | null;
-    rewear_score: number; is_verified: boolean;
+    rewoke_score: number; is_verified: boolean;
     email_verified: boolean; phone_verified: boolean; identity_verified: boolean;
   } | null>(null);
   const [items, setItems] = useState<ListingWithDetails[]>([]);
@@ -42,14 +42,14 @@ function PublicProfilePage() {
     (async () => {
       const { data: p } = await supabase
         .from("profiles")
-        .select("full_name, city, avatar_url, bio, rewear_score, is_verified, email_verified, phone_verified, identity_verified")
+        .select("full_name, city, avatar_url, bio, rewoke_score, is_verified, email_verified, phone_verified, identity_verified")
         .eq("id", userId)
         .maybeSingle();
       setProfile(p as typeof profile);
 
       const { data: l } = await supabase
         .from("listings")
-        .select("*, listing_images(*), profiles(id,full_name,city,avatar_url,rewear_score,is_verified), categories(slug,name_sv)")
+        .select("*, listing_images(*), profiles(id,full_name,city,avatar_url,rewoke_score,is_verified), categories(slug,name_sv)")
         .eq("seller_id", userId)
         .eq("status", "active")
         .order("created_at", { ascending: false });
@@ -57,7 +57,7 @@ function PublicProfilePage() {
 
       const { data: s } = await supabase
         .from("seller_stats")
-        .select("first_listing_at, sold_count, average_rating, rating_count, active_listings_count, followers_count, total_co2_saved, rewear_score")
+        .select("first_listing_at, sold_count, average_rating, rating_count, active_listings_count, followers_count, total_co2_saved, rewoke_score")
         .eq("user_id", userId)
         .maybeSingle();
       setStats(s as Stats);
@@ -142,7 +142,7 @@ function PublicProfilePage() {
           <MiniStat label="Aktiva" value={stats?.active_listings_count ?? 0} />
           <MiniStat label="Sålda" value={stats?.sold_count ?? 0} />
           <MiniStat label="Följare" value={stats?.followers_count ?? 0} />
-          <MiniStat label="Score" value={stats?.rewear_score ?? 0} />
+          <MiniStat label="Score" value={stats?.rewoke_score ?? 0} />
           <MiniStat label="Betyg" value={stats?.rating_count ? stats.average_rating.toFixed(1) : "–"} />
           <MiniStat label="CO₂ kg" value={Math.round(Number(stats?.total_co2_saved ?? 0))} />
         </section>
@@ -181,7 +181,7 @@ function PublicProfilePage() {
         open={reportOpen}
         onOpenChange={setReportOpen}
         title="Rapportera användare"
-        description="Hjälp oss hålla Rewear tryggt. Berätta kort vad som är fel — vårt team granskar alla rapporter."
+        description="Hjälp oss hålla ReWoke tryggt. Berätta kort vad som är fel — vårt team granskar alla rapporter."
         onSubmit={submitReport}
       />
       <BottomNav />

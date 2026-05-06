@@ -20,7 +20,7 @@ function MyListingsPage() {
     if (!user) return;
     supabase
       .from("listings")
-      .select("*, listing_images(*), profiles(id,full_name,city,avatar_url,rewear_score,is_verified), categories(slug,name_sv)")
+      .select("*, listing_images(*), profiles(id,full_name,city,avatar_url,rewoke_score,is_verified), categories(slug,name_sv)")
       .eq("seller_id", user.id)
       .order("created_at", { ascending: false })
       .then(({ data }) => setItems((data as unknown as ListingWithDetails[]) ?? []));

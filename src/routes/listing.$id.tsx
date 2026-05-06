@@ -7,7 +7,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { FollowButton } from "@/components/FollowButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { computeAllBadges, formatSEK, type SellerStatsLite, type VerificationFlags } from "@/lib/rewear";
+import { computeAllBadges, formatSEK, type SellerStatsLite, type VerificationFlags } from "@/lib/rewoke";
 import { TrustBadges } from "@/components/TrustBadges";
 import type { ListingWithDetails } from "@/lib/database.types";
 import { ReportDialog } from "@/components/ReportDialog";
@@ -33,7 +33,7 @@ function ListingPage() {
     supabase
       .from("listings")
       .select(
-        "*, listing_images(*), profiles(id,full_name,city,avatar_url,rewear_score,is_verified), categories(slug,name_sv)",
+        "*, listing_images(*), profiles(id,full_name,city,avatar_url,rewoke_score,is_verified), categories(slug,name_sv)",
       )
       .eq("id", id)
       .maybeSingle()

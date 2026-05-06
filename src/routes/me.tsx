@@ -5,7 +5,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Bell, Camera, Heart, Leaf, LogOut, Package, ShieldCheck, Star, Users } from "lucide-react";
-import { computeSellerBadge, type SellerStatsLite } from "@/lib/rewear";
+import { computeSellerBadge, type SellerStatsLite } from "@/lib/rewoke";
 
 export const Route = createFileRoute("/me")({
   component: MePage,
@@ -16,7 +16,7 @@ type Stats = SellerStatsLite & {
   active_listings_count: number;
   followers_count: number;
   total_co2_saved: number;
-  rewear_score: number;
+  rewoke_score: number;
 };
 
 function MePage() {
@@ -25,7 +25,7 @@ function MePage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<{
     full_name: string | null; city: string | null; avatar_url: string | null;
-    rewear_score: number; is_verified: boolean;
+    rewoke_score: number; is_verified: boolean;
   } | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -70,14 +70,14 @@ function MePage() {
     (async () => {
       const { data: p } = await supabase
         .from("profiles")
-        .select("full_name, city, avatar_url, rewear_score, is_verified")
+        .select("full_name, city, avatar_url, rewoke_score, is_verified")
         .eq("id", user.id)
         .maybeSingle();
       setProfile(p as typeof profile);
 
       const { data: s } = await supabase
         .from("seller_stats")
-        .select("first_listing_at, sold_count, average_rating, rating_count, active_listings_count, followers_count, total_co2_saved, rewear_score")
+        .select("first_listing_at, sold_count, average_rating, rating_count, active_listings_count, followers_count, total_co2_saved, rewoke_score")
         .eq("user_id", user.id)
         .maybeSingle();
       setStats(s as Stats);
@@ -139,7 +139,7 @@ function MePage() {
         </section>
 
         <section className="grid grid-cols-2 gap-3">
-          <Stat label="Rewear Score" value={stats?.rewear_score ?? profile?.rewear_score ?? 0} />
+          <Stat label="ReWoke Score" value={stats?.rewoke_score ?? profile?.rewoke_score ?? 0} />
           <Stat label="Aktiva annonser" value={stats?.active_listings_count ?? 0} />
           <Stat label="Sålda plagg" value={stats?.sold_count ?? 0} />
           <Stat label="Följare" value={stats?.followers_count ?? 0} />

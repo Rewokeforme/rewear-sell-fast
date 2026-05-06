@@ -4,9 +4,9 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const Route = createFileRoute("/buyer-guide")({
   head: () => ({
     meta: [
-      { title: "Köparguide — Rewear" },
-      { name: "description", content: "Så hittar du fynd och handlar tryggt på Rewear." },
-      { property: "og:title", content: "Köparguide — Rewear" },
+      { title: "Köparguide — ReWoke" },
+      { name: "description", content: "Så hittar du fynd och handlar tryggt på ReWoke." },
+      { property: "og:title", content: "Köparguide — ReWoke" },
       { property: "og:description", content: "Hitta rätt plagg, ställ rätt frågor, handla tryggt." },
     ],
   }),

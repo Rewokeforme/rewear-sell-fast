@@ -29,7 +29,7 @@ export function ReportDialog({
   open,
   onOpenChange,
   title = "Rapportera annons",
-  description = "Hjälp oss hålla Rewear tryggt. Berätta kort vad som är fel — vårt team granskar alla rapporter.",
+  description = "Hjälp oss hålla ReWoke tryggt. Berätta kort vad som är fel — vårt team granskar alla rapporter.",
   presets = DEFAULT_PRESETS,
   onSubmit,
   submitLabel = "Skicka rapport",

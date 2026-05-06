@@ -5,7 +5,7 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { formatSEK } from "@/lib/rewear";
+import { formatSEK } from "@/lib/rewoke";
 import { AdminReplyDialog } from "@/components/AdminReplyDialog";
 import { Flag, MessageSquare, Reply, ShieldCheck, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -31,7 +31,7 @@ type AdminUser = {
   is_verified: boolean;
   identity_verified: boolean;
   is_suspended: boolean;
-  rewear_score: number;
+  rewoke_score: number;
 };
 
 type ReporterProfile = { id: string; full_name: string | null } | null;
@@ -89,7 +89,7 @@ function AdminPage() {
   async function loadAll() {
     const [l, u, lr, cr, sold, totalListings, totalUsers, co2] = await Promise.all([
       supabase.from("listings").select("id, title, price_sek, status, created_at, seller_id, profiles(full_name)").order("created_at", { ascending: false }).limit(50),
-      supabase.from("profiles").select("id, full_name, city, is_verified, identity_verified, is_suspended, rewear_score").order("created_at", { ascending: false }).limit(50),
+      supabase.from("profiles").select("id, full_name, city, is_verified, identity_verified, is_suspended, rewoke_score").order("created_at", { ascending: false }).limit(50),
       supabase
         .from("reports")
         .select("id, reason, status, created_at, reporter_id, listing_id, admin_response, responded_at, reporter:profiles!reports_reporter_id_fkey(id, full_name), listing:listings!reports_listing_id_fkey(id, title)")
@@ -213,7 +213,7 @@ function AdminPage() {
         .insert({
           user_id: replyTarget.reporter_id,
           sent_by: user.id,
-          subject: "Svar från Rewear-teamet",
+          subject: "Svar från ReWoke-teamet",
           body: reply,
           related_listing_id: replyTarget.listing_id,
           related_report_id: replyTarget.id,
@@ -227,7 +227,7 @@ function AdminPage() {
       const { error: nErr } = await supabase.from("notifications").insert({
         user_id: replyTarget.reporter_id,
         type: "admin_reply",
-        title: "Svar från Rewear-teamet",
+        title: "Svar från ReWoke-teamet",
         body: reply,
         related_listing_id: replyTarget.listing_id,
         related_conversation_id: adminMsg?.id ?? null,
@@ -257,7 +257,7 @@ function AdminPage() {
         .insert({
           user_id: replyTarget.reporter_id,
           sent_by: user.id,
-          subject: "Svar från Rewear-teamet",
+          subject: "Svar från ReWoke-teamet",
           body: reply,
           related_conversation_id: replyTarget.reported_conversation_id,
           related_user_id: replyTarget.reported_user_id,
@@ -272,7 +272,7 @@ function AdminPage() {
       const { error: nErr } = await supabase.from("notifications").insert({
         user_id: replyTarget.reporter_id,
         type: "admin_reply",
-        title: "Svar från Rewear-teamet",
+        title: "Svar från ReWoke-teamet",
         body: reply,
         related_conversation_id: adminMsg?.id ?? null,
         related_user_id: replyTarget.reported_user_id,
@@ -493,7 +493,7 @@ function AdminPage() {
                     {u.full_name ?? "?"}
                     {u.is_suspended && <span className="ml-2 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold text-destructive">Avstängd</span>}
                   </p>
-                  <p className="text-xs text-muted-foreground">{u.city ?? "—"} · Score {u.rewear_score}</p>
+                  <p className="text-xs text-muted-foreground">{u.city ?? "—"} · Score {u.rewoke_score}</p>
                 </Link>
                 <button
                   onClick={() => toggleVerified(u.id, u.is_verified)}

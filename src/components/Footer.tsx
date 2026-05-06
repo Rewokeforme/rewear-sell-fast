@@ -5,9 +5,9 @@ type LinkItem = { label: string; to: string };
 
 const columns: { heading: string; links: LinkItem[] }[] = [
   {
-    heading: "Rewear",
+    heading: "ReWoke",
     links: [
-      { label: "Om Rewear", to: "/contact" },
+      { label: "Om ReWoke", to: "/contact" },
       { label: "Så fungerar det", to: "/buyer-guide" },
       { label: "Hållbarhet", to: "/safety" },
       { label: "Säker handel", to: "/safety" },
@@ -64,7 +64,7 @@ export function Footer() {
         <div className="mb-12 flex flex-col items-start gap-5 border-b border-border pb-10 md:flex-row md:items-end md:justify-between">
           <div className="max-w-md">
             <Link to="/" className="inline-flex items-baseline gap-1.5">
-              <span className="font-display text-3xl tracking-tight text-foreground">Rewear</span>
+              <span className="font-display text-3xl tracking-tight text-foreground">ReWoke</span>
               <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">SE</span>
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
@@ -116,16 +116,16 @@ export function Footer() {
         <div className="mt-14 border-t border-border pt-8">
           <div className="flex flex-col gap-4 text-xs text-muted-foreground md:flex-row md:items-start md:justify-between">
             <div className="space-y-1.5">
-              <p className="text-foreground">© 2026 Rewear. Alla rättigheter förbehållna.</p>
-              <p>Rewear är en svensk second hand-plattform för kläder, skor och accessoarer.</p>
+              <p className="text-foreground">© 2026 ReWoke. Alla rättigheter förbehållna.</p>
+              <p>ReWoke är en svensk second hand-plattform för kläder, skor och accessoarer.</p>
               <p>
-                Rewear AB · Org.nr: <span className="text-foreground/70">[lägg till senare]</span> · Sverige
+                ReWoke AB · Org.nr: <span className="text-foreground/70">[lägg till senare]</span> · Sverige
               </p>
             </div>
             <div className="md:text-right">
               <p className="text-eyebrow text-muted-foreground">Kontakt</p>
-              <a href="mailto:support@rewear.se" className="mt-1 block text-sm text-foreground hover:text-primary">
-                support@rewear.se
+              <a href="mailto:support@rewoke.se" className="mt-1 block text-sm text-foreground hover:text-primary">
+                support@rewoke.se
               </a>
             </div>
           </div>

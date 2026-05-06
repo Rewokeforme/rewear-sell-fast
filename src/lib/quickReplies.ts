@@ -19,7 +19,7 @@ const phoneRe = /(?:\+?\d[\s-]?){7,}\d/;
 const emailRe = /[\w.+-]+@[\w-]+\.[\w.-]+/i;
 const urlRe = /\b(?:https?:\/\/|www\.)\S+/i;
 const swishRe = /\bswish(?:nummer|a|ar|en)?\b/i;
-const offPlatformRe = /(betala\s+utanför|skicka\s+pengar\s+först|utanför\s+(?:appen|rewear)|paypal|venmo|revolut|kontonummer|bankgiro|iban)/i;
+const offPlatformRe = /(betala\s+utanför|skicka\s+pengar\s+först|utanför\s+(?:appen|rewoke)|paypal|venmo|revolut|kontonummer|bankgiro|iban)/i;
 
 export function detectFraudRisk(text: string): { risky: boolean; reason: string | null } {
   if (!text) return { risky: false, reason: null };

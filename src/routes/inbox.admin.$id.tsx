@@ -71,7 +71,7 @@ function AdminMessagePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header subtitle="Meddelande från Rewear" />
+      <Header subtitle="Meddelande från ReWoke" />
       <main className="mx-auto max-w-2xl px-4 py-6">
         <button
           onClick={() => navigate({ to: "/inbox" })}
@@ -98,7 +98,7 @@ function AdminMessagePage() {
                 <div className="flex items-center gap-2">
                   <h1 className="font-display text-lg leading-tight">{msg.subject}</h1>
                   <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-                    Rewear-teamet
+                    ReWoke-teamet
                   </span>
                 </div>
                 <p className="mt-0.5 text-xs text-muted-foreground">

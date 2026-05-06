@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { CategoryRow } from "@/lib/database.types";
-import { priceGuideRange, formatSEK, computeSellerBadge, isBaseVerified, type SellerStatsLite, type VerificationFlags } from "@/lib/rewear";
+import { priceGuideRange, formatSEK, computeSellerBadge, isBaseVerified, type SellerStatsLite, type VerificationFlags } from "@/lib/rewoke";
 import { MAIN_CATEGORIES, SUB_CATEGORIES, getSizeRule, showJeansSizes, isValidSizeForCategory, WAIST_SIZES, LENGTH_SIZES, type MainCategory } from "@/lib/taxonomy";
 
 export const Route = createFileRoute("/sell")({
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/sell")({
 
 const CONDITIONS = ["Nyskick", "Mycket bra", "Bra", "Sliten"] as const;
 
-const DRAFT_KEY = "rewear:sell:draft";
+const DRAFT_KEY = "rewoke:sell:draft";
 
 type DeliveryMethod = "shipping" | "pickup" | "both";
 
