@@ -5,7 +5,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Bell, Camera, Heart, Leaf, LogOut, Package, ShieldCheck, Star, Users } from "lucide-react";
-import { computeSellerBadge, type SellerStatsLite } from "@/lib/rewear";
+import { computeSellerBadge, type SellerStatsLite } from "@/lib/rewoke";
 
 export const Route = createFileRoute("/me")({
   component: MePage,
@@ -139,7 +139,7 @@ function MePage() {
         </section>
 
         <section className="grid grid-cols-2 gap-3">
-          <Stat label="Rewear Score" value={stats?.rewear_score ?? profile?.rewear_score ?? 0} />
+          <Stat label="ReWoke Score" value={stats?.rewear_score ?? profile?.rewear_score ?? 0} />
           <Stat label="Aktiva annonser" value={stats?.active_listings_count ?? 0} />
           <Stat label="Sålda plagg" value={stats?.sold_count ?? 0} />
           <Stat label="Följare" value={stats?.followers_count ?? 0} />

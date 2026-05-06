@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { formatSEK } from "@/lib/rewear";
+import { formatSEK } from "@/lib/rewoke";
 import { BadgeCheck, Sparkles, ShieldCheck, Lock, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -251,7 +251,7 @@ function InboxPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <p className={cn("text-sm truncate", m.is_read ? "font-medium" : "font-semibold")}>
-                          Rewear-teamet
+                          ReWoke-teamet
                         </p>
                         <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">
                           Officiellt

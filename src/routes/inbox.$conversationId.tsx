@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   Trash2,
 } from "lucide-react";
-import { formatSEK } from "@/lib/rewear";
+import { formatSEK } from "@/lib/rewoke";
 import { buyerQuickReplies, sellerQuickReplies, detectFraudRisk } from "@/lib/quickReplies";
 import { format, isToday, isYesterday } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -408,7 +408,7 @@ function ConversationPage() {
           <div className="mt-2.5 flex items-start gap-2 rounded-lg bg-secondary/60 px-3 py-2 text-[11px] text-muted-foreground">
             <ShieldCheck className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
             <p className="leading-relaxed">
-              För din trygghet: håll kommunikationen och affären i Rewear.
+              För din trygghet: håll kommunikationen och affären i ReWoke.
               {showLocalSafety && (
                 <> Dela aldrig exakt adress direkt — bestäm mötesplats i chatten och träffas gärna på offentlig plats.</>
               )}
@@ -514,7 +514,7 @@ function ConversationPage() {
           <div className="mx-auto max-w-[760px] px-4">
             <div className="flex items-start gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-[11px] text-foreground">
               <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-accent" />
-              <p>För din trygghet rekommenderar vi att du håller kommunikationen och affären i Rewear.</p>
+              <p>För din trygghet rekommenderar vi att du håller kommunikationen och affären i ReWoke.</p>
             </div>
           </div>
         )}
@@ -555,7 +555,7 @@ function ConversationPage() {
         description="Berätta kort vad som är fel — vårt team granskar alla rapporter och kan vidta åtgärder."
         presets={[
           "Bedrägeriförsök",
-          "Vill betala utanför Rewear",
+          "Vill betala utanför ReWoke",
           "Trakasserier",
           "Spam",
           "Olämpligt språk",
@@ -570,7 +570,7 @@ function ConversationPage() {
         description="Berätta kort varför detta specifika meddelande bryter mot reglerna."
         presets={[
           "Bedrägeriförsök",
-          "Försöker flytta affären utanför Rewear",
+          "Försöker flytta affären utanför ReWoke",
           "Trakasserier",
           "Spam",
           "Olämpligt språk",

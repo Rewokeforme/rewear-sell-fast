@@ -5,7 +5,7 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { formatSEK } from "@/lib/rewear";
+import { formatSEK } from "@/lib/rewoke";
 import { AdminReplyDialog } from "@/components/AdminReplyDialog";
 import { Flag, MessageSquare, Reply, ShieldCheck, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -213,7 +213,7 @@ function AdminPage() {
         .insert({
           user_id: replyTarget.reporter_id,
           sent_by: user.id,
-          subject: "Svar från Rewear-teamet",
+          subject: "Svar från ReWoke-teamet",
           body: reply,
           related_listing_id: replyTarget.listing_id,
           related_report_id: replyTarget.id,
@@ -227,7 +227,7 @@ function AdminPage() {
       const { error: nErr } = await supabase.from("notifications").insert({
         user_id: replyTarget.reporter_id,
         type: "admin_reply",
-        title: "Svar från Rewear-teamet",
+        title: "Svar från ReWoke-teamet",
         body: reply,
         related_listing_id: replyTarget.listing_id,
         related_conversation_id: adminMsg?.id ?? null,
@@ -257,7 +257,7 @@ function AdminPage() {
         .insert({
           user_id: replyTarget.reporter_id,
           sent_by: user.id,
-          subject: "Svar från Rewear-teamet",
+          subject: "Svar från ReWoke-teamet",
           body: reply,
           related_conversation_id: replyTarget.reported_conversation_id,
           related_user_id: replyTarget.reported_user_id,
@@ -272,7 +272,7 @@ function AdminPage() {
       const { error: nErr } = await supabase.from("notifications").insert({
         user_id: replyTarget.reporter_id,
         type: "admin_reply",
-        title: "Svar från Rewear-teamet",
+        title: "Svar från ReWoke-teamet",
         body: reply,
         related_conversation_id: adminMsg?.id ?? null,
         related_user_id: replyTarget.reported_user_id,

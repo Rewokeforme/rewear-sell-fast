@@ -4,9 +4,9 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const Route = createFileRoute("/shipping")({
   head: () => ({
     meta: [
-      { title: "Frakt & leverans — Rewear" },
-      { name: "description", content: "Så fungerar frakt, hämtning och leverans på Rewear." },
-      { property: "og:title", content: "Frakt & leverans — Rewear" },
+      { title: "Frakt & leverans — ReWoke" },
+      { name: "description", content: "Så fungerar frakt, hämtning och leverans på ReWoke." },
+      { property: "og:title", content: "Frakt & leverans — ReWoke" },
       { property: "og:description", content: "Skickas, hämtas eller möts upp — så fungerar leverans." },
     ],
   }),
@@ -18,7 +18,7 @@ function ShippingPage() {
     <PolicyPage
       eyebrow="För användare"
       title="Frakt & leverans"
-      intro="På Rewear väljer säljare själva hur plagget levereras. Här är dina alternativ."
+      intro="På ReWoke väljer säljare själva hur plagget levereras. Här är dina alternativ."
       lastUpdated="5 maj 2026"
       sections={[
         { title: "Skickas av säljaren", body: <p>Säljaren postar plagget med valfri operatör. Spårbart paket rekommenderas alltid.</p> },

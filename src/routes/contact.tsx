@@ -8,10 +8,10 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Kontakt — Rewear" },
-      { name: "description", content: "Hör av dig till Rewears support — vi finns här för dig." },
-      { property: "og:title", content: "Kontakt — Rewear" },
-      { property: "og:description", content: "Kontakta Rewear support." },
+      { title: "Kontakt — ReWoke" },
+      { name: "description", content: "Hör av dig till ReWokes support — vi finns här för dig." },
+      { property: "og:title", content: "Kontakt — ReWoke" },
+      { property: "og:description", content: "Kontakta ReWoke support." },
     ],
   }),
   component: ContactPage,
@@ -74,14 +74,14 @@ function ContactPage() {
                 <Mail className="h-5 w-5" />
               </span>
               <p className="mt-3 text-eyebrow text-muted-foreground">Mejla oss direkt</p>
-              <a href="mailto:support@rewear.se" className="mt-1 block font-display text-lg text-foreground hover:underline">
-                support@rewear.se
+              <a href="mailto:support@rewoke.se" className="mt-1 block font-display text-lg text-foreground hover:underline">
+                support@rewoke.se
               </a>
             </div>
             <div className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground shadow-soft">
               <p className="text-eyebrow text-foreground">Bolagsinformation</p>
               <p className="mt-2 leading-relaxed">
-                Rewear AB<br />
+                ReWoke AB<br />
                 Org.nr: [lägg till senare]<br />
                 Sverige
               </p>

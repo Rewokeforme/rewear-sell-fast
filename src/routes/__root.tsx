@@ -39,13 +39,13 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#F7F4EF" },
-      { title: "Rewear — Sälj dina kläder på 60 sekunder" },
+      { title: "ReWoke — Sälj dina kläder på 60 sekunder" },
       {
         name: "description",
         content:
           "Sveriges enklaste second hand-app. Sälj dina kläder snabbt med AI och spara CO₂.",
       },
-      { property: "og:title", content: "Rewear — Sälj på 60 sekunder" },
+      { property: "og:title", content: "ReWoke — Sälj på 60 sekunder" },
       { property: "og:description", content: "Premium svensk second hand med AI." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

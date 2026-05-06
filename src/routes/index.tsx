@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/auth";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Rewear — Sälj dina kläder på 60 sekunder" },
+      { title: "ReWoke — Sälj dina kläder på 60 sekunder" },
       {
         name: "description",
         content:
@@ -298,7 +298,7 @@ function StatCard({
     <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
       <div className="flex items-center gap-2 text-primary">
         {icon}
-        <span className="text-eyebrow">Rewear</span>
+        <span className="text-eyebrow">ReWoke</span>
       </div>
       <p className="mt-2 font-display text-base">{title}</p>
       <p className="mt-1 text-sm text-muted-foreground">{body}</p>
@@ -310,7 +310,7 @@ function EmptyStateBanner() {
   return (
     <div className="mt-8 rounded-3xl border border-dashed border-border bg-card/50 p-8 text-center">
       <p className="text-eyebrow text-primary">Ingen riktig annons ännu</p>
-      <h3 className="mt-2 font-display text-2xl">Bli först att sälja på Rewear</h3>
+      <h3 className="mt-2 font-display text-2xl">Bli först att sälja på ReWoke</h3>
       <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
         Ladda upp ett plagg och låt AI skapa annonsen åt dig. Det tar under en minut.
       </p>

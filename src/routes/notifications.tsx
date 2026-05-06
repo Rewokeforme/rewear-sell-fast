@@ -111,7 +111,7 @@ function NotificationsPage() {
                         <p className="text-sm font-medium">{n.title}</p>
                         {isAdminReply && (
                           <span className="rounded-full bg-primary px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary-foreground">
-                            Rewear-teamet
+                            ReWoke-teamet
                           </span>
                         )}
                       </div>

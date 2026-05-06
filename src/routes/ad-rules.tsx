@@ -4,10 +4,10 @@ import { PolicyPage } from "@/components/PolicyPage";
 export const Route = createFileRoute("/ad-rules")({
   head: () => ({
     meta: [
-      { title: "Regler för annonser — Rewear" },
-      { name: "description", content: "Vad får och vad får inte säljas på Rewear." },
-      { property: "og:title", content: "Regler för annonser — Rewear" },
-      { property: "og:description", content: "Tillåtna och förbjudna produkter på Rewear." },
+      { title: "Regler för annonser — ReWoke" },
+      { name: "description", content: "Vad får och vad får inte säljas på ReWoke." },
+      { property: "og:title", content: "Regler för annonser — ReWoke" },
+      { property: "og:description", content: "Tillåtna och förbjudna produkter på ReWoke." },
     ],
   }),
   component: AdRulesPage,
@@ -18,7 +18,7 @@ function AdRulesPage() {
     <PolicyPage
       eyebrow="Trygghet"
       title="Regler för annonser"
-      intro="För att hålla Rewear tryggt och seriöst gäller följande regler för alla annonser."
+      intro="För att hålla ReWoke tryggt och seriöst gäller följande regler för alla annonser."
       lastUpdated="5 maj 2026"
       sections={[
         { title: "Tillåtna produkter", body: <p>Begagnade och oanvända kläder, skor och accessoarer för dam, herr och barn. Plaggen ska vara hela, rena och i säljbart skick.</p> },

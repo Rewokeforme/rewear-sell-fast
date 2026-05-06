@@ -1,4 +1,4 @@
-// Rewear category taxonomy: huvudkategori → underkategorier + storleksregler
+// ReWoke category taxonomy: huvudkategori → underkategorier + storleksregler
 export const MAIN_CATEGORIES = [
   "Dam",
   "Herr",

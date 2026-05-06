@@ -20,7 +20,7 @@ Säkerhet:
 - `user_reports` har redan admin-update-policy.
 - Utöka `notifications.type`-enumen med ett nytt värde `admin_reply` så vi kan visa svaren snyggt i inkorgen.
 
-Ingen automatisk trigger — admins svar skickas explicit från admin-UI:t (en `INSERT` i `notifications` med `user_id = reporter_id`, `type = 'admin_reply'`, `title = "Svar från Rewear-teamet"`, `body = svaret`, `related_listing_id` eller `related_conversation_id` beroende på rapporttyp).
+Ingen automatisk trigger — admins svar skickas explicit från admin-UI:t (en `INSERT` i `notifications` med `user_id = reporter_id`, `type = 'admin_reply'`, `title = "Svar från ReWoke-teamet"`, `body = svaret`, `related_listing_id` eller `related_conversation_id` beroende på rapporttyp).
 
 ### 2. Adminportalen (`src/routes/admin.tsx`)
 
@@ -78,7 +78,7 @@ USING (has_role(auth.uid(), 'admin'));
 await supabase.from("notifications").insert({
   user_id: report.reporter_id,
   type: "admin_reply",
-  title: "Svar från Rewear-teamet",
+  title: "Svar från ReWoke-teamet",
   body: replyText,
   related_listing_id: report.listing_id ?? null,
   related_conversation_id: report.reported_conversation_id ?? null,

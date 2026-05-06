@@ -53,7 +53,7 @@ export function AdminReplyDialog({ open, onOpenChange, context, onSubmit }: Prop
           <DialogHeader className="space-y-1.5 text-left">
             <DialogTitle className="font-display text-xl">Svara på rapport</DialogTitle>
             <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
-              Ditt svar skickas som ett meddelande från Rewear-teamet till
+              Ditt svar skickas som ett meddelande från ReWoke-teamet till
               {context?.reporterName ? ` ${context.reporterName}` : " rapportören"} i deras inkorg.
             </DialogDescription>
           </DialogHeader>

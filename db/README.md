@@ -1,4 +1,4 @@
-# Rewear — Supabase setup
+# ReWoke — Supabase setup
 
 ## 1. Skapa env-fil
 Skapa `.env` i projektroten med:
@@ -14,7 +14,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=<din anon/publishable key>
 Det skapar:
 - Tabeller: profiles, user_roles, categories, co2_factors, listings, listing_images, favorites, conversations, messages, reviews, reports
 - RLS-policies (säkerhet per användare)
-- Triggers (auto-profil vid signup, första användaren blir admin, CO₂-beräkning, Rewear Score)
+- Triggers (auto-profil vid signup, första användaren blir admin, CO₂-beräkning, ReWoke Score)
 - Storage bucket `listing-images` (public read, auth upload)
 - Seed: 8 kategorier + CO₂-faktorer
 - Realtime på messages och conversations

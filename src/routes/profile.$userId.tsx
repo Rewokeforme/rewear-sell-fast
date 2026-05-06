@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ListingCard } from "@/components/ListingCard";
 import type { ListingWithDetails } from "@/lib/database.types";
 import { Flag, ShieldCheck, Star, UserMinus } from "lucide-react";
-import { computeAllBadges, type SellerStatsLite, type VerificationFlags } from "@/lib/rewear";
+import { computeAllBadges, type SellerStatsLite, type VerificationFlags } from "@/lib/rewoke";
 import { TrustBadges } from "@/components/TrustBadges";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
@@ -181,7 +181,7 @@ function PublicProfilePage() {
         open={reportOpen}
         onOpenChange={setReportOpen}
         title="Rapportera användare"
-        description="Hjälp oss hålla Rewear tryggt. Berätta kort vad som är fel — vårt team granskar alla rapporter."
+        description="Hjälp oss hålla ReWoke tryggt. Berätta kort vad som är fel — vårt team granskar alla rapporter."
         onSubmit={submitReport}
       />
       <BottomNav />

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Heart, Leaf, MapPin, Truck, Handshake } from "lucide-react";
 import { useState } from "react";
-import { formatSEK } from "@/lib/rewear";
+import { formatSEK } from "@/lib/rewoke";
 import { cn } from "@/lib/utils";
 import type { ListingWithDetails } from "@/lib/database.types";
 
