@@ -432,6 +432,62 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          currency: string
+          delivery_method: string
+          id: string
+          item_price: number
+          listing_id: string
+          platform_fee: number
+          seller_id: string
+          shipping_price: number
+          status: Database["public"]["Enums"]["order_status"]
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          currency?: string
+          delivery_method: string
+          id?: string
+          item_price: number
+          listing_id: string
+          platform_fee?: number
+          seller_id: string
+          shipping_price?: number
+          status?: Database["public"]["Enums"]["order_status"]
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          currency?: string
+          delivery_method?: string
+          id?: string
+          item_price?: number
+          listing_id?: string
+          platform_fee?: number
+          seller_id?: string
+          shipping_price?: number
+          status?: Database["public"]["Enums"]["order_status"]
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -744,6 +800,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_transition_order: {
+        Args: {
+          _is_buyer: boolean
+          _is_seller: boolean
+          _new: Database["public"]["Enums"]["order_status"]
+          _old: Database["public"]["Enums"]["order_status"]
+        }
+        Returns: boolean
+      }
       compute_seller_badge: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
@@ -767,13 +832,22 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       conversation_status: "active" | "archived" | "blocked"
-      listing_status: "active" | "sold" | "removed"
+      listing_status: "active" | "sold" | "removed" | "reserved"
       notification_type:
         | "new_listing"
         | "new_message"
         | "new_follower"
         | "system"
         | "admin_reply"
+      order_status:
+        | "pending_payment"
+        | "paid"
+        | "shipped"
+        | "delivered"
+        | "completed"
+        | "cancelled"
+        | "disputed"
+        | "refunded"
       report_status: "open" | "resolved"
     }
     CompositeTypes: {
@@ -904,13 +978,23 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       conversation_status: ["active", "archived", "blocked"],
-      listing_status: ["active", "sold", "removed"],
+      listing_status: ["active", "sold", "removed", "reserved"],
       notification_type: [
         "new_listing",
         "new_message",
         "new_follower",
         "system",
         "admin_reply",
+      ],
+      order_status: [
+        "pending_payment",
+        "paid",
+        "shipped",
+        "delivered",
+        "completed",
+        "cancelled",
+        "disputed",
+        "refunded",
       ],
       report_status: ["open", "resolved"],
     },
