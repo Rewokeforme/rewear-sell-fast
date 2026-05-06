@@ -1,15 +1,36 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/lib/auth";
-import { getOrder, updateOrderStatus, type OrderWithListing } from "@/lib/orders";
+import {
+  getOrder,
+  updateOrderStatus,
+  updateOrderShipping,
+  type OrderWithListing,
+  type PaymentMethod,
+} from "@/lib/orders";
 import { formatSEK } from "@/lib/rewear";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck, Truck, MapPin, BadgeCheck, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/checkout/$orderId")({
   component: CheckoutPage,
+});
+
+const shippingSchema = z.object({
+  fullName: z.string().trim().min(2, "Ange namn").max(100),
+  street: z.string().trim().min(3, "Ange gatuadress").max(120),
+  postalCode: z
+    .string()
+    .trim()
+    .regex(/^\d{3}\s?\d{2}$/, "Postnummer ska vara 5 siffror"),
+  city: z.string().trim().min(2, "Ange ort").max(60),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[+0-9\s-]{6,20}$/, "Ogiltigt telefonnummer"),
 });
 
 function CheckoutPage() {
@@ -20,6 +41,15 @@ function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
 
+  const [fullName, setFullName] = useState("");
+  const [street, setStreet] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [city, setCity] = useState("");
+  const [phone, setPhone] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("klarna");
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -28,13 +58,57 @@ function CheckoutPage() {
     }
     getOrder(orderId).then((o) => {
       setOrder(o);
+      if (o) {
+        setFullName(o.shipping_full_name ?? o.buyer?.full_name ?? "");
+        setStreet(o.shipping_street ?? "");
+        setPostalCode(o.shipping_postal_code ?? "");
+        setCity(o.shipping_city ?? "");
+        setPhone(o.shipping_phone ?? "");
+        if (o.payment_method) setPaymentMethod(o.payment_method as PaymentMethod);
+      }
       setLoading(false);
     });
   }, [orderId, user, authLoading, navigate]);
 
   async function handlePay() {
     if (!order) return;
+    const needsAddress = order.delivery_method !== "pickup";
+
+    if (needsAddress) {
+      const parsed = shippingSchema.safeParse({ fullName, street, postalCode, city, phone });
+      if (!parsed.success) {
+        const errs: Record<string, string> = {};
+        parsed.error.issues.forEach((i) => {
+          errs[i.path[0] as string] = i.message;
+        });
+        setErrors(errs);
+        toast.error("Kontrollera leveransuppgifterna");
+        return;
+      }
+    }
+    if (!acceptTerms) {
+      toast.error("Du måste godkänna villkoren");
+      return;
+    }
+    setErrors({});
     setPaying(true);
+
+    if (needsAddress) {
+      const { error: shipErr } = await updateOrderShipping(order.id, {
+        fullName,
+        street,
+        postalCode,
+        city,
+        phone,
+        paymentMethod,
+      });
+      if (shipErr) {
+        toast.error(shipErr);
+        setPaying(false);
+        return;
+      }
+    }
+
     const { error } = await updateOrderStatus(order.id, "paid");
     if (error) {
       toast.error(error);
@@ -49,7 +123,7 @@ function CheckoutPage() {
     return (
       <div className="min-h-screen bg-background pb-24">
         <Header subtitle="Kassa" />
-        <div className="mx-auto max-w-md px-4 py-12 text-center">
+        <div className="mx-auto max-w-2xl px-4 py-12 text-center">
           <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       </div>
@@ -90,56 +164,317 @@ function CheckoutPage() {
   }
 
   const img = [...(order.listing?.listing_images ?? [])].sort((a, b) => a.position - b.position)[0];
+  const needsAddress = order.delivery_method !== "pickup";
+  const sellerName = order.seller?.full_name ?? "Säljare";
+  const sellerInitial = sellerName.charAt(0).toUpperCase();
 
   return (
     <div className="min-h-screen bg-background pb-32">
       <Header subtitle="Kassa" />
-      <main className="mx-auto max-w-md px-4 py-6 space-y-5">
-        <div className="rounded-xl border border-border bg-card p-4">
-          <div className="flex gap-3">
-            <div className="h-20 w-16 overflow-hidden rounded-lg bg-muted shrink-0">
-              {img && <img src={img.url} alt="" className="h-full w-full object-cover" />}
-            </div>
-            <div className="flex-1">
-              <p className="font-medium">{order.listing?.title ?? "Plagg"}</p>
-              <p className="text-xs text-muted-foreground">
-                Säljare: {order.seller?.full_name ?? "Säljare"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-border bg-card p-4 space-y-2 text-sm">
-          <Row label="Vara" value={formatSEK(order.item_price)} />
-          <Row label="Frakt" value={order.shipping_price > 0 ? formatSEK(order.shipping_price) : "Ingår / 0 kr"} />
-          {order.platform_fee > 0 && <Row label="Plattformsavgift" value={formatSEK(order.platform_fee)} />}
-          <div className="border-t border-border pt-2 mt-2 flex justify-between font-medium">
-            <span>Totalt</span>
-            <span>{formatSEK(order.total_amount)}</span>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Leveranssätt:{" "}
-            {order.delivery_method === "shipping" && "Skickas"}
-            {order.delivery_method === "pickup" && "Lokal upphämtning"}
-            {order.delivery_method === "both" && "Skickas eller hämtas"}
+      <main className="mx-auto max-w-5xl px-4 py-6 lg:py-10">
+        <div className="mb-6">
+          <h1 className="font-display text-3xl tracking-tight">Slutför köpet</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Säkert via ReWoke köparskydd
           </p>
         </div>
 
-        <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">
-          Detta är en testkassa. Inga riktiga pengar hanteras än — knappen nedan
-          markerar bara ordern som betald.
-        </div>
+        <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+          {/* LEFT — form */}
+          <div className="space-y-5">
+            {/* Säljare */}
+            <Section title="Säljare" icon={<BadgeCheck className="h-4 w-4" />}>
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-muted overflow-hidden flex items-center justify-center text-base font-medium">
+                  {order.seller?.avatar_url ? (
+                    <img src={order.seller.avatar_url} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    sellerInitial
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">{sellerName}</p>
+                    {order.seller?.is_verified && (
+                      <span className="inline-flex items-center gap-1 text-xs text-primary">
+                        <BadgeCheck className="h-3.5 w-3.5" /> Verifierad
+                      </span>
+                    )}
+                  </div>
+                  {typeof order.seller?.trust_score === "number" && order.seller.trust_score > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Trust score: {Math.round(order.seller.trust_score)}
+                    </p>
+                  )}
+                </div>
+                <Link
+                  to="/profile/$userId"
+                  params={{ userId: order.seller_id }}
+                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                >
+                  Se profil
+                </Link>
+              </div>
+            </Section>
 
-        <button
-          onClick={handlePay}
-          disabled={paying}
-          className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-card disabled:opacity-60"
-        >
-          {paying ? "Behandlar..." : "Fortsätt till betalning"}
-        </button>
+            {/* Leverans */}
+            {needsAddress ? (
+              <Section title="Leveransadress" icon={<Truck className="h-4 w-4" />}>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field
+                    label="För- och efternamn"
+                    value={fullName}
+                    onChange={setFullName}
+                    error={errors.fullName}
+                    autoComplete="name"
+                    className="sm:col-span-2"
+                  />
+                  <Field
+                    label="Gatuadress"
+                    value={street}
+                    onChange={setStreet}
+                    error={errors.street}
+                    autoComplete="street-address"
+                    className="sm:col-span-2"
+                  />
+                  <Field
+                    label="Postnummer"
+                    value={postalCode}
+                    onChange={setPostalCode}
+                    error={errors.postalCode}
+                    autoComplete="postal-code"
+                    placeholder="123 45"
+                  />
+                  <Field
+                    label="Ort"
+                    value={city}
+                    onChange={setCity}
+                    error={errors.city}
+                    autoComplete="address-level2"
+                  />
+                  <Field
+                    label="Telefon"
+                    value={phone}
+                    onChange={setPhone}
+                    error={errors.phone}
+                    autoComplete="tel"
+                    type="tel"
+                    className="sm:col-span-2"
+                    placeholder="070 123 45 67"
+                  />
+                </div>
+              </Section>
+            ) : (
+              <Section title="Upphämtning" icon={<MapPin className="h-4 w-4" />}>
+                <p className="text-sm text-muted-foreground">
+                  Säljaren har valt lokal upphämtning. Ni kommer överens om plats
+                  och tid via meddelanden efter köpet.
+                </p>
+              </Section>
+            )}
+
+            {/* Betalmetod */}
+            <Section title="Betalningsmetod" icon={<Lock className="h-4 w-4" />}>
+              <div className="grid gap-2">
+                <PaymentOption
+                  active={paymentMethod === "klarna"}
+                  onClick={() => setPaymentMethod("klarna")}
+                  label="Klarna"
+                  hint="Betala nu, om 30 dagar eller dela upp"
+                />
+                <PaymentOption
+                  active={paymentMethod === "card"}
+                  onClick={() => setPaymentMethod("card")}
+                  label="Kort"
+                  hint="Visa, Mastercard, Amex"
+                />
+                <PaymentOption
+                  active={paymentMethod === "swish"}
+                  onClick={() => setPaymentMethod("swish")}
+                  label="Swish"
+                  hint="Direkt från din bank"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                Detta är en testkassa — ingen riktig betalning genomförs än.
+              </p>
+            </Section>
+
+            {/* Köparskydd */}
+            <Section title="ReWoke köparskydd" icon={<ShieldCheck className="h-4 w-4" />}>
+              <ul className="text-sm text-muted-foreground space-y-1.5">
+                <li>• Pengarna hålls säkert tills du bekräftat mottagandet</li>
+                <li>• Få full återbetalning om varan inte stämmer med beskrivningen</li>
+                <li>• Support inom 24 timmar vid tvist</li>
+              </ul>
+            </Section>
+          </div>
+
+          {/* RIGHT — summary */}
+          <aside className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <div className="flex gap-4">
+                <div className="h-24 w-20 overflow-hidden rounded-lg bg-muted shrink-0">
+                  {img ? (
+                    <img src={img.url} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{order.listing?.title ?? "Plagg"}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Säljs av {sellerName}
+                  </p>
+                  <p className="font-display text-lg mt-2">{formatSEK(order.item_price)}</p>
+                </div>
+              </div>
+
+              <div className="border-t border-border mt-4 pt-4 space-y-2 text-sm">
+                <Row label="Vara" value={formatSEK(order.item_price)} />
+                <Row
+                  label="Frakt"
+                  value={order.shipping_price > 0 ? formatSEK(order.shipping_price) : "0 kr"}
+                />
+                {order.platform_fee > 0 && (
+                  <Row label="Plattformsavgift" value={formatSEK(order.platform_fee)} />
+                )}
+                <div className="border-t border-border pt-3 mt-3 flex justify-between font-display text-lg">
+                  <span>Totalt</span>
+                  <span>{formatSEK(order.total_amount)}</span>
+                </div>
+              </div>
+
+              <label className="mt-4 flex items-start gap-2 text-xs text-muted-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  className="mt-0.5 accent-primary"
+                />
+                <span>
+                  Jag godkänner ReWokes{" "}
+                  <Link to="/terms" className="underline hover:text-foreground">
+                    villkor
+                  </Link>{" "}
+                  och{" "}
+                  <Link to="/privacy" className="underline hover:text-foreground">
+                    integritetspolicy
+                  </Link>
+                  .
+                </span>
+              </label>
+
+              <button
+                onClick={handlePay}
+                disabled={paying}
+                className="mt-4 w-full rounded-full bg-primary px-5 py-3.5 text-sm font-medium text-primary-foreground shadow-card transition-opacity disabled:opacity-60 hover:opacity-90"
+              >
+                {paying ? "Behandlar..." : `Betala ${formatSEK(order.total_amount)}`}
+              </button>
+
+              <p className="mt-3 text-center text-xs text-muted-foreground inline-flex items-center justify-center gap-1.5 w-full">
+                <Lock className="h-3 w-3" /> Säker betalning · ReWoke köparskydd
+              </p>
+            </div>
+          </aside>
+        </div>
       </main>
       <BottomNav />
     </div>
+  );
+}
+
+function Section({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-border bg-card p-5">
+      <h2 className="flex items-center gap-2 font-display text-lg mb-4">
+        {icon}
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  error,
+  type = "text",
+  autoComplete,
+  placeholder,
+  className = "",
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  error?: string;
+  type?: string;
+  autoComplete?: string;
+  placeholder?: string;
+  className?: string;
+}) {
+  return (
+    <label className={`block ${className}`}>
+      <span className="block text-xs font-medium text-muted-foreground mb-1.5">
+        {label}
+      </span>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        autoComplete={autoComplete}
+        placeholder={placeholder}
+        className={`w-full rounded-lg border bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:border-primary ${
+          error ? "border-destructive" : "border-border"
+        }`}
+      />
+      {error && <span className="mt-1 block text-xs text-destructive">{error}</span>}
+    </label>
+  );
+}
+
+function PaymentOption({
+  active,
+  onClick,
+  label,
+  hint,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  hint: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center justify-between rounded-lg border p-3.5 text-left transition-colors ${
+        active
+          ? "border-primary bg-primary/5"
+          : "border-border bg-background hover:border-foreground/30"
+      }`}
+    >
+      <div>
+        <p className="font-medium text-sm">{label}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{hint}</p>
+      </div>
+      <span
+        className={`h-4 w-4 rounded-full border-2 ${
+          active ? "border-primary bg-primary" : "border-border"
+        }`}
+      />
+    </button>
   );
 }
 
