@@ -7,8 +7,8 @@
  *
  * Do NOT bundle large video files into the app — always host externally.
  */
-export const heroVideoUrl: string | null = null;
-export const heroVideoUrlWebm: string | null = null;
+export const heroVideoUrl: string | null = "/video/hero.mp4";
+export const heroVideoUrlWebm: string | null = "/video/hero.webm";
 
 export const heroFallbackImage: string =
   "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80";
