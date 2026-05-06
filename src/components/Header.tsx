@@ -7,7 +7,9 @@ export function Header({ subtitle }: { subtitle?: string }) {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:py-4">
         <Link to="/" className="flex items-baseline gap-2">
           <span className="font-display text-2xl tracking-tight">ReWoke</span>
-          <span className="text-eyebrow text-primary">SE</span>
+          <span className="font-display text-xs italic tracking-wide text-muted-foreground">
+            by <span className="text-foreground">Melissa Olsson</span>
+          </span>
         </Link>
         <TopNav />
         {subtitle && (
