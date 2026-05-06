@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   Trash2,
 } from "lucide-react";
-import { formatSEK } from "@/lib/rewoke";
+import { formatSEK } from "@/lib/rewear";
 import { buyerQuickReplies, sellerQuickReplies, detectFraudRisk } from "@/lib/quickReplies";
 import { format, isToday, isYesterday } from "date-fns";
 import { sv } from "date-fns/locale";

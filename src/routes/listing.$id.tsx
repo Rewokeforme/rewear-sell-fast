@@ -7,7 +7,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { FollowButton } from "@/components/FollowButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { computeAllBadges, formatSEK, type SellerStatsLite, type VerificationFlags } from "@/lib/rewoke";
+import { computeAllBadges, formatSEK, type SellerStatsLite, type VerificationFlags } from "@/lib/rewear";
 import { TrustBadges } from "@/components/TrustBadges";
 import type { ListingWithDetails } from "@/lib/database.types";
 import { ReportDialog } from "@/components/ReportDialog";
