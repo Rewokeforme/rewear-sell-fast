@@ -5,7 +5,7 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { formatSEK } from "@/lib/rewoke";
+import { formatSEK } from "@/lib/rewear";
 import { AdminReplyDialog } from "@/components/AdminReplyDialog";
 import { Flag, MessageSquare, Reply, ShieldCheck, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";

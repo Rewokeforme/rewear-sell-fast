@@ -1,5 +1,5 @@
 import { BadgeCheck, Crown, ShieldCheck, Sparkles, Star } from "lucide-react";
-import type { SellerBadge } from "@/lib/rewoke";
+import type { SellerBadge } from "@/lib/rewear";
 import { cn } from "@/lib/utils";
 
 type Props = {

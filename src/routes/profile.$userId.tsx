@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ListingCard } from "@/components/ListingCard";
 import type { ListingWithDetails } from "@/lib/database.types";
 import { Flag, ShieldCheck, Star, UserMinus } from "lucide-react";
-import { computeAllBadges, type SellerStatsLite, type VerificationFlags } from "@/lib/rewoke";
+import { computeAllBadges, type SellerStatsLite, type VerificationFlags } from "@/lib/rewear";
 import { TrustBadges } from "@/components/TrustBadges";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
