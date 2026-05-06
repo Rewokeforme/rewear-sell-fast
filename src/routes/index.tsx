@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Camera, Sparkles, Tag, Send, Bot, Leaf, ShieldCheck } from "lucide-react";
+import { Bot, Leaf, ShieldCheck, Search as SearchIcon } from "lucide-react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { ListingCard } from "@/components/ListingCard";
+import { HeroVideo } from "@/components/HeroVideo";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import type { CategoryRow, ListingWithDetails } from "@/lib/database.types";
 import { trendingBrands } from "@/lib/demoListings";
