@@ -90,36 +90,8 @@ function HomePage() {
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-6 md:py-10 space-y-12 md:space-y-16">
         {/* HERO */}
-        <section className="grid gap-8 md:grid-cols-2 md:items-center">
-          <div>
-            <p className="text-eyebrow text-primary">Skandinavisk second hand</p>
-            <h1 className="mt-3 font-display text-4xl leading-[1.05] md:text-6xl">
-              Sälj dina kläder på{" "}
-              <span className="text-primary italic">60 sekunder</span>
-            </h1>
-            <p className="mt-4 max-w-md text-base text-muted-foreground">
-              Ladda upp en bild. Vår AI hittar märket, föreslår priset och skriver
-              annonsen åt dig. Du behöver bara godkänna.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                to="/sell"
-                className="inline-flex items-center rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background shadow-card transition hover:opacity-90"
-              >
-                Skapa annons med AI
-              </Link>
-              <Link
-                to="/search"
-                className="inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-medium transition hover:border-foreground/40"
-              >
-                Utforska plagg
-              </Link>
-            </div>
-          </div>
+        <HeroSection />
 
-          {/* AI Upload card */}
-          <AiUploadCard />
-        </section>
 
         {/* Social proof */}
         <section className="grid gap-3 sm:grid-cols-3">
