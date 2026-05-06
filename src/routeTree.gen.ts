@@ -28,11 +28,15 @@ import { Route as AdRulesRouteImport } from './routes/ad-rules'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InboxIndexRouteImport } from './routes/inbox.index'
 import { Route as ProfileUserIdRouteImport } from './routes/profile.$userId'
+import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
+import { Route as MeSalesRouteImport } from './routes/me.sales'
+import { Route as MePurchasesRouteImport } from './routes/me.purchases'
 import { Route as MeListingsRouteImport } from './routes/me.listings'
 import { Route as MeFollowingRouteImport } from './routes/me.following'
 import { Route as MeFavoritesRouteImport } from './routes/me.favorites'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
 import { Route as InboxConversationIdRouteImport } from './routes/inbox.$conversationId'
+import { Route as CheckoutOrderIdRouteImport } from './routes/checkout.$orderId'
 import { Route as InboxAdminIdRouteImport } from './routes/inbox.admin.$id'
 
 const TermsRoute = TermsRouteImport.update({
@@ -130,6 +134,21 @@ const ProfileUserIdRoute = ProfileUserIdRouteImport.update({
   path: '/profile/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrdersOrderIdRoute = OrdersOrderIdRouteImport.update({
+  id: '/orders/$orderId',
+  path: '/orders/$orderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeSalesRoute = MeSalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
+  getParentRoute: () => MeRoute,
+} as any)
+const MePurchasesRoute = MePurchasesRouteImport.update({
+  id: '/purchases',
+  path: '/purchases',
+  getParentRoute: () => MeRoute,
+} as any)
 const MeListingsRoute = MeListingsRouteImport.update({
   id: '/listings',
   path: '/listings',
@@ -153,6 +172,11 @@ const ListingIdRoute = ListingIdRouteImport.update({
 const InboxConversationIdRoute = InboxConversationIdRouteImport.update({
   id: '/inbox/$conversationId',
   path: '/inbox/$conversationId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutOrderIdRoute = CheckoutOrderIdRouteImport.update({
+  id: '/checkout/$orderId',
+  path: '/checkout/$orderId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InboxAdminIdRoute = InboxAdminIdRouteImport.update({
@@ -179,11 +203,15 @@ export interface FileRoutesByFullPath {
   '/seller-guide': typeof SellerGuideRoute
   '/shipping': typeof ShippingRoute
   '/terms': typeof TermsRoute
+  '/checkout/$orderId': typeof CheckoutOrderIdRoute
   '/inbox/$conversationId': typeof InboxConversationIdRoute
   '/listing/$id': typeof ListingIdRoute
   '/me/favorites': typeof MeFavoritesRoute
   '/me/following': typeof MeFollowingRoute
   '/me/listings': typeof MeListingsRoute
+  '/me/purchases': typeof MePurchasesRoute
+  '/me/sales': typeof MeSalesRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/inbox/': typeof InboxIndexRoute
   '/inbox/admin/$id': typeof InboxAdminIdRoute
@@ -206,11 +234,15 @@ export interface FileRoutesByTo {
   '/seller-guide': typeof SellerGuideRoute
   '/shipping': typeof ShippingRoute
   '/terms': typeof TermsRoute
+  '/checkout/$orderId': typeof CheckoutOrderIdRoute
   '/inbox/$conversationId': typeof InboxConversationIdRoute
   '/listing/$id': typeof ListingIdRoute
   '/me/favorites': typeof MeFavoritesRoute
   '/me/following': typeof MeFollowingRoute
   '/me/listings': typeof MeListingsRoute
+  '/me/purchases': typeof MePurchasesRoute
+  '/me/sales': typeof MeSalesRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/inbox': typeof InboxIndexRoute
   '/inbox/admin/$id': typeof InboxAdminIdRoute
@@ -234,11 +266,15 @@ export interface FileRoutesById {
   '/seller-guide': typeof SellerGuideRoute
   '/shipping': typeof ShippingRoute
   '/terms': typeof TermsRoute
+  '/checkout/$orderId': typeof CheckoutOrderIdRoute
   '/inbox/$conversationId': typeof InboxConversationIdRoute
   '/listing/$id': typeof ListingIdRoute
   '/me/favorites': typeof MeFavoritesRoute
   '/me/following': typeof MeFollowingRoute
   '/me/listings': typeof MeListingsRoute
+  '/me/purchases': typeof MePurchasesRoute
+  '/me/sales': typeof MeSalesRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/inbox/': typeof InboxIndexRoute
   '/inbox/admin/$id': typeof InboxAdminIdRoute
@@ -263,11 +299,15 @@ export interface FileRouteTypes {
     | '/seller-guide'
     | '/shipping'
     | '/terms'
+    | '/checkout/$orderId'
     | '/inbox/$conversationId'
     | '/listing/$id'
     | '/me/favorites'
     | '/me/following'
     | '/me/listings'
+    | '/me/purchases'
+    | '/me/sales'
+    | '/orders/$orderId'
     | '/profile/$userId'
     | '/inbox/'
     | '/inbox/admin/$id'
@@ -290,11 +330,15 @@ export interface FileRouteTypes {
     | '/seller-guide'
     | '/shipping'
     | '/terms'
+    | '/checkout/$orderId'
     | '/inbox/$conversationId'
     | '/listing/$id'
     | '/me/favorites'
     | '/me/following'
     | '/me/listings'
+    | '/me/purchases'
+    | '/me/sales'
+    | '/orders/$orderId'
     | '/profile/$userId'
     | '/inbox'
     | '/inbox/admin/$id'
@@ -317,11 +361,15 @@ export interface FileRouteTypes {
     | '/seller-guide'
     | '/shipping'
     | '/terms'
+    | '/checkout/$orderId'
     | '/inbox/$conversationId'
     | '/listing/$id'
     | '/me/favorites'
     | '/me/following'
     | '/me/listings'
+    | '/me/purchases'
+    | '/me/sales'
+    | '/orders/$orderId'
     | '/profile/$userId'
     | '/inbox/'
     | '/inbox/admin/$id'
@@ -345,8 +393,10 @@ export interface RootRouteChildren {
   SellerGuideRoute: typeof SellerGuideRoute
   ShippingRoute: typeof ShippingRoute
   TermsRoute: typeof TermsRoute
+  CheckoutOrderIdRoute: typeof CheckoutOrderIdRoute
   InboxConversationIdRoute: typeof InboxConversationIdRoute
   ListingIdRoute: typeof ListingIdRoute
+  OrdersOrderIdRoute: typeof OrdersOrderIdRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
   InboxIndexRoute: typeof InboxIndexRoute
   InboxAdminIdRoute: typeof InboxAdminIdRoute
@@ -487,6 +537,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/orders/$orderId': {
+      id: '/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof OrdersOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me/sales': {
+      id: '/me/sales'
+      path: '/sales'
+      fullPath: '/me/sales'
+      preLoaderRoute: typeof MeSalesRouteImport
+      parentRoute: typeof MeRoute
+    }
+    '/me/purchases': {
+      id: '/me/purchases'
+      path: '/purchases'
+      fullPath: '/me/purchases'
+      preLoaderRoute: typeof MePurchasesRouteImport
+      parentRoute: typeof MeRoute
+    }
     '/me/listings': {
       id: '/me/listings'
       path: '/listings'
@@ -522,6 +593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InboxConversationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout/$orderId': {
+      id: '/checkout/$orderId'
+      path: '/checkout/$orderId'
+      fullPath: '/checkout/$orderId'
+      preLoaderRoute: typeof CheckoutOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/inbox/admin/$id': {
       id: '/inbox/admin/$id'
       path: '/inbox/admin/$id'
@@ -536,12 +614,16 @@ interface MeRouteChildren {
   MeFavoritesRoute: typeof MeFavoritesRoute
   MeFollowingRoute: typeof MeFollowingRoute
   MeListingsRoute: typeof MeListingsRoute
+  MePurchasesRoute: typeof MePurchasesRoute
+  MeSalesRoute: typeof MeSalesRoute
 }
 
 const MeRouteChildren: MeRouteChildren = {
   MeFavoritesRoute: MeFavoritesRoute,
   MeFollowingRoute: MeFollowingRoute,
   MeListingsRoute: MeListingsRoute,
+  MePurchasesRoute: MePurchasesRoute,
+  MeSalesRoute: MeSalesRoute,
 }
 
 const MeRouteWithChildren = MeRoute._addFileChildren(MeRouteChildren)
@@ -564,8 +646,10 @@ const rootRouteChildren: RootRouteChildren = {
   SellerGuideRoute: SellerGuideRoute,
   ShippingRoute: ShippingRoute,
   TermsRoute: TermsRoute,
+  CheckoutOrderIdRoute: CheckoutOrderIdRoute,
   InboxConversationIdRoute: InboxConversationIdRoute,
   ListingIdRoute: ListingIdRoute,
+  OrdersOrderIdRoute: OrdersOrderIdRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,
   InboxIndexRoute: InboxIndexRoute,
   InboxAdminIdRoute: InboxAdminIdRoute,

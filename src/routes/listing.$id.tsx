@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Bookmark, Eye, Flag, Handshake, Heart, Leaf, MapPin, ShieldCheck, Star, Truck } from "lucide-react";
+import { Bookmark, Eye, Flag, Handshake, Heart, Leaf, MapPin, ShieldCheck, ShoppingBag, Star, Truck } from "lucide-react";
+import { createOrder } from "@/lib/orders";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { FollowButton } from "@/components/FollowButton";
@@ -355,14 +356,68 @@ function ListingPage() {
             </div>
           )}
 
-          <div className="pt-2">
-            <button
-              onClick={() => startConversation("")}
-              className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-card"
-            >
-              Skicka meddelande
-            </button>
-          </div>
+          {(() => {
+            const isOwner = user?.id === listing.seller_id;
+            const status = listing.status as string;
+            const isReserved = status === "reserved";
+            const isSold = status === "sold";
+            return (
+              <div className="pt-2 space-y-2">
+                {isSold && (
+                  <div className="rounded-xl border border-border bg-muted px-4 py-3 text-center text-sm font-medium text-muted-foreground">
+                    Såld
+                  </div>
+                )}
+                {isReserved && !isSold && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm font-medium text-amber-900">
+                    Reserverad
+                  </div>
+                )}
+                {!isOwner && !isReserved && !isSold && (
+                  <button
+                    onClick={async () => {
+                      if (!user) {
+                        navigate({ to: "/login" });
+                        return;
+                      }
+                      const { data, error } = await createOrder({
+                        listingId: listing.id,
+                        buyerId: user.id,
+                        sellerId: listing.seller_id,
+                        itemPrice: listing.price_sek,
+                        shippingPrice:
+                          listing.buyer_pays_shipping && listing.shipping_price
+                            ? Math.round(Number(listing.shipping_price))
+                            : 0,
+                        deliveryMethod: listing.delivery_method,
+                      });
+                      if (error || !data) {
+                        toast.error(error ?? "Kunde inte skapa order");
+                        return;
+                      }
+                      navigate({ to: "/checkout/$orderId", params: { orderId: data.id } });
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-card"
+                  >
+                    <ShoppingBag className="h-4 w-4" />
+                    Köp nu
+                  </button>
+                )}
+                <button
+                  onClick={() => startConversation("")}
+                  className="w-full rounded-full border border-border bg-card px-5 py-3 text-sm font-medium"
+                >
+                  Skicka meddelande
+                </button>
+                <button
+                  onClick={toggleSave}
+                  className="w-full rounded-full border border-border bg-card px-5 py-3 text-sm font-medium"
+                >
+                  {saved ? "Sparad" : "Spara"}
+                </button>
+              </div>
+            );
+          })()}
 
           <button
             onClick={openReport}
