@@ -79,11 +79,11 @@ function SellPage() {
       });
     supabase
       .from("profiles")
-      .select("full_name, avatar_url")
+      .select("full_name, avatar_url, city, email_verified, phone_verified, identity_verified, is_verified")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) setSellerProfile(data as { full_name: string | null; avatar_url: string | null });
+        if (data) setSellerProfile(data as NonNullable<typeof sellerProfile>);
       });
   }, [user]);
 
