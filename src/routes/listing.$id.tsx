@@ -33,7 +33,7 @@ function ListingPage() {
     supabase
       .from("listings")
       .select(
-        "*, listing_images(*), profiles(id,full_name,city,avatar_url,rewoke_score,is_verified), categories(slug,name_sv)",
+        "*, listing_images(*), profiles(id,full_name,city,avatar_url,rewear_score,is_verified), categories(slug,name_sv)",
       )
       .eq("id", id)
       .maybeSingle()

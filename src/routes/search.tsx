@@ -37,7 +37,7 @@ function SearchPage() {
     setLoading(true);
     let query = supabase
       .from("listings")
-      .select("*, listing_images(*), profiles(id,full_name,city,avatar_url,rewoke_score,is_verified), categories(slug,name_sv)")
+      .select("*, listing_images(*), profiles(id,full_name,city,avatar_url,rewear_score,is_verified), categories(slug,name_sv)")
       .eq("status", "active")
       .limit(60);
 
