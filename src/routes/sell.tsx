@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { CategoryRow } from "@/lib/database.types";
-import { priceGuideRange, formatSEK, computeSellerBadge, type SellerStatsLite } from "@/lib/rewear";
+import { priceGuideRange, formatSEK, computeSellerBadge, isBaseVerified, type SellerStatsLite, type VerificationFlags } from "@/lib/rewear";
 import { MAIN_CATEGORIES, SUB_CATEGORIES, getSizeRule, showJeansSizes, isValidSizeForCategory, WAIST_SIZES, LENGTH_SIZES, type MainCategory } from "@/lib/taxonomy";
 
 export const Route = createFileRoute("/sell")({
@@ -51,7 +51,7 @@ function SellPage() {
   const [previewActiveImg, setPreviewActiveImg] = useState(0);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [sellerStats, setSellerStats] = useState<SellerStatsLite | null>(null);
-  const [sellerProfile, setSellerProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);
+  const [sellerProfile, setSellerProfile] = useState<{ full_name: string | null; avatar_url: string | null; city: string | null; email_verified: boolean; phone_verified: boolean; identity_verified: boolean; is_verified: boolean } | null>(null);
   const [co2Kg, setCo2Kg] = useState<number>(4);
   const fileInput = useRef<HTMLInputElement>(null);
   const showShipping = deliveryMethod === "shipping" || deliveryMethod === "both";
@@ -79,11 +79,11 @@ function SellPage() {
       });
     supabase
       .from("profiles")
-      .select("full_name, avatar_url")
+      .select("full_name, avatar_url, city, email_verified, phone_verified, identity_verified, is_verified")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) setSellerProfile(data as { full_name: string | null; avatar_url: string | null });
+        if (data) setSellerProfile(data as NonNullable<typeof sellerProfile>);
       });
   }, [user]);
 
@@ -852,7 +852,9 @@ function SellPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <p className="truncate text-sm font-medium">{sellerName}</p>
-                        <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                        {(sellerProfile?.is_verified || sellerProfile?.identity_verified || isBaseVerified(sellerProfile as VerificationFlags | null)) && (
+                          <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                        )}
                         {sellerBadge && (
                           <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground">
                             {sellerBadge}
