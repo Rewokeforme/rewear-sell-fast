@@ -373,58 +373,71 @@ function ListingPage() {
                     Reserverad
                   </div>
                 )}
-                {!isOwner && !isReserved && !isSold && (
-                  <button
-                    onClick={async () => {
-                      if (!user) {
-                        navigate({ to: "/login" });
-                        return;
-                      }
-                      const { data, error } = await createOrder({
-                        listingId: listing.id,
-                        buyerId: user.id,
-                        sellerId: listing.seller_id,
-                        itemPrice: listing.price_sek,
-                        shippingPrice:
-                          listing.buyer_pays_shipping && listing.shipping_price
-                            ? Math.round(Number(listing.shipping_price))
-                            : 0,
-                        deliveryMethod: listing.delivery_method,
-                      });
-                      if (error || !data) {
-                        toast.error(error ?? "Kunde inte skapa order");
-                        return;
-                      }
-                      navigate({ to: "/checkout/$orderId", params: { orderId: data.id } });
-                    }}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-card"
+                {isOwner ? (
+                  <Link
+                    to="/me/listings"
+                    className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm font-medium"
                   >
-                    <ShoppingBag className="h-4 w-4" />
-                    Köp nu
-                  </button>
+                    Hantera dina annonser
+                  </Link>
+                ) : (
+                  <>
+                    {!isReserved && !isSold && (
+                      <button
+                        onClick={async () => {
+                          if (!user) {
+                            navigate({ to: "/login" });
+                            return;
+                          }
+                          const { data, error } = await createOrder({
+                            listingId: listing.id,
+                            buyerId: user.id,
+                            sellerId: listing.seller_id,
+                            itemPrice: listing.price_sek,
+                            shippingPrice:
+                              listing.buyer_pays_shipping && listing.shipping_price
+                                ? Math.round(Number(listing.shipping_price))
+                                : 0,
+                            deliveryMethod: listing.delivery_method,
+                          });
+                          if (error || !data) {
+                            toast.error(error ?? "Kunde inte skapa order");
+                            return;
+                          }
+                          navigate({ to: "/checkout/$orderId", params: { orderId: data.id } });
+                        }}
+                        className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-card"
+                      >
+                        <ShoppingBag className="h-4 w-4" />
+                        Köp nu
+                      </button>
+                    )}
+                    <button
+                      onClick={() => startConversation("")}
+                      className="w-full rounded-full border border-border bg-card px-5 py-3 text-sm font-medium"
+                    >
+                      Skicka meddelande
+                    </button>
+                    <button
+                      onClick={toggleSave}
+                      className="w-full rounded-full border border-border bg-card px-5 py-3 text-sm font-medium"
+                    >
+                      {saved ? "Sparad" : "Spara"}
+                    </button>
+                  </>
                 )}
-                <button
-                  onClick={() => startConversation("")}
-                  className="w-full rounded-full border border-border bg-card px-5 py-3 text-sm font-medium"
-                >
-                  Skicka meddelande
-                </button>
-                <button
-                  onClick={toggleSave}
-                  className="w-full rounded-full border border-border bg-card px-5 py-3 text-sm font-medium"
-                >
-                  {saved ? "Sparad" : "Spara"}
-                </button>
               </div>
             );
           })()}
 
-          <button
-            onClick={openReport}
-            className="mt-2 flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <Flag className="h-3 w-3" /> Rapportera annonsen
-          </button>
+          {user?.id !== listing.seller_id && (
+            <button
+              onClick={openReport}
+              className="mt-2 flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <Flag className="h-3 w-3" /> Rapportera annonsen
+            </button>
+          )}
         </div>
       </main>
       <BottomNav />
