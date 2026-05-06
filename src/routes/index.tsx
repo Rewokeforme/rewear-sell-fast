@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Camera, Sparkles, Tag, Send, Bot, Leaf, ShieldCheck } from "lucide-react";
+import { Bot, Leaf, ShieldCheck, Search as SearchIcon } from "lucide-react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { ListingCard } from "@/components/ListingCard";
+import { HeroVideo } from "@/components/HeroVideo";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import type { CategoryRow, ListingWithDetails } from "@/lib/database.types";
 import { trendingBrands } from "@/lib/demoListings";
@@ -89,36 +90,8 @@ function HomePage() {
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-6 md:py-10 space-y-12 md:space-y-16">
         {/* HERO */}
-        <section className="grid gap-8 md:grid-cols-2 md:items-center">
-          <div>
-            <p className="text-eyebrow text-primary">Skandinavisk second hand</p>
-            <h1 className="mt-3 font-display text-4xl leading-[1.05] md:text-6xl">
-              Sälj dina kläder på{" "}
-              <span className="text-primary italic">60 sekunder</span>
-            </h1>
-            <p className="mt-4 max-w-md text-base text-muted-foreground">
-              Ladda upp en bild. Vår AI hittar märket, föreslår priset och skriver
-              annonsen åt dig. Du behöver bara godkänna.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                to="/sell"
-                className="inline-flex items-center rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background shadow-card transition hover:opacity-90"
-              >
-                Skapa annons med AI
-              </Link>
-              <Link
-                to="/search"
-                className="inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-medium transition hover:border-foreground/40"
-              >
-                Utforska plagg
-              </Link>
-            </div>
-          </div>
+        <HeroSection />
 
-          {/* AI Upload card */}
-          <AiUploadCard />
-        </section>
 
         {/* Social proof */}
         <section className="grid gap-3 sm:grid-cols-3">
@@ -251,37 +224,91 @@ function FollowingEmpty({ hasUser }: { hasUser: boolean }) {
   );
 }
 
-function AiUploadCard() {
-  const steps = [
-    { icon: Camera, label: "Ladda upp bild" },
-    { icon: Sparkles, label: "AI hittar märke" },
-    { icon: Tag, label: "AI föreslår pris" },
-    { icon: Send, label: "Publicera annons" },
-  ];
+function HeroSection() {
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+
+  const onSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    navigate({ to: "/search", search: q ? { q } : undefined });
+  };
+
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-card md:p-8">
-      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-2xl" />
-      <div className="relative">
-        <div className="flex items-center justify-between">
-          <p className="text-eyebrow text-primary">AI-flöde</p>
-          <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-medium text-primary">
-            ~60 sek
-          </span>
+    <section className="grid gap-10 md:grid-cols-[1.05fr_1fr] md:items-center md:gap-14">
+      {/* Left */}
+      <div className="order-2 md:order-1">
+        <p className="text-eyebrow text-primary">ReWoke · Skandinavisk second hand</p>
+        <h1 className="mt-4 font-display text-[2.5rem] leading-[1.02] tracking-tight md:text-[4.25rem]">
+          Sälj dina kläder på{" "}
+          <span className="italic text-[var(--forest)]">60 sekunder</span>
+        </h1>
+        <p className="mt-5 max-w-md text-base text-muted-foreground md:text-lg">
+          Ta en bild. AI föreslår titel, pris och beskrivning.
+        </p>
+
+        <form
+          onSubmit={onSearch}
+          className="mt-7 flex w-full max-w-md items-center gap-2 rounded-full border border-border bg-card px-4 py-2 shadow-soft focus-within:border-foreground/40"
+        >
+          <SearchIcon className="h-4 w-4 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            type="text"
+            placeholder="Vad letar du efter?"
+            className="flex-1 bg-transparent py-1.5 text-sm outline-none placeholder:text-muted-foreground"
+          />
+          <button
+            type="submit"
+            className="rounded-full bg-foreground px-4 py-1.5 text-xs font-medium text-background transition hover:opacity-90"
+          >
+            Sök
+          </button>
+        </form>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            to="/sell"
+            className="inline-flex items-center rounded-full bg-[var(--terracotta)] px-6 py-3 text-sm font-medium text-[var(--accent-foreground)] shadow-card transition hover:opacity-90"
+          >
+            Skapa annons
+          </Link>
+          <Link
+            to="/search"
+            className="inline-flex items-center rounded-full border border-foreground/15 bg-card px-6 py-3 text-sm font-medium transition hover:border-foreground/40"
+          >
+            Utforska plagg
+          </Link>
         </div>
-        <h3 className="mt-2 font-display text-xl">Från bild till annons</h3>
-        <ol className="mt-5 space-y-3">
-          {steps.map(({ icon: Icon, label }, i) => (
-            <li key={label} className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-background text-primary ring-1 ring-border">
-                <Icon className="h-4 w-4" />
-              </span>
-              <span className="flex-1 text-sm">{label}</span>
-              <span className="text-eyebrow text-muted-foreground">0{i + 1}</span>
-            </li>
-          ))}
-        </ol>
+
+        <ul className="mt-8 grid gap-3 sm:grid-cols-3">
+          <TrustPoint icon={<Bot className="h-4 w-4" />} label="AI-skapat annonsutkast" />
+          <TrustPoint icon={<ShieldCheck className="h-4 w-4" />} label="Tryggare meddelanden" />
+          <TrustPoint icon={<Leaf className="h-4 w-4" />} label="CO₂-spårning per plagg" />
+        </ul>
+
+        <p className="mt-8 text-sm italic text-muted-foreground">
+          ReWoke hjälper dig att ge garderoben ett längre liv.
+        </p>
       </div>
-    </div>
+
+      {/* Right — video */}
+      <div className="order-1 md:order-2">
+        <HeroVideo />
+      </div>
+    </section>
+  );
+}
+
+function TrustPoint({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <li className="flex items-center gap-2 rounded-2xl border border-border bg-card/60 px-3 py-2.5">
+      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-background text-primary ring-1 ring-border">
+        {icon}
+      </span>
+      <span className="text-xs font-medium leading-tight">{label}</span>
+    </li>
   );
 }
 
