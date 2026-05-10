@@ -179,7 +179,7 @@ function CheckoutPage() {
         <div className="mb-6">
           <h1 className="font-display text-3xl tracking-tight">Slutför köpet</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Säkert via ReWoke köparskydd
+            Trygg handel via ReWoke köpar- och säljarskydd
           </p>
         </div>
         <div className="mb-6">
