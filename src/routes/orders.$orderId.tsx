@@ -302,7 +302,29 @@ function OrderDetailPage() {
               <p className="text-xs text-muted-foreground">
                 Levererad: {new Date(order.delivered_at).toLocaleString("sv-SE")}
               </p>
-            )}
+        )}
+
+        {/* Buyer: seller review form (delivered or completed, no active dispute) */}
+        {isBuyer &&
+          (order.status === "delivered" || order.status === "completed") &&
+          !(
+            dispute &&
+            (
+              ["open", "awaiting_buyer_evidence", "awaiting_seller_response", "under_review"] as DisputeStatus[]
+            ).includes(dispute.status)
+          ) &&
+          (!isPickup ||
+            (order.buyer_handover_confirmed_at && order.seller_handover_confirmed_at)) && (
+            <SellerReviewForm
+              orderId={order.id}
+              listingId={order.listing_id}
+              reviewerId={user!.id}
+              revieweeId={order.seller_id}
+              sellerName={order.seller?.full_name ?? "säljaren"}
+              existing={myReview}
+              onSubmitted={(r) => setMyReview(r)}
+            />
+          )}
             {order.buyer_review_deadline && (
               <p className="text-xs text-muted-foreground">
                 Avslutas:{" "}
