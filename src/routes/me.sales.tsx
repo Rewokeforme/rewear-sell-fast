@@ -87,6 +87,16 @@ function MySalesPage() {
                     <div className="mt-1.5">
                       <OrderStatusBadge status={o.status} isMock={o.is_mock_payment} />
                     </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {o.status === "pending_payment" && "Väntar på betalning"}
+                      {o.status === "paid" && (isPickup ? "Bekräfta överlämning" : "Skicka varan och lägg in spårningsnummer")}
+                      {o.status === "shipped" && "Väntar på att köparen bekräftar mottagande"}
+                      {o.status === "delivered" && "Köparen har bekräftat mottagande. Granskningsperiod pågår."}
+                      {o.status === "completed" && "Order slutförd"}
+                      {o.status === "disputed" && "Tvist pågår"}
+                      {o.status === "cancelled" && "Avbruten"}
+                      {o.status === "refunded" && "Återbetald"}
+                    </p>
                   </div>
                 </Link>
 
