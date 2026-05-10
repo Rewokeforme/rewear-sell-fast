@@ -187,6 +187,7 @@ function MePage() {
           <RowLink to="/me/favorites" icon={Heart} label="Sparade" />
           <RowLink to="/me/following" icon={Users} label="Säljare jag följer" />
           <RowLink to="/me/fit" icon={Ruler} label="Fit Match-profil" />
+          <RowLink to="/me/alerts" icon={Sparkles} label="Style alerts" />
           <RowLink to="/notifications" icon={Bell} label="Notiser" />
           <RowLink to="/inbox" icon={Users} label="Inkorg" />
           {isAdmin && <RowLink to="/admin" icon={Star} label="Adminpanel" />}
