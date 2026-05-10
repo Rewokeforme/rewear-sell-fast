@@ -147,9 +147,19 @@ function PublicProfilePage() {
           <MiniStat label="CO₂ kg" value={Math.round(Number(stats?.total_co2_saved ?? 0))} />
         </section>
 
-        <h2 className="text-eyebrow text-muted-foreground">Aktiva annonser</h2>
+        <div className="flex items-end justify-between gap-2 pt-2">
+          <div>
+            <p className="text-eyebrow text-primary">Garderob</p>
+            <h2 className="font-display text-xl">
+              {profile?.full_name ? `${profile.full_name}s plagg` : "Aktiva plagg"}
+            </h2>
+          </div>
+          {items.length > 0 && (
+            <span className="text-xs text-muted-foreground">{items.length} aktiva</span>
+          )}
+        </div>
         {items.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">Inga aktiva annonser.</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">Inga aktiva annonser just nu.</p>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {items.map((l) => <ListingCard key={l.id} listing={l} />)}
