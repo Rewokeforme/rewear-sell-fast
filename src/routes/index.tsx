@@ -102,8 +102,8 @@ function HomePage() {
           />
           <StatCard
             icon={<Leaf className="h-4 w-4" />}
-            title="CO₂-spårning per plagg"
-            body="Se exakt hur mycket utsläpp du sparar."
+            title="Uppskattad CO₂-besparing"
+            body="Se ungefär hur mycket utsläpp du sparar – baserat på branschgenomsnitt per kategori."
           />
           <StatCard
             icon={<ShieldCheck className="h-4 w-4" />}
@@ -285,7 +285,7 @@ function HeroSection() {
         <ul className="mt-8 grid gap-3 sm:grid-cols-3">
           <TrustPoint icon={<Bot className="h-4 w-4" />} label="AI-skapat annonsutkast" />
           <TrustPoint icon={<ShieldCheck className="h-4 w-4" />} label="Tryggare meddelanden" />
-          <TrustPoint icon={<Leaf className="h-4 w-4" />} label="CO₂-spårning per plagg" />
+          <TrustPoint icon={<Leaf className="h-4 w-4" />} label="Uppskattad CO₂-besparing" />
         </ul>
 
         <p className="mt-8 text-sm italic text-muted-foreground">
