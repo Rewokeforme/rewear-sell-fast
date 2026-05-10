@@ -102,6 +102,8 @@ function NotificationsPage() {
                         <MessageCircle className="h-4 w-4" />
                       ) : n.type === "new_follower" ? (
                         <UserPlus className="h-4 w-4" />
+                      ) : n.type === "style_alert_match" ? (
+                        <Sparkles className="h-4 w-4" />
                       ) : (
                         <Package className="h-4 w-4" />
                       )}
