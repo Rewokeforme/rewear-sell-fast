@@ -303,7 +303,15 @@ function SellPage() {
 
     setBusy(true);
     try {
-      const { data: listing, error: lErr } = await supabase
+      // Bygg payload — endast relevanta mått skickas in
+      const filteredMeasurements: Measurements = {};
+      for (const k of measurementKeys) {
+        const v = measurements[k];
+        if (typeof v === "number" && Number.isFinite(v) && v > 0) filteredMeasurements[k] = v;
+      }
+      const sizeLabel = buildSizeLabel({ sizeType, size, waistSize, lengthSize });
+      const isShoes = sizeType === "shoes_adult" || sizeType === "shoes_kids";
+      const { data: listing, error: lErr } = await (supabase as any)
         .from("listings")
         .insert({
           seller_id: user.id,
@@ -313,7 +321,9 @@ function SellPage() {
           title,
           brand: brand || null,
           size: size || null,
-          shoe_size: mainCategory === "Skor" ? size || null : null,
+          size_type: sizeType,
+          size_label: sizeLabel || null,
+          shoe_size: isShoes ? size || null : null,
           waist_size: jeansVisible ? waistSize || null : null,
           length_size: jeansVisible ? lengthSize || null : null,
           condition,
@@ -325,6 +335,9 @@ function SellPage() {
           buyer_pays_shipping: showShipping ? buyerPaysShipping : true,
           shipping_price: showShipping && shippingPrice ? Number(shippingPrice) : null,
           ships_within_days: showShipping ? shipsWithin : null,
+          measurements: filteredMeasurements,
+          condition_checks: conditionChecks,
+          style_tags: styleTags,
         })
         .select()
         .single();
