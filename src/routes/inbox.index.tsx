@@ -10,6 +10,16 @@ import { cn } from "@/lib/utils";
 import { formatSEK } from "@/lib/rewear";
 import { BadgeCheck, Sparkles, ShieldCheck, Lock, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type AdminMsgItem = {
   id: string;
