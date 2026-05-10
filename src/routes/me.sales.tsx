@@ -12,8 +12,9 @@ import {
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
 import { TestPaymentBanner } from "@/components/TestPaymentBanner";
 import { ShipOrderForm } from "@/components/ShipOrderForm";
+import { getReviewsBySellerOrders, type ReviewRow } from "@/lib/reviews";
 import { formatSEK } from "@/lib/rewear";
-import { Package, Truck, MapPin } from "lucide-react";
+import { Package, Truck, MapPin, Star } from "lucide-react";
 
 export const Route = createFileRoute("/me/sales")({
   component: MySalesPage,
