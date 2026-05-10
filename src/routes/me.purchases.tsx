@@ -81,12 +81,19 @@ function MyPurchasesPage() {
                     {o.status === "pending_payment" && "Väntar på betalning"}
                     {o.status === "paid" && "Väntar på att säljaren skickar"}
                     {o.status === "shipped" && "Skickad – bekräfta när du mottagit varan"}
-                    {o.status === "delivered" && "Granskningsperiod pågår"}
-                    {o.status === "completed" && "Slutförd"}
+                    {o.status === "delivered" &&
+                      (reviews[o.id] ? "Granskningsperiod pågår" : "Granskningsperiod pågår – betygsätt säljaren")}
+                    {o.status === "completed" && (reviews[o.id] ? "Slutförd" : "Slutförd – betygsätt säljaren")}
                     {o.status === "disputed" && "Tvist pågår"}
                     {o.status === "cancelled" && "Avbruten"}
                     {o.status === "refunded" && "Återbetald"}
                   </p>
+                  {(o.status === "delivered" || o.status === "completed") && (
+                    <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium">
+                      <Star className="h-3 w-3" />
+                      {reviews[o.id] ? `Betyg lämnat (${reviews[o.id].rating}/5)` : "Betygsätt säljaren"}
+                    </p>
+                  )}
                 </div>
               </Link>
             );
