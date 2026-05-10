@@ -97,12 +97,18 @@ function MySalesPage() {
                       {o.status === "pending_payment" && "Väntar på betalning"}
                       {o.status === "paid" && (isPickup ? "Bekräfta överlämning" : "Skicka varan och lägg in spårningsnummer")}
                       {o.status === "shipped" && "Väntar på att köparen bekräftar mottagande"}
-                      {o.status === "delivered" && "Köparen har bekräftat mottagande. Granskningsperiod pågår."}
+                      {o.status === "delivered" && "Köparen har mottagit varan. Granskningsperioden pågår."}
                       {o.status === "completed" && "Order slutförd"}
                       {o.status === "disputed" && "Tvist pågår"}
                       {o.status === "cancelled" && "Avbruten"}
                       {o.status === "refunded" && "Återbetald"}
                     </p>
+                    {reviews[o.id] && (
+                      <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-primary">
+                        <Star className="h-3 w-3 fill-current" />
+                        Nytt betyg mottaget ({reviews[o.id].rating}/5)
+                      </p>
+                    )}
                   </div>
                 </Link>
 
