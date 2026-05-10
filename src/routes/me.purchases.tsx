@@ -64,7 +64,7 @@ function MyPurchasesPage() {
                   </p>
                   <p className="text-sm mt-1">{formatSEK(o.total_amount)}</p>
                   <div className="mt-1.5 flex items-center gap-2">
-                    <OrderStatusBadge status={o.status} />
+                    <OrderStatusBadge status={o.status} isMock={o.is_mock_payment} />
                     <span className="text-[11px] text-muted-foreground">
                       {o.delivery_method === "shipping" && "Skickas"}
                       {o.delivery_method === "pickup" && "Hämtas"}
