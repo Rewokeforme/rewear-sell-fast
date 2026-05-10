@@ -65,10 +65,10 @@ function InboxPage() {
   const [busy, setBusy] = useState(true);
   const [tab, setTab] = useState<Tab>("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   async function deleteConversation(convId: string) {
     if (!user) return;
-    if (!window.confirm("Radera denna konversation från din inkorg? Den dyker upp igen om motparten skickar ett nytt meddelande.")) return;
     setDeletingId(convId);
     const prev = items;
     setItems((arr) => arr.filter((c) => c.id !== convId));
