@@ -34,7 +34,41 @@ export type OrderRow = {
   payment_method: string | null;
   is_mock_payment?: boolean | null;
   paid_at?: string | null;
+  tracking_number?: string | null;
+  carrier?: string | null;
+  shipped_at?: string | null;
+  delivered_at?: string | null;
+  buyer_review_deadline?: string | null;
+  buyer_handover_confirmed_at?: string | null;
+  seller_handover_confirmed_at?: string | null;
 };
+
+export async function updateOrderTracking(
+  orderId: string,
+  carrier: string,
+  trackingNumber: string,
+): Promise<{ error: string | null }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
+    .from("orders")
+    .update({ carrier, tracking_number: trackingNumber })
+    .eq("id", orderId);
+  return { error: error?.message ?? null };
+}
+
+export async function confirmPickupHandover(
+  orderId: string,
+  role: "buyer" | "seller",
+): Promise<{ error: string | null }> {
+  const field =
+    role === "buyer" ? "buyer_handover_confirmed_at" : "seller_handover_confirmed_at";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
+    .from("orders")
+    .update({ [field]: new Date().toISOString() })
+    .eq("id", orderId);
+  return { error: error?.message ?? null };
+}
 
 export type OrderWithListing = OrderRow & {
   listing: {

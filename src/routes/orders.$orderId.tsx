@@ -4,12 +4,25 @@ import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { TestPaymentBanner } from "@/components/TestPaymentBanner";
+import {
+  ProtectionSummary,
+  SellerProtection,
+  BuyerProtection,
+} from "@/components/ProtectionInfo";
+import { DisputeDialog } from "@/components/DisputeDialog";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { getOrder, updateOrderStatus, type OrderStatus, type OrderWithListing } from "@/lib/orders";
+import {
+  getOrder,
+  updateOrderStatus,
+  updateOrderTracking,
+  confirmPickupHandover,
+  type OrderStatus,
+  type OrderWithListing,
+} from "@/lib/orders";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
 import { formatSEK } from "@/lib/rewear";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Truck, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/orders/$orderId")({
   component: OrderDetailPage,
@@ -22,10 +35,17 @@ function OrderDetailPage() {
   const [order, setOrder] = useState<OrderWithListing | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [carrier, setCarrier] = useState("");
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [showDispute, setShowDispute] = useState(false);
 
   async function load() {
     const o = await getOrder(orderId);
     setOrder(o);
+    if (o) {
+      setCarrier(o.carrier ?? "");
+      setTrackingNumber(o.tracking_number ?? "");
+    }
     setLoading(false);
   }
 
@@ -46,6 +66,40 @@ function OrderDetailPage() {
     if (error) toast.error(error);
     else {
       toast.success(label);
+      await load();
+    }
+    setBusy(false);
+  }
+
+  async function handleMarkShipped() {
+    if (!order) return;
+    if (order.delivery_method === "shipping") {
+      if (!carrier.trim() || !trackingNumber.trim()) {
+        toast.error("Fyll i transportör och spårningsnummer");
+        return;
+      }
+      setBusy(true);
+      const { error: tErr } = await updateOrderTracking(
+        order.id,
+        carrier.trim(),
+        trackingNumber.trim(),
+      );
+      if (tErr) {
+        toast.error(tErr);
+        setBusy(false);
+        return;
+      }
+    }
+    await transition("shipped", "Markerad som skickad");
+  }
+
+  async function handlePickupConfirm(role: "buyer" | "seller") {
+    if (!order) return;
+    setBusy(true);
+    const { error } = await confirmPickupHandover(order.id, role);
+    if (error) toast.error(error);
+    else {
+      toast.success("Bekräftelse registrerad");
       await load();
     }
     setBusy(false);
@@ -72,6 +126,7 @@ function OrderDetailPage() {
   const isBuyer = user?.id === order.buyer_id;
   const isSeller = user?.id === order.seller_id;
   const img = [...(order.listing?.listing_images ?? [])].sort((a, b) => a.position - b.position)[0];
+  const isPickup = order.delivery_method === "pickup";
 
   return (
     <div className="min-h-screen bg-background pb-32">
@@ -119,6 +174,29 @@ function OrderDetailPage() {
             {order.delivery_method === "both" && "Skickas eller hämtas"}
           </p>
         </div>
+
+        {/* Tracking info (visible when set) */}
+        {(order.tracking_number || order.carrier) && (
+          <div className="rounded-xl border border-border bg-card p-4 text-sm space-y-1">
+            <p className="font-medium flex items-center gap-2">
+              <Truck className="h-4 w-4" /> Spårning
+            </p>
+            {order.carrier && <p className="text-muted-foreground">Transportör: {order.carrier}</p>}
+            {order.tracking_number && (
+              <p className="text-muted-foreground">Spårningsnr: {order.tracking_number}</p>
+            )}
+            {order.shipped_at && (
+              <p className="text-xs text-muted-foreground">
+                Skickad: {new Date(order.shipped_at).toLocaleString("sv-SE")}
+              </p>
+            )}
+            {order.delivered_at && (
+              <p className="text-xs text-muted-foreground">
+                Levererad: {new Date(order.delivered_at).toLocaleString("sv-SE")}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Leveransinformation för säljare när order är betald eller senare */}
         {isSeller &&
@@ -182,6 +260,78 @@ function OrderDetailPage() {
           </button>
         )}
 
+        {/* Seller tracking input — before marking shipped */}
+        {isSeller && order.status === "paid" && order.delivery_method === "shipping" && (
+          <div className="rounded-xl border border-border bg-card p-4 text-sm space-y-2">
+            <p className="font-medium">Spårbar frakt</p>
+            <p className="text-xs text-muted-foreground">
+              Spårningsnummer krävs för att markera ordern som skickad.
+            </p>
+            <input
+              value={carrier}
+              onChange={(e) => setCarrier(e.target.value)}
+              placeholder="Transportör (t.ex. PostNord, DHL)"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            />
+            <input
+              value={trackingNumber}
+              onChange={(e) => setTrackingNumber(e.target.value)}
+              placeholder="Spårningsnummer"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            />
+          </div>
+        )}
+
+        {/* Pickup handover — dual confirmation */}
+        {isPickup && ["paid"].includes(order.status) && (
+          <div className="rounded-xl border border-border bg-card p-4 text-sm space-y-3">
+            <p className="font-medium flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" /> Bekräfta överlämning
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Båda parter behöver bekräfta för att ordern ska räknas som levererad.
+            </p>
+            <div className="flex gap-2 text-xs">
+              <span
+                className={`flex-1 rounded-lg border px-2 py-1.5 text-center ${
+                  order.seller_handover_confirmed_at
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-border text-muted-foreground"
+                }`}
+              >
+                Säljare {order.seller_handover_confirmed_at ? "✓" : "väntar"}
+              </span>
+              <span
+                className={`flex-1 rounded-lg border px-2 py-1.5 text-center ${
+                  order.buyer_handover_confirmed_at
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-border text-muted-foreground"
+                }`}
+              >
+                Köpare {order.buyer_handover_confirmed_at ? "✓" : "väntar"}
+              </span>
+            </div>
+            {isSeller && !order.seller_handover_confirmed_at && (
+              <button
+                disabled={busy}
+                onClick={() => handlePickupConfirm("seller")}
+                className="w-full rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-60"
+              >
+                Bekräfta överlämnat
+              </button>
+            )}
+            {isBuyer && !order.buyer_handover_confirmed_at && (
+              <button
+                disabled={busy}
+                onClick={() => handlePickupConfirm("buyer")}
+                className="w-full rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-60"
+              >
+                Bekräfta mottaget
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Actions */}
         <div className="space-y-2">
           {isBuyer && order.status === "pending_payment" && (
@@ -193,10 +343,10 @@ function OrderDetailPage() {
               Fortsätt till betalning
             </Link>
           )}
-          {isSeller && order.status === "paid" && (
+          {isSeller && order.status === "paid" && !isPickup && (
             <button
               disabled={busy}
-              onClick={() => transition("shipped", "Markerad som skickad")}
+              onClick={handleMarkShipped}
               className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
             >
               Markera som skickad
@@ -238,17 +388,34 @@ function OrderDetailPage() {
               Avbryt
             </button>
           )}
-          {isBuyer && (order.status === "paid" || order.status === "shipped" || order.status === "delivered") && (
-            <button
-              disabled={busy}
-              onClick={() => transition("disputed", "Tvist öppnad")}
-              className="w-full text-xs text-muted-foreground hover:text-foreground"
-            >
-              Öppna tvist
-            </button>
-          )}
+          {(isBuyer || isSeller) &&
+            ["paid", "shipped", "delivered", "disputed"].includes(order.status) && (
+              <button
+                disabled={busy}
+                onClick={() => setShowDispute(true)}
+                className="w-full text-xs text-muted-foreground hover:text-foreground"
+              >
+                Öppna tvist
+              </button>
+            )}
         </div>
+
+        {/* Protection blocks */}
+        <ProtectionSummary />
+        <SellerProtection />
+        <BuyerProtection />
       </main>
+
+      {showDispute && user && (
+        <DisputeDialog
+          order={order}
+          userId={user.id}
+          role={isBuyer ? "buyer" : "seller"}
+          onClose={() => setShowDispute(false)}
+          onCreated={load}
+        />
+      )}
+
       <BottomNav />
     </div>
   );
