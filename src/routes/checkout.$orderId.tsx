@@ -310,7 +310,7 @@ function CheckoutPage() {
             {/* Köpar- och säljarskydd */}
             <Section title="ReWoke köpar- och säljarskydd" icon={<ShieldCheck className="h-4 w-4" />}>
               <ul className="text-sm text-muted-foreground space-y-1.5">
-                <li>• Betalningen hanteras via ReWoke tills ordern är bekräftad enligt våra villkor</li>
+                <li>• När betalning aktiveras hanteras betalningen via ReWoke enligt våra villkor</li>
                 <li>• Spårbar frakt krävs för fullt leveransskydd</li>
                 <li>• Vid problem granskas bevis från köpare, säljare och transportör</li>
                 <li>• Återbetalning sker inte automatiskt utan tvistgranskning</li>
