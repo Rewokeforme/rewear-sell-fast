@@ -3,10 +3,13 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
+import { TestPaymentBanner } from "@/components/TestPaymentBanner";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { getOrder, updateOrderStatus, type OrderStatus, type OrderWithListing } from "@/lib/orders";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
 import { formatSEK } from "@/lib/rewear";
+import { MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/orders/$orderId")({
   component: OrderDetailPage,
