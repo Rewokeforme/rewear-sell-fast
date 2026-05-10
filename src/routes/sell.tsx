@@ -57,6 +57,10 @@ function SellPage() {
   const [buyerPaysShipping, setBuyerPaysShipping] = useState(true);
   const [shippingPrice, setShippingPrice] = useState<string>("");
   const [shipsWithin, setShipsWithin] = useState<"1" | "2-3" | "4-7">("2-3");
+  const [measurements, setMeasurements] = useState<Measurements>({});
+  const [conditionChecks, setConditionChecks] = useState<ConditionChecks>({});
+  const [styleTags, setStyleTags] = useState<string[]>([]);
+  const [styleTagInput, setStyleTagInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
