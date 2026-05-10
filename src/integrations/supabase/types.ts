@@ -500,6 +500,7 @@ export type Database = {
           is_read: boolean
           related_conversation_id: string | null
           related_listing_id: string | null
+          related_order_id: string | null
           related_user_id: string | null
           title: string
           type: Database["public"]["Enums"]["notification_type"]
@@ -512,6 +513,7 @@ export type Database = {
           is_read?: boolean
           related_conversation_id?: string | null
           related_listing_id?: string | null
+          related_order_id?: string | null
           related_user_id?: string | null
           title: string
           type: Database["public"]["Enums"]["notification_type"]
@@ -524,6 +526,7 @@ export type Database = {
           is_read?: boolean
           related_conversation_id?: string | null
           related_listing_id?: string | null
+          related_order_id?: string | null
           related_user_id?: string | null
           title?: string
           type?: Database["public"]["Enums"]["notification_type"]

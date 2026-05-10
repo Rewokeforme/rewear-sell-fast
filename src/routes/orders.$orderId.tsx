@@ -243,16 +243,68 @@ function OrderDetailPage() {
           <ShipOrderForm order={order} onShipped={load} />
         )}
 
-        {/* Buyer shipping notice */}
+        {/* Buyer: paid, awaiting seller shipment */}
         {isBuyer &&
           order.delivery_method === "shipping" &&
-          ["paid", "shipped"].includes(order.status) &&
-          !order.tracking_number && (
+          order.status === "paid" && (
             <div className="rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground">
-              Säljaren ansvarar för att skicka varan med spårbar frakt. ReWoke visar
-              spårningsinformation när säljaren har lagt in den.
+              Väntar på att säljaren skickar varan. Säljaren ansvarar för att skicka med
+              spårbar frakt — ReWoke visar spårningsinformation när säljaren lagt in den.
             </div>
           )}
+
+        {/* Buyer: shipped — clear "Din vara är skickad" block */}
+        {isBuyer && order.status === "shipped" && order.delivery_method !== "pickup" && (
+          <div className="rounded-2xl border border-border bg-card p-4 text-sm space-y-2">
+            <p className="font-medium flex items-center gap-2">
+              <Truck className="h-4 w-4" /> Din vara är skickad
+            </p>
+            {order.carrier && <p className="text-muted-foreground">Transportör: {order.carrier}</p>}
+            {order.tracking_number && (
+              <p className="text-muted-foreground">Spårningsnummer: {order.tracking_number}</p>
+            )}
+            {order.shipped_at && (
+              <p className="text-xs text-muted-foreground">
+                Skickad: {new Date(order.shipped_at).toLocaleString("sv-SE")}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Säljaren har markerat varan som skickad. Bekräfta mottagande när varan har kommit fram.
+            </p>
+          </div>
+        )}
+
+        {/* Seller: shipped — waiting for buyer */}
+        {isSeller && order.status === "shipped" && order.delivery_method !== "pickup" && (
+          <div className="rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground">
+            Väntar på att köparen bekräftar mottagande. Granskningsperioden startar när
+            köparen bekräftar.
+          </div>
+        )}
+
+        {/* Delivered — review window status */}
+        {order.status === "delivered" && (
+          <div className="rounded-2xl border border-border bg-card p-4 text-sm space-y-1">
+            <p className="font-medium">Granskningsperiod</p>
+            <p className="text-xs text-muted-foreground">
+              {isBuyer
+                ? "Du har 48 timmar från bekräftad leverans att kontrollera varan och rapportera problem."
+                : "Köparen har 48 timmar att kontrollera varan. Ordern slutförs automatiskt när perioden gått ut."}
+            </p>
+            {order.delivered_at && (
+              <p className="text-xs text-muted-foreground">
+                Levererad: {new Date(order.delivered_at).toLocaleString("sv-SE")}
+              </p>
+            )}
+            {order.buyer_review_deadline && (
+              <p className="text-xs text-muted-foreground">
+                Avslutas:{" "}
+                {new Date(order.buyer_review_deadline).toLocaleString("sv-SE")} ·{" "}
+                {new Date() < new Date(order.buyer_review_deadline) ? "Pågår" : "Avslutad"}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Pickup handover — dual confirmation */}
         {isPickup && ["paid"].includes(order.status) && (
