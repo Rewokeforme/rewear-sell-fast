@@ -18,6 +18,7 @@ function MyPurchasesPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<OrderWithListing[]>([]);
+  const [reviews, setReviews] = useState<Record<string, ReviewRow>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,8 +27,12 @@ function MyPurchasesPage() {
       navigate({ to: "/login" });
       return;
     }
-    getMyPurchases(user.id).then((o) => {
+    getMyPurchases(user.id).then(async (o) => {
       setOrders(o);
+      const eligible = o
+        .filter((x) => x.status === "delivered" || x.status === "completed")
+        .map((x) => x.id);
+      setReviews(await getReviewsForOrders(eligible, user.id));
       setLoading(false);
     });
   }, [user, authLoading, navigate]);
