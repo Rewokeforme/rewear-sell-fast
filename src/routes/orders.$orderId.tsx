@@ -77,11 +77,15 @@ function OrderDetailPage() {
     <div className="min-h-screen bg-background pb-32">
       <Header subtitle="Order" />
       <main className="mx-auto max-w-md px-4 py-5 space-y-4">
+        {(order.is_mock_payment ||
+          ["pending_payment", "paid", "shipped", "delivered"].includes(order.status)) && (
+          <TestPaymentBanner variant={isSeller ? "seller" : "buyer"} />
+        )}
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
             Order #{order.id.slice(0, 8)}
           </p>
-          <OrderStatusBadge status={order.status} />
+          <OrderStatusBadge status={order.status} isMock={order.is_mock_payment} />
         </div>
 
         <Link
