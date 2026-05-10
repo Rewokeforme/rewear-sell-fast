@@ -506,7 +506,10 @@ function ListingPage() {
                               listing.buyer_pays_shipping && listing.shipping_price
                                 ? Math.round(Number(listing.shipping_price))
                                 : 0,
-                            deliveryMethod: listing.delivery_method,
+                            deliveryMethod:
+                              listing.delivery_method === "both"
+                                ? "shipping"
+                                : listing.delivery_method,
                           });
                           if (error || !data) {
                             toast.error(error ?? "Kunde inte skapa order");
