@@ -302,6 +302,15 @@ function OrderDetailPage() {
               <p className="text-xs text-muted-foreground">
                 Levererad: {new Date(order.delivered_at).toLocaleString("sv-SE")}
               </p>
+            )}
+            {order.buyer_review_deadline && (
+              <p className="text-xs text-muted-foreground">
+                Avslutas:{" "}
+                {new Date(order.buyer_review_deadline).toLocaleString("sv-SE")} ·{" "}
+                {new Date() < new Date(order.buyer_review_deadline) ? "Pågår" : "Avslutad"}
+              </p>
+            )}
+          </div>
         )}
 
         {/* Buyer: seller review form (delivered or completed, no active dispute) */}
@@ -325,15 +334,6 @@ function OrderDetailPage() {
               onSubmitted={(r) => setMyReview(r)}
             />
           )}
-            {order.buyer_review_deadline && (
-              <p className="text-xs text-muted-foreground">
-                Avslutas:{" "}
-                {new Date(order.buyer_review_deadline).toLocaleString("sv-SE")} ·{" "}
-                {new Date() < new Date(order.buyer_review_deadline) ? "Pågår" : "Avslutad"}
-              </p>
-            )}
-          </div>
-        )}
 
         {/* Pickup handover — dual confirmation */}
         {isPickup && ["paid"].includes(order.status) && (
