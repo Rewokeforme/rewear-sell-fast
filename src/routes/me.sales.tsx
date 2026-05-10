@@ -4,11 +4,16 @@ import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/lib/auth";
-import { getMySales, updateOrderStatus, type OrderWithListing } from "@/lib/orders";
+import {
+  getMySales,
+  confirmPickupHandover,
+  type OrderWithListing,
+} from "@/lib/orders";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
 import { TestPaymentBanner } from "@/components/TestPaymentBanner";
+import { ShipOrderForm } from "@/components/ShipOrderForm";
 import { formatSEK } from "@/lib/rewear";
-import { Package } from "lucide-react";
+import { Package, Truck, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/me/sales")({
   component: MySalesPage,
@@ -37,11 +42,11 @@ function MySalesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
 
-  async function markShipped(id: string) {
-    const { error } = await updateOrderStatus(id, "shipped");
+  async function pickupConfirm(id: string) {
+    const { error } = await confirmPickupHandover(id, "seller");
     if (error) toast.error(error);
     else {
-      toast.success("Markerad som skickad");
+      toast.success("Bekräftelse registrerad");
       load();
     }
   }
@@ -61,8 +66,10 @@ function MySalesPage() {
         ) : (
           orders.map((o) => {
             const img = [...(o.listing?.listing_images ?? [])].sort((a, b) => a.position - b.position)[0];
+            const isPickup = o.delivery_method === "pickup";
+            const isShipping = o.delivery_method === "shipping" || o.delivery_method === "both";
             return (
-              <div key={o.id} className="rounded-xl border border-border bg-card p-3">
+              <div key={o.id} className="rounded-2xl border border-border bg-card p-3 space-y-3">
                 <Link
                   to="/orders/$orderId"
                   params={{ orderId: o.id }}
@@ -82,13 +89,47 @@ function MySalesPage() {
                     </div>
                   </div>
                 </Link>
-                {o.status === "paid" && (
-                  <button
-                    onClick={() => markShipped(o.id)}
-                    className="mt-3 w-full rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-                  >
-                    Markera som skickad
-                  </button>
+
+                {o.status === "paid" && isShipping && !isPickup && (
+                  <ShipOrderForm order={o} onShipped={load} />
+                )}
+
+                {o.status === "paid" && isPickup && (
+                  <div className="rounded-2xl border border-border bg-card p-4 text-sm space-y-2">
+                    <div className="flex items-center gap-2 font-medium">
+                      <MapPin className="h-4 w-4" /> Lokal hämtning
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Vid lokal hämtning ska både köpare och säljare bekräfta överlämningen.
+                    </p>
+                    {o.seller_handover_confirmed_at ? (
+                      <p className="text-xs text-muted-foreground">
+                        Du har bekräftat överlämning. Väntar på köparen.
+                      </p>
+                    ) : (
+                      <button
+                        onClick={() => pickupConfirm(o.id)}
+                        className="w-full rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+                      >
+                        Bekräfta överlämnat
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {o.status === "shipped" && o.tracking_number && (
+                  <div className="rounded-xl border border-border bg-background/50 p-3 text-xs space-y-0.5">
+                    <p className="flex items-center gap-1.5 font-medium">
+                      <Truck className="h-3.5 w-3.5" /> Skickad
+                    </p>
+                    {o.carrier && <p className="text-muted-foreground">Transportör: {o.carrier}</p>}
+                    <p className="text-muted-foreground">Spårningsnr: {o.tracking_number}</p>
+                    {o.shipped_at && (
+                      <p className="text-muted-foreground">
+                        Skickad: {new Date(o.shipped_at).toLocaleString("sv-SE")}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             );

@@ -16,12 +16,12 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   getOrder,
   updateOrderStatus,
-  updateOrderTracking,
   confirmPickupHandover,
   type OrderStatus,
   type OrderWithListing,
 } from "@/lib/orders";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
+import { ShipOrderForm } from "@/components/ShipOrderForm";
 import { formatSEK } from "@/lib/rewear";
 import { MessageCircle, Truck, CheckCircle2 } from "lucide-react";
 
@@ -36,8 +36,6 @@ function OrderDetailPage() {
   const [order, setOrder] = useState<OrderWithListing | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [carrier, setCarrier] = useState("");
-  const [trackingNumber, setTrackingNumber] = useState("");
   const [showDispute, setShowDispute] = useState(false);
   const [dispute, setDispute] = useState<DisputeRow | null>(null);
 
@@ -45,8 +43,6 @@ function OrderDetailPage() {
     const o = await getOrder(orderId);
     setOrder(o);
     if (o) {
-      setCarrier(o.carrier ?? "");
-      setTrackingNumber(o.tracking_number ?? "");
       const d = await getDisputeForOrder(o.id);
       setDispute(d);
     }
@@ -73,28 +69,6 @@ function OrderDetailPage() {
       await load();
     }
     setBusy(false);
-  }
-
-  async function handleMarkShipped() {
-    if (!order) return;
-    if (order.delivery_method === "shipping") {
-      if (!carrier.trim() || !trackingNumber.trim()) {
-        toast.error("Fyll i transportör och spårningsnummer");
-        return;
-      }
-      setBusy(true);
-      const { error: tErr } = await updateOrderTracking(
-        order.id,
-        carrier.trim(),
-        trackingNumber.trim(),
-      );
-      if (tErr) {
-        toast.error(tErr);
-        setBusy(false);
-        return;
-      }
-    }
-    await transition("shipped", "Markerad som skickad");
   }
 
   async function handlePickupConfirm(role: "buyer" | "seller") {
@@ -264,31 +238,9 @@ function OrderDetailPage() {
           </button>
         )}
 
-        {/* Seller tracking input — before marking shipped */}
-        {isSeller && order.status === "paid" && order.delivery_method === "shipping" && (
-          <div className="rounded-xl border border-border bg-card p-4 text-sm space-y-2">
-            <p className="font-medium">Spårbar frakt</p>
-            <p className="text-xs text-muted-foreground">
-              Skicka varan med valfri spårbar transportör. För att omfattas av ReWokes säljarskydd
-              behöver du spara inlämningskvitto och lägga in transportör samt spårningsnummer.
-            </p>
-            <input
-              value={carrier}
-              onChange={(e) => setCarrier(e.target.value)}
-              placeholder="Transportör (t.ex. PostNord, DHL)"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-            />
-            <input
-              value={trackingNumber}
-              onChange={(e) => setTrackingNumber(e.target.value)}
-              placeholder="Spårningsnummer"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-            />
-            <p className="text-[11px] text-muted-foreground">
-              ReWoke är inte transportör och ansvarar inte för transportörens leverans, men
-              använder spårningsinformation som underlag vid eventuell tvist.
-            </p>
-          </div>
+        {/* Seller ship form — replaces the old inline button */}
+        {isSeller && order.status === "paid" && !isPickup && (
+          <ShipOrderForm order={order} onShipped={load} />
         )}
 
         {/* Buyer shipping notice */}
@@ -362,15 +314,6 @@ function OrderDetailPage() {
             >
               Fortsätt till betalning
             </Link>
-          )}
-          {isSeller && order.status === "paid" && !isPickup && (
-            <button
-              disabled={busy}
-              onClick={handleMarkShipped}
-              className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
-            >
-              Markera som skickad
-            </button>
           )}
           {isBuyer && order.status === "shipped" && (
             <button
