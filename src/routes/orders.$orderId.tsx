@@ -342,15 +342,6 @@ function OrderDetailPage() {
               Fortsätt till betalning
             </Link>
           )}
-          {isSeller && order.status === "paid" && !isPickup && (
-            <button
-              disabled={busy}
-              onClick={handleMarkShipped}
-              className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
-            >
-              Markera som skickad
-            </button>
-          )}
           {isBuyer && order.status === "shipped" && (
             <button
               disabled={busy}
