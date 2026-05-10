@@ -958,6 +958,7 @@ export type Database = {
         | "new_follower"
         | "system"
         | "admin_reply"
+        | "style_alert_match"
       order_status:
         | "pending_payment"
         | "paid"
@@ -1104,6 +1105,7 @@ export const Constants = {
         "new_follower",
         "system",
         "admin_reply",
+        "style_alert_match",
       ],
       order_status: [
         "pending_payment",
