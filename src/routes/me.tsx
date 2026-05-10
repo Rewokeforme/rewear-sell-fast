@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Bell, Camera, Heart, Leaf, LogOut, Package, ShieldCheck, ShoppingBag, Star, Tag, Users } from "lucide-react";
+import { Bell, Camera, Heart, Leaf, LogOut, Package, Ruler, ShieldCheck, ShoppingBag, Star, Tag, Users } from "lucide-react";
 import { computeSellerBadge, type SellerStatsLite } from "@/lib/rewear";
 
 export const Route = createFileRoute("/me")({
