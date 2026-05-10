@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -30,9 +30,6 @@ type FitRow = {
 
 type Fit = "tight" | "normal" | "oversized";
 
-const KIDS_OPTIONS = useMemo
-  ? null
-  : null;
 const ALL_KIDS = [
   ...KIDS_CLOTHING_SIZES.map((s) => `${s} cm`),
   ...KIDS_SHOE_SIZES.map((s) => `EU ${s}`),
