@@ -35,6 +35,7 @@ import { Route as MeListingsRouteImport } from './routes/me.listings'
 import { Route as MeFollowingRouteImport } from './routes/me.following'
 import { Route as MeFitRouteImport } from './routes/me.fit'
 import { Route as MeFavoritesRouteImport } from './routes/me.favorites'
+import { Route as MeAlertsRouteImport } from './routes/me.alerts'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
 import { Route as InboxConversationIdRouteImport } from './routes/inbox.$conversationId'
 import { Route as CheckoutOrderIdRouteImport } from './routes/checkout.$orderId'
@@ -170,6 +171,11 @@ const MeFavoritesRoute = MeFavoritesRouteImport.update({
   path: '/favorites',
   getParentRoute: () => MeRoute,
 } as any)
+const MeAlertsRoute = MeAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => MeRoute,
+} as any)
 const ListingIdRoute = ListingIdRouteImport.update({
   id: '/listing/$id',
   path: '/listing/$id',
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/checkout/$orderId': typeof CheckoutOrderIdRoute
   '/inbox/$conversationId': typeof InboxConversationIdRoute
   '/listing/$id': typeof ListingIdRoute
+  '/me/alerts': typeof MeAlertsRoute
   '/me/favorites': typeof MeFavoritesRoute
   '/me/fit': typeof MeFitRoute
   '/me/following': typeof MeFollowingRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/checkout/$orderId': typeof CheckoutOrderIdRoute
   '/inbox/$conversationId': typeof InboxConversationIdRoute
   '/listing/$id': typeof ListingIdRoute
+  '/me/alerts': typeof MeAlertsRoute
   '/me/favorites': typeof MeFavoritesRoute
   '/me/fit': typeof MeFitRoute
   '/me/following': typeof MeFollowingRoute
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/checkout/$orderId': typeof CheckoutOrderIdRoute
   '/inbox/$conversationId': typeof InboxConversationIdRoute
   '/listing/$id': typeof ListingIdRoute
+  '/me/alerts': typeof MeAlertsRoute
   '/me/favorites': typeof MeFavoritesRoute
   '/me/fit': typeof MeFitRoute
   '/me/following': typeof MeFollowingRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/checkout/$orderId'
     | '/inbox/$conversationId'
     | '/listing/$id'
+    | '/me/alerts'
     | '/me/favorites'
     | '/me/fit'
     | '/me/following'
@@ -343,6 +353,7 @@ export interface FileRouteTypes {
     | '/checkout/$orderId'
     | '/inbox/$conversationId'
     | '/listing/$id'
+    | '/me/alerts'
     | '/me/favorites'
     | '/me/fit'
     | '/me/following'
@@ -375,6 +386,7 @@ export interface FileRouteTypes {
     | '/checkout/$orderId'
     | '/inbox/$conversationId'
     | '/listing/$id'
+    | '/me/alerts'
     | '/me/favorites'
     | '/me/fit'
     | '/me/following'
@@ -598,6 +610,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MeFavoritesRouteImport
       parentRoute: typeof MeRoute
     }
+    '/me/alerts': {
+      id: '/me/alerts'
+      path: '/alerts'
+      fullPath: '/me/alerts'
+      preLoaderRoute: typeof MeAlertsRouteImport
+      parentRoute: typeof MeRoute
+    }
     '/listing/$id': {
       id: '/listing/$id'
       path: '/listing/$id'
@@ -630,6 +649,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface MeRouteChildren {
+  MeAlertsRoute: typeof MeAlertsRoute
   MeFavoritesRoute: typeof MeFavoritesRoute
   MeFitRoute: typeof MeFitRoute
   MeFollowingRoute: typeof MeFollowingRoute
@@ -639,6 +659,7 @@ interface MeRouteChildren {
 }
 
 const MeRouteChildren: MeRouteChildren = {
+  MeAlertsRoute: MeAlertsRoute,
   MeFavoritesRoute: MeFavoritesRoute,
   MeFitRoute: MeFitRoute,
   MeFollowingRoute: MeFollowingRoute,

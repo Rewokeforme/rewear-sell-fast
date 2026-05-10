@@ -5,7 +5,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { markAllNotificationsRead, type NotificationRow } from "@/lib/notifications";
-import { Bell, MessageCircle, Package, ShieldCheck, UserPlus } from "lucide-react";
+import { Bell, MessageCircle, Package, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
 
@@ -102,6 +102,8 @@ function NotificationsPage() {
                         <MessageCircle className="h-4 w-4" />
                       ) : n.type === "new_follower" ? (
                         <UserPlus className="h-4 w-4" />
+                      ) : n.type === "style_alert_match" ? (
+                        <Sparkles className="h-4 w-4" />
                       ) : (
                         <Package className="h-4 w-4" />
                       )}
