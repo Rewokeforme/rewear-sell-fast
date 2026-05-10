@@ -24,12 +24,17 @@ function MySalesPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<OrderWithListing[]>([]);
+  const [reviews, setReviews] = useState<Record<string, ReviewRow>>({});
   const [loading, setLoading] = useState(true);
 
   async function load() {
     if (!user) return;
     const o = await getMySales(user.id);
     setOrders(o);
+    const eligible = o
+      .filter((x) => x.status === "delivered" || x.status === "completed")
+      .map((x) => x.id);
+    setReviews(await getReviewsBySellerOrders(eligible));
     setLoading(false);
   }
 
