@@ -63,7 +63,7 @@ function MyPurchasesPage() {
                     Säljare: {o.seller?.full_name ?? "Säljare"}
                   </p>
                   <p className="text-sm mt-1">{formatSEK(o.total_amount)}</p>
-                  <div className="mt-1.5 flex items-center gap-2">
+                  <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                     <OrderStatusBadge status={o.status} isMock={o.is_mock_payment} />
                     <span className="text-[11px] text-muted-foreground">
                       {o.delivery_method === "shipping" && "Skickas"}
@@ -71,6 +71,16 @@ function MyPurchasesPage() {
                       {o.delivery_method === "both" && "Skickas/hämtas"}
                     </span>
                   </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {o.status === "pending_payment" && "Väntar på betalning"}
+                    {o.status === "paid" && "Väntar på att säljaren skickar"}
+                    {o.status === "shipped" && "Skickad – bekräfta när du mottagit varan"}
+                    {o.status === "delivered" && "Granskningsperiod pågår"}
+                    {o.status === "completed" && "Slutförd"}
+                    {o.status === "disputed" && "Tvist pågår"}
+                    {o.status === "cancelled" && "Avbruten"}
+                    {o.status === "refunded" && "Återbetald"}
+                  </p>
                 </div>
               </Link>
             );
