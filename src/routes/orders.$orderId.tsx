@@ -269,7 +269,8 @@ function OrderDetailPage() {
           <div className="rounded-xl border border-border bg-card p-4 text-sm space-y-2">
             <p className="font-medium">Spårbar frakt</p>
             <p className="text-xs text-muted-foreground">
-              Spårningsnummer krävs för att markera ordern som skickad.
+              Skicka varan med valfri spårbar transportör. För att omfattas av ReWokes säljarskydd
+              behöver du spara inlämningskvitto och lägga in transportör samt spårningsnummer.
             </p>
             <input
               value={carrier}
@@ -283,8 +284,23 @@ function OrderDetailPage() {
               placeholder="Spårningsnummer"
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
             />
+            <p className="text-[11px] text-muted-foreground">
+              ReWoke är inte transportör och ansvarar inte för transportörens leverans, men
+              använder spårningsinformation som underlag vid eventuell tvist.
+            </p>
           </div>
         )}
+
+        {/* Buyer shipping notice */}
+        {isBuyer &&
+          order.delivery_method === "shipping" &&
+          ["paid", "shipped"].includes(order.status) &&
+          !order.tracking_number && (
+            <div className="rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground">
+              Säljaren ansvarar för att skicka varan med spårbar frakt. ReWoke visar
+              spårningsinformation när säljaren har lagt in den.
+            </div>
+          )}
 
         {/* Pickup handover — dual confirmation */}
         {isPickup && ["paid"].includes(order.status) && (
