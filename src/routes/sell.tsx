@@ -595,9 +595,150 @@ function SellPage() {
             )}
           </section>
 
+          {/* Mått (frivilligt) */}
+          <section>
+            <SectionTitle index={4}>Mått (frivilligt)</SectionTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Hjälper köpare att avgöra passform. Mät plagget plant i centimeter.
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {measurementKeys.map((k: MeasurementKey) => (
+                <Field key={k} label={MEASUREMENT_LABELS[k]}>
+                  <input
+                    className={inputCls()}
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    step="0.5"
+                    value={measurements[k] ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setMeasurements((m) => {
+                        const next = { ...m };
+                        if (v === "") delete next[k];
+                        else next[k] = Number(v);
+                        return next;
+                      });
+                    }}
+                    placeholder="cm"
+                  />
+                </Field>
+              ))}
+            </div>
+          </section>
+
+          {/* Skick verifierat av säljaren */}
+          <section>
+            <SectionTitle index={5}>Skick verifierat av säljaren</SectionTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Markera det som stämmer. Köpare ser detta som checks på annonsen.
+            </p>
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {CONDITION_KEYS.map((k: ConditionKey) => {
+                const checked = !!conditionChecks[k];
+                return (
+                  <label
+                    key={k}
+                    className={`flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-sm transition ${
+                      checked ? "border-foreground bg-foreground/5" : "border-border bg-card"
+                    }`}
+                  >
+                    <span>{CONDITION_LABELS[k]}</span>
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-foreground"
+                      checked={checked}
+                      onChange={(e) =>
+                        setConditionChecks((c) => ({ ...c, [k]: e.target.checked }))
+                      }
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Stil-taggar */}
+          <section>
+            <SectionTitle index={6}>Stil-taggar (frivilligt)</SectionTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Lägg till några nyckelord så att rätt köpare hittar plagget.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {STYLE_TAG_SUGGESTIONS.map((t) => {
+                const active = styleTags.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() =>
+                      setStyleTags((tags) =>
+                        active ? tags.filter((x) => x !== t) : [...tags, t],
+                      )
+                    }
+                    className={`rounded-full border px-3 py-1 text-xs transition ${
+                      active
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-card text-foreground hover:border-foreground/40"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex gap-2">
+              <input
+                className={inputCls()}
+                value={styleTagInput}
+                onChange={(e) => setStyleTagInput(e.target.value)}
+                placeholder="Egen tagg…"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const v = styleTagInput.trim().toLowerCase();
+                    if (v && !styleTags.includes(v)) setStyleTags((t) => [...t, v]);
+                    setStyleTagInput("");
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const v = styleTagInput.trim().toLowerCase();
+                  if (v && !styleTags.includes(v)) setStyleTags((t) => [...t, v]);
+                  setStyleTagInput("");
+                }}
+                className="rounded-full border border-border bg-card px-4 text-xs font-medium"
+              >
+                Lägg till
+              </button>
+            </div>
+            {styleTags.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {styleTags.map((t) => (
+                  <span
+                    key={t}
+                    className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs"
+                  >
+                    #{t}
+                    <button
+                      type="button"
+                      onClick={() => setStyleTags((tags) => tags.filter((x) => x !== t))}
+                      aria-label={`Ta bort ${t}`}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </section>
+
           {/* Plats & leverans */}
           <section>
-            <SectionTitle index={4}>Plats & leverans</SectionTitle>
+            <SectionTitle index={7}>Plats & leverans</SectionTitle>
             <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="Stad" full error={liveErrors.city}>
                 <input
