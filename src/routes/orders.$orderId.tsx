@@ -22,6 +22,7 @@ import {
   type OrderWithListing,
 } from "@/lib/orders";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
+import { ShipOrderForm } from "@/components/ShipOrderForm";
 import { formatSEK } from "@/lib/rewear";
 import { MessageCircle, Truck, CheckCircle2 } from "lucide-react";
 
