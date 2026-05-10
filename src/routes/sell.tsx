@@ -10,6 +10,19 @@ import { useAuth } from "@/lib/auth";
 import type { CategoryRow } from "@/lib/database.types";
 import { priceGuideRange, formatSEK, computeSellerBadge, isBaseVerified, type SellerStatsLite, type VerificationFlags } from "@/lib/rewear";
 import { MAIN_CATEGORIES, SUB_CATEGORIES, getSizeRule, showJeansSizes, isValidSizeForCategory, WAIST_SIZES, LENGTH_SIZES, type MainCategory } from "@/lib/taxonomy";
+import {
+  deriveSizeType,
+  buildSizeLabel,
+  relevantMeasurementKeys,
+  MEASUREMENT_LABELS,
+  CONDITION_KEYS,
+  CONDITION_LABELS,
+  STYLE_TAG_SUGGESTIONS,
+  type Measurements,
+  type ConditionChecks,
+  type MeasurementKey,
+  type ConditionKey,
+} from "@/lib/listingSchema";
 
 export const Route = createFileRoute("/sell")({
   component: SellPage,
@@ -44,6 +57,10 @@ function SellPage() {
   const [buyerPaysShipping, setBuyerPaysShipping] = useState(true);
   const [shippingPrice, setShippingPrice] = useState<string>("");
   const [shipsWithin, setShipsWithin] = useState<"1" | "2-3" | "4-7">("2-3");
+  const [measurements, setMeasurements] = useState<Measurements>({});
+  const [conditionChecks, setConditionChecks] = useState<ConditionChecks>({});
+  const [styleTags, setStyleTags] = useState<string[]>([]);
+  const [styleTagInput, setStyleTagInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -134,18 +151,45 @@ function SellPage() {
 
   function aiSuggest() {
     if (!hasImages) return;
-    toast.success("AI-förslag inlagda (placeholder)");
-    if (!brand) setBrand("Acne Studios");
-    if (!title) setTitle("Mörkblå ulljacka");
-    if (!description)
-      setDescription(
-        "Klassisk ulljacka i mörkblå, knappt använd. Snygg passform och tidlös design.",
+    const suggestions = {
+      brand: "Acne Studios",
+      title: "Mörkblå ulljacka",
+      description: "Klassisk ulljacka i mörkblå, knappt använd. Snygg passform och tidlös design.",
+      price: "950",
+    };
+    const wouldOverwrite =
+      (brand && brand !== suggestions.brand) ||
+      (title && title !== suggestions.title) ||
+      (description && description !== suggestions.description) ||
+      (price && price !== suggestions.price);
+    if (wouldOverwrite) {
+      const ok = window.confirm(
+        "Du har redan fyllt i några fält. Vill du ersätta dem med AI-förslagen?",
       );
-    if (!price) setPrice("950");
+      if (!ok) {
+        // Fyll bara tomma fält
+        if (!brand) setBrand(suggestions.brand);
+        if (!title) setTitle(suggestions.title);
+        if (!description) setDescription(suggestions.description);
+        if (!price) setPrice(suggestions.price);
+        toast.success("AI-förslag inlagda i tomma fält");
+        return;
+      }
+    }
+    setBrand(suggestions.brand);
+    setTitle(suggestions.title);
+    setDescription(suggestions.description);
+    setPrice(suggestions.price);
+    toast.success("AI-förslag inlagda (placeholder)");
   }
 
   const sizeInfo = useMemo(() => getSizeRule(mainCategory, subCategory), [mainCategory, subCategory]);
   const jeansVisible = showJeansSizes(mainCategory, subCategory);
+  const sizeType = useMemo(
+    () => (mainCategory && subCategory ? deriveSizeType(mainCategory, subCategory) : "clothing"),
+    [mainCategory, subCategory],
+  );
+  const measurementKeys = useMemo(() => relevantMeasurementKeys(sizeType), [sizeType]);
 
   function validate(): Record<string, string> {
     const e: Record<string, string> = {};
@@ -155,6 +199,9 @@ function SellPage() {
     if (!mainCategory) e.mainCategory = "Välj huvudkategori.";
     if (mainCategory && !subCategory) e.subCategory = "Välj underkategori.";
     if (!sizeInfo.optional && !size) e.size = "Välj storlek.";
+    if (size && !isValidSizeForCategory(mainCategory, subCategory, size)) {
+      e.size = "Vald storlek matchar inte kategorin.";
+    }
     if (!condition) e.condition = "Välj skick.";
     const priceNum = Number(price);
     if (!price || !Number.isFinite(priceNum) || priceNum <= 0) e.price = "Ange ett pris över 0.";
@@ -256,7 +303,15 @@ function SellPage() {
 
     setBusy(true);
     try {
-      const { data: listing, error: lErr } = await supabase
+      // Bygg payload — endast relevanta mått skickas in
+      const filteredMeasurements: Measurements = {};
+      for (const k of measurementKeys) {
+        const v = measurements[k];
+        if (typeof v === "number" && Number.isFinite(v) && v > 0) filteredMeasurements[k] = v;
+      }
+      const sizeLabel = buildSizeLabel({ sizeType, size, waistSize, lengthSize });
+      const isShoes = sizeType === "shoes_adult" || sizeType === "shoes_kids";
+      const { data: listing, error: lErr } = await (supabase as any)
         .from("listings")
         .insert({
           seller_id: user.id,
@@ -266,7 +321,9 @@ function SellPage() {
           title,
           brand: brand || null,
           size: size || null,
-          shoe_size: mainCategory === "Skor" ? size || null : null,
+          size_type: sizeType,
+          size_label: sizeLabel || null,
+          shoe_size: isShoes ? size || null : null,
           waist_size: jeansVisible ? waistSize || null : null,
           length_size: jeansVisible ? lengthSize || null : null,
           condition,
@@ -278,6 +335,9 @@ function SellPage() {
           buyer_pays_shipping: showShipping ? buyerPaysShipping : true,
           shipping_price: showShipping && shippingPrice ? Number(shippingPrice) : null,
           ships_within_days: showShipping ? shipsWithin : null,
+          measurements: filteredMeasurements,
+          condition_checks: conditionChecks,
+          style_tags: styleTags,
         })
         .select()
         .single();
@@ -535,9 +595,150 @@ function SellPage() {
             )}
           </section>
 
+          {/* Mått (frivilligt) */}
+          <section>
+            <SectionTitle index={4}>Mått (frivilligt)</SectionTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Hjälper köpare att avgöra passform. Mät plagget plant i centimeter.
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {measurementKeys.map((k: MeasurementKey) => (
+                <Field key={k} label={MEASUREMENT_LABELS[k]}>
+                  <input
+                    className={inputCls()}
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    step="0.5"
+                    value={measurements[k] ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setMeasurements((m) => {
+                        const next = { ...m };
+                        if (v === "") delete next[k];
+                        else next[k] = Number(v);
+                        return next;
+                      });
+                    }}
+                    placeholder="cm"
+                  />
+                </Field>
+              ))}
+            </div>
+          </section>
+
+          {/* Skick verifierat av säljaren */}
+          <section>
+            <SectionTitle index={5}>Skick verifierat av säljaren</SectionTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Markera det som stämmer. Köpare ser detta som checks på annonsen.
+            </p>
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {CONDITION_KEYS.map((k: ConditionKey) => {
+                const checked = !!conditionChecks[k];
+                return (
+                  <label
+                    key={k}
+                    className={`flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-sm transition ${
+                      checked ? "border-foreground bg-foreground/5" : "border-border bg-card"
+                    }`}
+                  >
+                    <span>{CONDITION_LABELS[k]}</span>
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-foreground"
+                      checked={checked}
+                      onChange={(e) =>
+                        setConditionChecks((c) => ({ ...c, [k]: e.target.checked }))
+                      }
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Stil-taggar */}
+          <section>
+            <SectionTitle index={6}>Stil-taggar (frivilligt)</SectionTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Lägg till några nyckelord så att rätt köpare hittar plagget.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {STYLE_TAG_SUGGESTIONS.map((t) => {
+                const active = styleTags.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() =>
+                      setStyleTags((tags) =>
+                        active ? tags.filter((x) => x !== t) : [...tags, t],
+                      )
+                    }
+                    className={`rounded-full border px-3 py-1 text-xs transition ${
+                      active
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-card text-foreground hover:border-foreground/40"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex gap-2">
+              <input
+                className={inputCls()}
+                value={styleTagInput}
+                onChange={(e) => setStyleTagInput(e.target.value)}
+                placeholder="Egen tagg…"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const v = styleTagInput.trim().toLowerCase();
+                    if (v && !styleTags.includes(v)) setStyleTags((t) => [...t, v]);
+                    setStyleTagInput("");
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const v = styleTagInput.trim().toLowerCase();
+                  if (v && !styleTags.includes(v)) setStyleTags((t) => [...t, v]);
+                  setStyleTagInput("");
+                }}
+                className="rounded-full border border-border bg-card px-4 text-xs font-medium"
+              >
+                Lägg till
+              </button>
+            </div>
+            {styleTags.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {styleTags.map((t) => (
+                  <span
+                    key={t}
+                    className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs"
+                  >
+                    #{t}
+                    <button
+                      type="button"
+                      onClick={() => setStyleTags((tags) => tags.filter((x) => x !== t))}
+                      aria-label={`Ta bort ${t}`}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </section>
+
           {/* Plats & leverans */}
           <section>
-            <SectionTitle index={4}>Plats & leverans</SectionTitle>
+            <SectionTitle index={7}>Plats & leverans</SectionTitle>
             <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="Stad" full error={liveErrors.city}>
                 <input

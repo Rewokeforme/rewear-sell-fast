@@ -194,6 +194,42 @@ export type Database = {
           },
         ]
       }
+      fit_profiles: {
+        Row: {
+          clothing_size: string | null
+          created_at: string
+          favorite_brands: string[]
+          kids_sizes: string[]
+          preferred_fit: string | null
+          shoe_size: string | null
+          style_tags: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clothing_size?: string | null
+          created_at?: string
+          favorite_brands?: string[]
+          kids_sizes?: string[]
+          preferred_fit?: string | null
+          shoe_size?: string | null
+          style_tags?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clothing_size?: string | null
+          created_at?: string
+          favorite_brands?: string[]
+          kids_sizes?: string[]
+          preferred_fit?: string | null
+          shoe_size?: string | null
+          style_tags?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -256,19 +292,24 @@ export type Database = {
           city: string
           co2_saved_kg: number
           condition: string | null
+          condition_checks: Json
           created_at: string
           delivery_method: string
           description: string | null
           id: string
           length_size: string | null
           main_category: string | null
+          measurements: Json
           price_sek: number
           seller_id: string
           shipping_price: number | null
           ships_within_days: string | null
           shoe_size: string | null
           size: string | null
+          size_label: string | null
+          size_type: string | null
           status: Database["public"]["Enums"]["listing_status"]
+          style_tags: string[]
           sub_category: string | null
           title: string
           views_count: number
@@ -285,19 +326,24 @@ export type Database = {
           city: string
           co2_saved_kg?: number
           condition?: string | null
+          condition_checks?: Json
           created_at?: string
           delivery_method: string
           description?: string | null
           id?: string
           length_size?: string | null
           main_category?: string | null
+          measurements?: Json
           price_sek: number
           seller_id: string
           shipping_price?: number | null
           ships_within_days?: string | null
           shoe_size?: string | null
           size?: string | null
+          size_label?: string | null
+          size_type?: string | null
           status?: Database["public"]["Enums"]["listing_status"]
+          style_tags?: string[]
           sub_category?: string | null
           title: string
           views_count?: number
@@ -314,19 +360,24 @@ export type Database = {
           city?: string
           co2_saved_kg?: number
           condition?: string | null
+          condition_checks?: Json
           created_at?: string
           delivery_method?: string
           description?: string | null
           id?: string
           length_size?: string | null
           main_category?: string | null
+          measurements?: Json
           price_sek?: number
           seller_id?: string
           shipping_price?: number | null
           ships_within_days?: string | null
           shoe_size?: string | null
           size?: string | null
+          size_label?: string | null
+          size_type?: string | null
           status?: Database["public"]["Enums"]["listing_status"]
+          style_tags?: string[]
           sub_category?: string | null
           title?: string
           views_count?: number
@@ -718,6 +769,54 @@ export type Database = {
           user_id?: string
           verification_type?: string
           verified_at?: string | null
+        }
+        Relationships: []
+      }
+      style_alerts: {
+        Row: {
+          brand: string | null
+          city: string | null
+          created_at: string
+          delivery_method: string | null
+          id: string
+          is_active: boolean
+          main_category: string | null
+          max_price: number | null
+          min_price: number | null
+          size: string | null
+          sub_category: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand?: string | null
+          city?: string | null
+          created_at?: string
+          delivery_method?: string | null
+          id?: string
+          is_active?: boolean
+          main_category?: string | null
+          max_price?: number | null
+          min_price?: number | null
+          size?: string | null
+          sub_category?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand?: string | null
+          city?: string | null
+          created_at?: string
+          delivery_method?: string | null
+          id?: string
+          is_active?: boolean
+          main_category?: string | null
+          max_price?: number | null
+          min_price?: number | null
+          size?: string | null
+          sub_category?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
