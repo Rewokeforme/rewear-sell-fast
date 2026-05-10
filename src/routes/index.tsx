@@ -10,6 +10,7 @@ import type { CategoryRow, ListingWithDetails } from "@/lib/database.types";
 import { trendingBrands } from "@/lib/demoListings";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { FollowedWardrobes } from "@/components/FollowedWardrobes";
 
 export const Route = createFileRoute("/")({
   head: () => ({
