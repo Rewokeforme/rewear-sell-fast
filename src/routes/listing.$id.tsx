@@ -583,3 +583,77 @@ function StatPill({
     </div>
   );
 }
+
+function MeasurementsSection({ measurements }: { measurements: Record<string, number> | null }) {
+  const entries = measurements
+    ? (Object.entries(measurements).filter(([, v]) => typeof v === "number" && v > 0) as [MeasurementKey, number][])
+    : [];
+  return (
+    <div className="rounded-xl border border-border bg-card p-3 space-y-2">
+      <h2 className="text-eyebrow text-muted-foreground flex items-center gap-1.5">
+        <Ruler className="h-3.5 w-3.5" /> Mått
+      </h2>
+      {entries.length === 0 ? (
+        <p className="text-xs text-muted-foreground">Säljaren har inte lagt till mått.</p>
+      ) : (
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+          {entries.map(([k, v]) => (
+            <div key={k} className="flex items-baseline justify-between gap-2 border-b border-border/50 pb-1 last:border-0">
+              <dt className="text-muted-foreground">{MEASUREMENT_LABELS[k] ?? k}</dt>
+              <dd className="font-medium tabular-nums">{v} cm</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </div>
+  );
+}
+
+function ConditionChecksSection({ checks }: { checks: Record<string, boolean> | null }) {
+  if (!checks || Object.keys(checks).length === 0) return null;
+  const positive: { key: ConditionKey; label: string }[] = [];
+  const negative: { key: ConditionKey; label: string }[] = [];
+
+  const c = checks as Record<ConditionKey, boolean | undefined>;
+  // Negativa egenskaper: visa "Inga ..." om false, annars varning
+  if (c.has_stains === false) positive.push({ key: "has_stains", label: "Inga fläckar" });
+  else if (c.has_stains === true) negative.push({ key: "has_stains", label: "Fläckar angivna" });
+  if (c.has_holes === false) positive.push({ key: "has_holes", label: "Inga hål eller skador" });
+  else if (c.has_holes === true) negative.push({ key: "has_holes", label: "Hål eller skador angivna" });
+  if (c.has_pilling === false) positive.push({ key: "has_pilling", label: "Ej noppigt tyg" });
+  else if (c.has_pilling === true) negative.push({ key: "has_pilling", label: "Noppigt tyg angivet" });
+  // Positiva egenskaper: visa bara om true
+  if (c.is_cleaned) positive.push({ key: "is_cleaned", label: CONDITION_LABELS.is_cleaned });
+  if (c.buttons_zipper_ok) positive.push({ key: "buttons_zipper_ok", label: CONDITION_LABELS.buttons_zipper_ok });
+  if (c.receipt_available) positive.push({ key: "receipt_available", label: CONDITION_LABELS.receipt_available });
+  if (c.authenticity_documented) positive.push({ key: "authenticity_documented", label: CONDITION_LABELS.authenticity_documented });
+
+  if (positive.length === 0 && negative.length === 0) return null;
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-3 space-y-2">
+      <h2 className="text-eyebrow text-muted-foreground">Skick kontrollerat av säljaren</h2>
+      <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+        {positive.map((it) => (
+          <li key={it.key} className="flex items-center gap-2 text-sm">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Check className="h-3 w-3" />
+            </span>
+            <span>{it.label}</span>
+          </li>
+        ))}
+        {negative.map((it) => (
+          <li key={it.key} className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/10">
+              <X className="h-3 w-3" />
+            </span>
+            <span>{it.label}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-[11px] text-muted-foreground pt-1">
+        Informationen är angiven av säljaren. ReWoke verifierar inte enskilda plagg.
+      </p>
+    </div>
+  );
+}
