@@ -60,12 +60,18 @@ export type Database = {
           shoe_size: string | null;
           waist_size: string | null;
           length_size: string | null;
+          size_type: string | null;
+          size_label: string | null;
+          measurements: Record<string, number> | null;
+          condition_checks: Record<string, boolean> | null;
+          style_tags: string[] | null;
+          views_count: number;
           created_at: string;
         };
         Insert: Omit<
           Database["public"]["Tables"]["listings"]["Row"],
-          "id" | "created_at" | "co2_saved_kg" | "status" | "buyer_pays_shipping" | "area" | "shipping_price" | "ships_within_days" | "main_category" | "sub_category" | "shoe_size" | "waist_size" | "length_size"
-        > & { id?: string; status?: "active" | "sold" | "removed"; co2_saved_kg?: number; area?: string | null; shipping_price?: number | null; buyer_pays_shipping?: boolean; ships_within_days?: "1" | "2-3" | "4-7" | null; main_category?: string | null; sub_category?: string | null; shoe_size?: string | null; waist_size?: string | null; length_size?: string | null };
+          "id" | "created_at" | "co2_saved_kg" | "status" | "buyer_pays_shipping" | "area" | "shipping_price" | "ships_within_days" | "main_category" | "sub_category" | "shoe_size" | "waist_size" | "length_size" | "size_type" | "size_label" | "measurements" | "condition_checks" | "style_tags" | "views_count"
+        > & { id?: string; status?: "active" | "sold" | "removed"; co2_saved_kg?: number; area?: string | null; shipping_price?: number | null; buyer_pays_shipping?: boolean; ships_within_days?: "1" | "2-3" | "4-7" | null; main_category?: string | null; sub_category?: string | null; shoe_size?: string | null; waist_size?: string | null; length_size?: string | null; size_type?: string | null; size_label?: string | null; measurements?: Record<string, number> | null; condition_checks?: Record<string, boolean> | null; style_tags?: string[] | null; views_count?: number };
         Update: Partial<Database["public"]["Tables"]["listings"]["Row"]>;
       };
       listing_images: {
