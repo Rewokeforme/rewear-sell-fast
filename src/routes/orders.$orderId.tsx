@@ -39,6 +39,7 @@ function OrderDetailPage() {
   const [carrier, setCarrier] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
   const [showDispute, setShowDispute] = useState(false);
+  const [dispute, setDispute] = useState<DisputeRow | null>(null);
 
   async function load() {
     const o = await getOrder(orderId);
@@ -46,6 +47,8 @@ function OrderDetailPage() {
     if (o) {
       setCarrier(o.carrier ?? "");
       setTrackingNumber(o.tracking_number ?? "");
+      const d = await getDisputeForOrder(o.id);
+      setDispute(d);
     }
     setLoading(false);
   }
