@@ -10,6 +10,19 @@ import { useAuth } from "@/lib/auth";
 import type { CategoryRow } from "@/lib/database.types";
 import { priceGuideRange, formatSEK, computeSellerBadge, isBaseVerified, type SellerStatsLite, type VerificationFlags } from "@/lib/rewear";
 import { MAIN_CATEGORIES, SUB_CATEGORIES, getSizeRule, showJeansSizes, isValidSizeForCategory, WAIST_SIZES, LENGTH_SIZES, type MainCategory } from "@/lib/taxonomy";
+import {
+  deriveSizeType,
+  buildSizeLabel,
+  relevantMeasurementKeys,
+  MEASUREMENT_LABELS,
+  CONDITION_KEYS,
+  CONDITION_LABELS,
+  STYLE_TAG_SUGGESTIONS,
+  type Measurements,
+  type ConditionChecks,
+  type MeasurementKey,
+  type ConditionKey,
+} from "@/lib/listingSchema";
 
 export const Route = createFileRoute("/sell")({
   component: SellPage,
