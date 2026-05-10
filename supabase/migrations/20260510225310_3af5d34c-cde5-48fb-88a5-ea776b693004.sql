@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "conv buyer creates" ON public.conversations;
+CREATE POLICY "conv participants create" ON public.conversations FOR INSERT TO authenticated WITH CHECK (auth.uid() = buyer_id OR auth.uid() = seller_id);
