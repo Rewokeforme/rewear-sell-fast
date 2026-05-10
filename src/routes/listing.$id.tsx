@@ -374,6 +374,12 @@ function ListingPage() {
             </div>
           )}
 
+          {/* Mått */}
+          <MeasurementsSection measurements={listing.measurements} />
+
+          {/* Skick kontrollerat av säljaren */}
+          <ConditionChecksSection checks={listing.condition_checks} />
+
           {/* Plats & leverans */}
           <div className="rounded-xl border border-border bg-card p-3 space-y-2">
             <h2 className="text-eyebrow text-muted-foreground">Plats & leverans</h2>
