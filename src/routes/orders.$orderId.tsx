@@ -16,7 +16,6 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   getOrder,
   updateOrderStatus,
-  updateOrderTracking,
   confirmPickupHandover,
   type OrderStatus,
   type OrderWithListing,
