@@ -10,6 +10,7 @@ import {
   BuyerProtection,
 } from "@/components/ProtectionInfo";
 import { DisputeDialog } from "@/components/DisputeDialog";
+import { getDisputeForOrder, type DisputeRow, type DisputeStatus } from "@/lib/disputes";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -38,6 +39,7 @@ function OrderDetailPage() {
   const [carrier, setCarrier] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
   const [showDispute, setShowDispute] = useState(false);
+  const [dispute, setDispute] = useState<DisputeRow | null>(null);
 
   async function load() {
     const o = await getOrder(orderId);
@@ -45,6 +47,8 @@ function OrderDetailPage() {
     if (o) {
       setCarrier(o.carrier ?? "");
       setTrackingNumber(o.tracking_number ?? "");
+      const d = await getDisputeForOrder(o.id);
+      setDispute(d);
     }
     setLoading(false);
   }
@@ -361,15 +365,44 @@ function OrderDetailPage() {
               Bekräfta mottagen
             </button>
           )}
-          {isBuyer && order.status === "delivered" && (
-            <button
-              disabled={busy}
-              onClick={() => transition("completed", "Order slutförd")}
-              className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
-            >
-              Slutför ordern
-            </button>
-          )}
+          {isBuyer && order.status === "delivered" && (() => {
+            const deadline = order.buyer_review_deadline
+              ? new Date(order.buyer_review_deadline)
+              : null;
+            const now = new Date();
+            const deadlinePassed = deadline ? now >= deadline : false;
+            const activeDispute =
+              dispute &&
+              (
+                ["open", "awaiting_buyer_evidence", "awaiting_seller_response", "under_review"] as DisputeStatus[]
+              ).includes(dispute.status);
+            const canComplete = deadlinePassed && !activeDispute;
+            return (
+              <div className="space-y-2">
+                <button
+                  disabled={busy || !canComplete}
+                  onClick={() => transition("completed", "Order slutförd")}
+                  className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
+                >
+                  {canComplete ? "Slutför ordern" : "Slutför ordern efter granskningsperioden"}
+                </button>
+                <p className="text-xs text-muted-foreground">
+                  Du har 48 timmar från bekräftad leverans att kontrollera varan och rapportera problem.
+                </p>
+                {deadline && (
+                  <p className="text-xs text-muted-foreground">
+                    Granskningsperioden slutar:{" "}
+                    {deadline.toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" })}
+                  </p>
+                )}
+                {activeDispute && (
+                  <p className="text-xs text-destructive">
+                    Tvist pågår — ordern kan inte slutföras förrän tvisten är löst.
+                  </p>
+                )}
+              </div>
+            );
+          })()}
           {isSeller && (order.status === "pending_payment" || order.status === "paid") && (
             <button
               disabled={busy}
@@ -389,15 +422,30 @@ function OrderDetailPage() {
             </button>
           )}
           {(isBuyer || isSeller) &&
-            ["paid", "shipped", "delivered", "disputed"].includes(order.status) && (
-              <button
-                disabled={busy}
-                onClick={() => setShowDispute(true)}
-                className="w-full text-xs text-muted-foreground hover:text-foreground"
-              >
-                Öppna tvist
-              </button>
-            )}
+            ["paid", "shipped", "delivered"].includes(order.status) &&
+            (() => {
+              const activeDispute =
+                dispute &&
+                (
+                  ["open", "awaiting_buyer_evidence", "awaiting_seller_response", "under_review"] as DisputeStatus[]
+                ).includes(dispute.status);
+              if (activeDispute) {
+                return (
+                  <p className="w-full text-center text-xs text-muted-foreground">
+                    Tvist pågår (status: {dispute!.status})
+                  </p>
+                );
+              }
+              return (
+                <button
+                  disabled={busy}
+                  onClick={() => setShowDispute(true)}
+                  className="w-full text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Öppna tvist
+                </button>
+              );
+            })()}
         </div>
 
         {/* Protection blocks */}
