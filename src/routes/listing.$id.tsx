@@ -13,6 +13,9 @@ import { computeAllBadges, formatSEK, type SellerStatsLite, type VerificationFla
 import { TrustBadges } from "@/components/TrustBadges";
 import type { ListingWithDetails } from "@/lib/database.types";
 import { ReportDialog } from "@/components/ReportDialog";
+import { CONDITION_LABELS, MEASUREMENT_LABELS, type ConditionKey, type MeasurementKey } from "@/lib/listingSchema";
+import { computeFitMatch, formatSizeForDisplay, type FitProfile } from "@/lib/fitMatch";
+import { Check, X, Sparkles, AlertCircle, Ruler } from "lucide-react";
 
 export const Route = createFileRoute("/listing/$id")({
   component: ListingPage,
