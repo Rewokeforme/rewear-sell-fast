@@ -168,6 +168,54 @@ export type Database = {
           },
         ]
       }
+      disputes: {
+        Row: {
+          admin_decision: string | null
+          admin_notes: string | null
+          buyer_evidence_urls: string[]
+          carrier_tracking_snapshot: Json | null
+          created_at: string
+          description: string | null
+          id: string
+          opened_by: string
+          order_id: string
+          reason: Database["public"]["Enums"]["dispute_reason"]
+          seller_evidence_urls: string[]
+          status: Database["public"]["Enums"]["dispute_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_decision?: string | null
+          admin_notes?: string | null
+          buyer_evidence_urls?: string[]
+          carrier_tracking_snapshot?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          opened_by: string
+          order_id: string
+          reason: Database["public"]["Enums"]["dispute_reason"]
+          seller_evidence_urls?: string[]
+          status?: Database["public"]["Enums"]["dispute_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_decision?: string | null
+          admin_notes?: string | null
+          buyer_evidence_urls?: string[]
+          carrier_tracking_snapshot?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          opened_by?: string
+          order_id?: string
+          reason?: Database["public"]["Enums"]["dispute_reason"]
+          seller_evidence_urls?: string[]
+          status?: Database["public"]["Enums"]["dispute_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -485,9 +533,13 @@ export type Database = {
       }
       orders: {
         Row: {
+          buyer_handover_confirmed_at: string | null
           buyer_id: string
+          buyer_review_deadline: string | null
+          carrier: string | null
           created_at: string
           currency: string
+          delivered_at: string | null
           delivery_method: string
           id: string
           is_mock_payment: boolean
@@ -496,7 +548,9 @@ export type Database = {
           paid_at: string | null
           payment_method: string | null
           platform_fee: number
+          seller_handover_confirmed_at: string | null
           seller_id: string
+          shipped_at: string | null
           shipping_city: string | null
           shipping_full_name: string | null
           shipping_phone: string | null
@@ -505,12 +559,17 @@ export type Database = {
           shipping_street: string | null
           status: Database["public"]["Enums"]["order_status"]
           total_amount: number
+          tracking_number: string | null
           updated_at: string
         }
         Insert: {
+          buyer_handover_confirmed_at?: string | null
           buyer_id: string
+          buyer_review_deadline?: string | null
+          carrier?: string | null
           created_at?: string
           currency?: string
+          delivered_at?: string | null
           delivery_method: string
           id?: string
           is_mock_payment?: boolean
@@ -519,7 +578,9 @@ export type Database = {
           paid_at?: string | null
           payment_method?: string | null
           platform_fee?: number
+          seller_handover_confirmed_at?: string | null
           seller_id: string
+          shipped_at?: string | null
           shipping_city?: string | null
           shipping_full_name?: string | null
           shipping_phone?: string | null
@@ -528,12 +589,17 @@ export type Database = {
           shipping_street?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
+          tracking_number?: string | null
           updated_at?: string
         }
         Update: {
+          buyer_handover_confirmed_at?: string | null
           buyer_id?: string
+          buyer_review_deadline?: string | null
+          carrier?: string | null
           created_at?: string
           currency?: string
+          delivered_at?: string | null
           delivery_method?: string
           id?: string
           is_mock_payment?: boolean
@@ -542,7 +608,9 @@ export type Database = {
           paid_at?: string | null
           payment_method?: string | null
           platform_fee?: number
+          seller_handover_confirmed_at?: string | null
           seller_id?: string
+          shipped_at?: string | null
           shipping_city?: string | null
           shipping_full_name?: string | null
           shipping_phone?: string | null
@@ -551,6 +619,7 @@ export type Database = {
           shipping_street?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
+          tracking_number?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -957,6 +1026,21 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       conversation_status: "active" | "archived" | "blocked"
+      dispute_reason:
+        | "item_not_received"
+        | "item_not_as_described"
+        | "damaged_item"
+        | "wrong_item"
+        | "suspected_fraud"
+        | "other"
+      dispute_status:
+        | "open"
+        | "awaiting_buyer_evidence"
+        | "awaiting_seller_response"
+        | "under_review"
+        | "resolved_buyer"
+        | "resolved_seller"
+        | "closed"
       listing_status: "active" | "sold" | "removed" | "reserved"
       notification_type:
         | "new_listing"
@@ -1104,6 +1188,23 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       conversation_status: ["active", "archived", "blocked"],
+      dispute_reason: [
+        "item_not_received",
+        "item_not_as_described",
+        "damaged_item",
+        "wrong_item",
+        "suspected_fraud",
+        "other",
+      ],
+      dispute_status: [
+        "open",
+        "awaiting_buyer_evidence",
+        "awaiting_seller_response",
+        "under_review",
+        "resolved_buyer",
+        "resolved_seller",
+        "closed",
+      ],
       listing_status: ["active", "sold", "removed", "reserved"],
       notification_type: [
         "new_listing",
