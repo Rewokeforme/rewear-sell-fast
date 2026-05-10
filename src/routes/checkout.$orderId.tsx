@@ -371,8 +371,9 @@ function CheckoutPage() {
 
               <button
                 onClick={handlePay}
-                disabled={paying}
-                className="mt-4 w-full rounded-full bg-primary px-5 py-3.5 text-sm font-medium text-primary-foreground shadow-card transition-opacity disabled:opacity-60 hover:opacity-90"
+                disabled={paying || !acceptTerms}
+                className="mt-4 w-full rounded-full bg-primary px-5 py-3.5 text-sm font-medium text-primary-foreground shadow-card transition-opacity disabled:opacity-60 disabled:cursor-not-allowed hover:opacity-90"
+                title={!acceptTerms ? "Du måste godkänna villkoren först" : undefined}
               >
                 {paying ? "Behandlar..." : `Testbetala ${formatSEK(order.total_amount)}`}
               </button>
