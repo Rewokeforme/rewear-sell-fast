@@ -228,7 +228,7 @@ function RowLink({
   icon: Icon,
   label,
 }: {
-  to: "/me/listings" | "/me/purchases" | "/me/sales" | "/me/favorites" | "/me/following" | "/me/fit" | "/notifications" | "/inbox" | "/admin";
+  to: "/me/listings" | "/me/purchases" | "/me/sales" | "/me/favorites" | "/me/following" | "/me/fit" | "/me/alerts" | "/notifications" | "/inbox" | "/admin";
   icon: typeof Heart;
   label: string;
 }) {
