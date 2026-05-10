@@ -32,6 +32,8 @@ export type OrderRow = {
   shipping_city: string | null;
   shipping_phone: string | null;
   payment_method: string | null;
+  is_mock_payment?: boolean | null;
+  paid_at?: string | null;
 };
 
 export type OrderWithListing = OrderRow & {
