@@ -9,10 +9,14 @@ export function ProtectionSummary() {
       </h2>
       <ul className="text-sm text-muted-foreground space-y-1.5">
         <li>• När betalning aktiveras hanteras betalningen via ReWoke enligt våra villkor</li>
-        <li>• Spårbar frakt krävs för fullt leveransskydd</li>
+        <li>• Spårbar frakt krävs för fullt leveransskydd. Säljaren ansvarar för att skicka varan och lägga in spårningsnummer i ordern.</li>
         <li>• Vid problem granskas bevis från köpare, säljare och transportör</li>
         <li>• Återbetalning sker inte automatiskt utan tvistgranskning</li>
       </ul>
+      <p className="mt-3 text-xs text-muted-foreground">
+        ReWoke är inte transportör och ansvarar inte för transportörens leverans, men använder
+        spårningsinformation som underlag vid eventuell tvist.
+      </p>
     </section>
   );
 }
