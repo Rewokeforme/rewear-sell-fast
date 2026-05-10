@@ -166,6 +166,9 @@ function CheckoutPage() {
 
   const img = [...(order.listing?.listing_images ?? [])].sort((a, b) => a.position - b.position)[0];
   const needsAddress = order.delivery_method !== "pickup";
+  const addressValid = !needsAddress ||
+    shippingSchema.safeParse({ fullName, street, postalCode, city, phone }).success;
+  const canPay = acceptTerms && addressValid;
   const sellerName = order.seller?.full_name ?? "Säljare";
   const sellerInitial = sellerName.charAt(0).toUpperCase();
 
