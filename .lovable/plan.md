@@ -1,108 +1,107 @@
 ## Mål
-Bygg hela orderflödet i ReWoke utan riktig betalningsintegration. Stripe kopplas in senare — nu simulerar vi "Fortsätt till betalning" så ordern blir `paid`.
+Bygga om "köparskyddet" till ett balanserat **köpar- och säljarskydd** med tvistflöde, beviskrav, tracking och lokal hämtning. Inga löften om automatisk återbetalning.
 
-## 1. Databas (migration)
+---
 
-### Ny enum
+## 1. Copy-uppdatering (UI)
+- I `src/routes/checkout.$orderId.tsx`: byt rubrik "ReWoke köparskydd" → "ReWoke köpar- och säljarskydd" och de 3 punkterna till de 4 nya neutrala punkterna.
+- Samma uppdatering på `src/routes/orders.$orderId.tsx` om motsvarande ruta finns där.
+
+## 2. Två nya sektioner på ordersidan (`orders.$orderId.tsx`)
+- **Säljarskydd** med 4 bullets (spårbar frakt, spara kvitto, skicka först när inlämnat, leveransbekräftelse = levererad).
+- **Köparskydd** med 4 bullets (kontrollera, rapportera inom 48h, bifoga bilder, godkänd tvist).
+- Liten regel-rad: "Vid godkänd retur återbetalas köparen normalt först när varan har returnerats eller när ReWoke har fattat beslut."
+
+## 3. Databas — ny tabell `disputes` + utökade `orders`-fält
+Migration:
+```sql
+-- orders: tracking + tidsstämplar
+alter table orders
+  add column tracking_number text,
+  add column carrier text,
+  add column shipped_at timestamptz,
+  add column delivered_at timestamptz,
+  add column buyer_review_deadline timestamptz,
+  add column buyer_handover_confirmed_at timestamptz,
+  add column seller_handover_confirmed_at timestamptz;
+
+-- enums
+create type dispute_reason as enum
+  ('item_not_received','item_not_as_described','damaged_item',
+   'wrong_item','suspected_fraud','other');
+create type dispute_status as enum
+  ('open','awaiting_buyer_evidence','awaiting_seller_response',
+   'under_review','resolved_buyer','resolved_seller','closed');
+
+create table disputes (
+  id uuid pk default gen_random_uuid(),
+  order_id uuid not null references orders(id),
+  opened_by uuid not null,           -- buyer eller seller user id
+  reason dispute_reason not null,
+  description text,
+  buyer_evidence_urls text[] default '{}',
+  seller_evidence_urls text[] default '{}',
+  carrier_tracking_snapshot jsonb,
+  status dispute_status not null default 'open',
+  admin_decision text,
+  admin_notes text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
 ```
-order_status: pending_payment | paid | shipped | delivered | completed | cancelled | disputed | refunded
-```
 
-### Ny tabell `orders`
-- `id` uuid PK
-- `listing_id` uuid → listings
-- `buyer_id` uuid
-- `seller_id` uuid
-- `status` order_status default `pending_payment`
-- `item_price` integer (SEK)
-- `shipping_price` integer default 0
-- `platform_fee` integer default 0
-- `total_amount` integer
-- `currency` text default `SEK`
-- `delivery_method` text (`shipping` | `pickup` | `both`)
-- `created_at`, `updated_at` timestamptz
+RLS:
+- Endast buyer/seller på ordern + admin kan läsa.
+- Endast buyer eller seller (parts på ordern) kan insert som `opened_by = auth.uid()`.
+- Endast admin kan sätta `admin_decision`, `admin_notes`, `status = resolved_*/closed`.
+- Trigger sätter `updated_at`.
 
-Index på `buyer_id`, `seller_id`, `listing_id`, `status`.
+Trigger: när order går till `delivered` → sätt `delivered_at = now()` och `buyer_review_deadline = now() + 48h`.
 
-### Ny status på listings
-Lägg till `'reserved'` i `listing_status`-enum (utöver active/sold/removed).
+Trigger på `orders.status = 'shipped'` → `shipped_at = now()`.
 
-### Triggers
-- `set_updated_at` på orders.
-- När order skapas (`pending_payment` eller `paid`) → sätt listing.status = `reserved` (om den var `active`).
-- När order → `completed` → listing.status = `sold`.
-- När order → `cancelled` / `refunded` → listing.status tillbaka till `active` (om reserved).
+Uppdatera `orders_enforce_transition` så att seller endast kan markera shipped när det finns `tracking_number` (för shipping-orders).
 
-### Validering
-- BEFORE INSERT trigger: kasta fel om `buyer_id = seller_id`.
-- BEFORE INSERT trigger: säkerställ att listing.status inte redan är `sold` eller `reserved` av annan order.
+## 4. UI-flöde tvist (MVP)
+Ny komponent `DisputeDialog` på `orders.$orderId.tsx`:
+- Knapp "Öppna tvist" syns för buyer när `status in (paid, shipped, delivered)` eller seller (för "suspected_fraud"/"other").
+- Reason-select. Vid `item_not_received`: visa tracking-snapshot om finns + varning om "Transportören visar levererat" om delivered.
+- Vid `item_not_as_described`/`damaged_item`/`wrong_item`: kräv minst 1 bild (upload till `listing-images` bucket subpath `disputes/`) + beskrivning. Visa retur-meddelande.
+- Skapa rad i `disputes`. Sätt order.status = `disputed`.
 
-### RLS
-- SELECT: `auth.uid() = buyer_id OR auth.uid() = seller_id OR has_role(auth.uid(),'admin')`
-- INSERT: `auth.uid() = buyer_id` AND `buyer_id <> seller_id` (kontroll i WITH CHECK + trigger)
-- UPDATE: 
-  - Köpare får uppdatera till `paid` (simulering), `delivered`, `completed`, `disputed`.
-  - Säljare får uppdatera till `shipped`, `cancelled`.
-  - Admin får allt.
-  - Implementeras säkrast via två policies + en SECURITY DEFINER-funktion `can_transition_order(order_id, new_status)`.
+`disputes.ts` lib med:
+- `createDispute`, `getDisputeForOrder`, `addBuyerEvidence`, `addSellerEvidence`.
 
-## 2. Frontend
+## 5. Lokal hämtning – dubbel-bekräftelse
+På `orders.$orderId.tsx` när `delivery_method = 'pickup'` och `status = 'paid'`:
+- Knapp för buyer: "Bekräfta mottaget" → sätter `buyer_handover_confirmed_at`.
+- Knapp för seller: "Bekräfta överlämnat" → `seller_handover_confirmed_at`.
+- Server-side trigger: när båda satta → status `delivered` → `completed`.
 
-### `src/lib/orders.ts` (ny)
-Helpers: `createOrder`, `simulatePayment`, `markShipped`, `markDelivered`, `markCompleted`, `cancelOrder`, `getMyPurchases`, `getMySales`.
+Implementeras som DB-trigger på orders update.
 
-### Plaggsida (`src/routes/listing.$id.tsx`)
-- Visa knappar beroende på listing.status och ägarskap:
-  - `active` + ej egen + inloggad → **Köp nu**, **Skicka meddelande**, **Spara**
-  - `reserved` → badge "Reserverad" (knapp inaktiverad om ej köparen)
-  - `sold` → badge "Såld"
-  - egen annons → ingen Köp nu-knapp
-- "Köp nu" → skapar order med `pending_payment` → navigerar till `/checkout/$orderId`.
+## 6. Tracking UI för säljare
+- I shipped-flödet på orders-sidan, säljaren fyller `carrier` + `tracking_number` innan "Markera som skickad".
+- Visas som info för köparen.
 
-### `src/routes/checkout.$orderId.tsx` (ny)
-- Visar orderöversikt (produkt, pris, frakt, totalt).
-- Knapp **Fortsätt till betalning** → uppdaterar status till `paid` (simulering) → redirect till `/orders/$orderId` eller `/me/purchases`.
-- Säkerhet: bara `buyer_id` får se sidan.
+## 7. Inga lovord
+- Tar bort "Få full återbetalning…" / "garanterad" / "escrow" texter där de förekommer.
+- Footer/hjälptexter: "Betalningen hanteras via ReWoke. Utbetalning sker enligt villkor."
 
-### `src/routes/me.purchases.tsx` (ny) — "Mina köp"
-Lista: produktbild, titel, pris, säljare, status-badge, leveranssätt. Klick → orderdetalj.
+---
 
-### `src/routes/me.sales.tsx` (ny) — "Mina försäljningar"
-Lista: produktbild, titel, köpare, status-badge. Knapp **Markera som skickad** för `paid`-orders. (Senare: markera levererad/completed.)
+## Filer som skapas/ändras
+- **migration** (`disputes` + orders-fält + triggers + RLS)
+- **ny** `src/lib/disputes.ts`
+- **ny** `src/components/DisputeDialog.tsx`
+- **ny** `src/components/ProtectionInfo.tsx` (köpar+säljarskydd block, återanvänds)
+- **edit** `src/routes/checkout.$orderId.tsx` (ny copy)
+- **edit** `src/routes/orders.$orderId.tsx` (ProtectionInfo-block, tracking-input för säljare, dispute-knapp, pickup-confirmations)
+- **edit** `src/lib/orders.ts` (typer + ev. helpers för tracking & handover)
 
-### `src/routes/orders.$orderId.tsx` (ny) — orderdetalj
-Visar full info, statushistorik-light, åtgärder beroende på roll och status:
-- Köpare: "Bekräfta mottagen" (delivered → completed), "Öppna tvist".
-- Säljare: "Markera som skickad", "Avbryt order" (om paid och ej shipped).
+---
 
-### Navigation
-Lägg till "Mina köp" och "Mina försäljningar" i `src/routes/me.tsx` (eller header/profilmeny).
-
-### Statusbadge-komponent
-`src/components/OrderStatusBadge.tsx` — översätter statusar till svensk text + färg via design tokens.
-
-## 3. Säkerhet (sammanfattning)
-- DB: RLS + triggers förhindrar self-purchase och otillåtna transitioner.
-- Frontend: dölj knappar baserat på roll, men förlita sig aldrig bara på UI.
-- Reserved-state förhindrar dubbla köp av samma plagg.
-
-## 4. Vad som INTE ingår nu
-- Riktig Stripe-integration (kopplas in i nästa steg där `simulatePayment` byts mot Stripe Checkout).
-- Refund-flöde (status finns men ingen UI ännu).
-- Tvistehantering (status finns, minimal UI).
-- Notifikationer vid statusändring (kan läggas till efter migrationen är godkänd).
-
-## Tekniska detaljer
-- Priser lagras som heltals-SEK (matchar `listings.price_sek`).
-- `platform_fee` = 0 tills vidare; fältet finns för Stripe-tiden.
-- `total_amount` = `item_price + shipping_price + platform_fee`, sätts via trigger.
-- Migration körs via `supabase--migration`. Efter godkännande: bygg frontend.
-
-## Implementationsordning
-1. Migration (orders-tabell, enums, triggers, RLS).
-2. `src/lib/orders.ts` + `OrderStatusBadge`.
-3. Uppdatera `listing.$id.tsx` med ny köp-UI.
-4. `checkout.$orderId.tsx`.
-5. `me.purchases.tsx` + `me.sales.tsx`.
-6. `orders.$orderId.tsx`.
-7. Länkar i `me.tsx`/header.
+## Detta gör vi INTE i denna fas
+- QR-kod för överlämning (förberett men inte byggt)
+- Riktig betalning / utbetalning
+- Automatisk transitionering till `completed` efter `buyer_review_deadline` (kommenterad pg_cron-stub kan läggas in senare)
