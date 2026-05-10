@@ -392,7 +392,7 @@ function InboxPage() {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      void deleteConversation(c.id);
+                      setConfirmDeleteId(c.id);
                     }}
                     disabled={deletingId === c.id}
                     aria-label="Radera konversation"
@@ -407,6 +407,32 @@ function InboxPage() {
         )}
       </main>
       <BottomNav />
+
+      <AlertDialog
+        open={!!confirmDeleteId}
+        onOpenChange={(o) => !o && setConfirmDeleteId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Radera konversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Konversationen försvinner från din inkorg. Den dyker upp igen om motparten skickar ett nytt meddelande.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmDeleteId) void deleteConversation(confirmDeleteId);
+                setConfirmDeleteId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Radera
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
