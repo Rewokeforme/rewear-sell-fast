@@ -151,18 +151,45 @@ function SellPage() {
 
   function aiSuggest() {
     if (!hasImages) return;
-    toast.success("AI-förslag inlagda (placeholder)");
-    if (!brand) setBrand("Acne Studios");
-    if (!title) setTitle("Mörkblå ulljacka");
-    if (!description)
-      setDescription(
-        "Klassisk ulljacka i mörkblå, knappt använd. Snygg passform och tidlös design.",
+    const suggestions = {
+      brand: "Acne Studios",
+      title: "Mörkblå ulljacka",
+      description: "Klassisk ulljacka i mörkblå, knappt använd. Snygg passform och tidlös design.",
+      price: "950",
+    };
+    const wouldOverwrite =
+      (brand && brand !== suggestions.brand) ||
+      (title && title !== suggestions.title) ||
+      (description && description !== suggestions.description) ||
+      (price && price !== suggestions.price);
+    if (wouldOverwrite) {
+      const ok = window.confirm(
+        "Du har redan fyllt i några fält. Vill du ersätta dem med AI-förslagen?",
       );
-    if (!price) setPrice("950");
+      if (!ok) {
+        // Fyll bara tomma fält
+        if (!brand) setBrand(suggestions.brand);
+        if (!title) setTitle(suggestions.title);
+        if (!description) setDescription(suggestions.description);
+        if (!price) setPrice(suggestions.price);
+        toast.success("AI-förslag inlagda i tomma fält");
+        return;
+      }
+    }
+    setBrand(suggestions.brand);
+    setTitle(suggestions.title);
+    setDescription(suggestions.description);
+    setPrice(suggestions.price);
+    toast.success("AI-förslag inlagda (placeholder)");
   }
 
   const sizeInfo = useMemo(() => getSizeRule(mainCategory, subCategory), [mainCategory, subCategory]);
   const jeansVisible = showJeansSizes(mainCategory, subCategory);
+  const sizeType = useMemo(
+    () => (mainCategory && subCategory ? deriveSizeType(mainCategory, subCategory) : "clothing"),
+    [mainCategory, subCategory],
+  );
+  const measurementKeys = useMemo(() => relevantMeasurementKeys(sizeType), [sizeType]);
 
   function validate(): Record<string, string> {
     const e: Record<string, string> = {};
@@ -172,6 +199,9 @@ function SellPage() {
     if (!mainCategory) e.mainCategory = "Välj huvudkategori.";
     if (mainCategory && !subCategory) e.subCategory = "Välj underkategori.";
     if (!sizeInfo.optional && !size) e.size = "Välj storlek.";
+    if (size && !isValidSizeForCategory(mainCategory, subCategory, size)) {
+      e.size = "Vald storlek matchar inte kategorin.";
+    }
     if (!condition) e.condition = "Välj skick.";
     const priceNum = Number(price);
     if (!price || !Number.isFinite(priceNum) || priceNum <= 0) e.price = "Ange ett pris över 0.";
