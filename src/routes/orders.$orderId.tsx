@@ -367,13 +367,13 @@ function OrderDetailPage() {
               Fortsätt till betalning
             </Link>
           )}
-          {isBuyer && order.status === "shipped" && (
+          {isBuyer && order.status === "shipped" && order.delivery_method !== "pickup" && (
             <button
               disabled={busy}
               onClick={() => transition("delivered", "Mottagen")}
               className="w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
             >
-              Bekräfta mottagen
+              Jag har mottagit varan
             </button>
           )}
           {isBuyer && order.status === "delivered" && (() => {
