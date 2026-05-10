@@ -40,6 +40,7 @@ function OrderDetailPage() {
   const [busy, setBusy] = useState(false);
   const [showDispute, setShowDispute] = useState(false);
   const [dispute, setDispute] = useState<DisputeRow | null>(null);
+  const [myReview, setMyReview] = useState<ReviewRow | null>(null);
 
   async function load() {
     const o = await getOrder(orderId);
@@ -47,6 +48,10 @@ function OrderDetailPage() {
     if (o) {
       const d = await getDisputeForOrder(o.id);
       setDispute(d);
+      if (user && user.id === o.buyer_id) {
+        const r = await getReviewForOrder(o.id, user.id);
+        setMyReview(r);
+      }
     }
     setLoading(false);
   }
