@@ -10,6 +10,7 @@ import {
   BuyerProtection,
 } from "@/components/ProtectionInfo";
 import { DisputeDialog } from "@/components/DisputeDialog";
+import { getDisputeForOrder, type DisputeRow, type DisputeStatus } from "@/lib/disputes";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import {
