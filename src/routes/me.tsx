@@ -80,7 +80,36 @@ function MePage() {
         .select("first_listing_at, sold_count, average_rating, rating_count, active_listings_count, followers_count, total_co2_saved, rewear_score")
         .eq("user_id", user.id)
         .maybeSingle();
-      setStats(s as Stats);
+
+      // Realized CO₂ savings: sum co2_saved_kg from completed/in-flight orders
+      // where the user is buyer (bought second hand) or seller (extended garment life).
+      const realizedStatuses = ["paid", "shipped", "delivered", "completed"];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: ordersCo2 } = await (supabase as any)
+        .from("orders")
+        .select("id, listing:listings!inner(co2_saved_kg)")
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .in("status", realizedStatuses);
+      const co2FromOrders = (ordersCo2 ?? []).reduce(
+        (sum: number, row: { listing: { co2_saved_kg: number | null } | null }) =>
+          sum + Number(row.listing?.co2_saved_kg ?? 0),
+        0,
+      );
+
+      const merged: Stats = {
+        ...((s as Stats) ?? ({
+          first_listing_at: null,
+          sold_count: 0,
+          average_rating: 0,
+          rating_count: 0,
+          active_listings_count: 0,
+          followers_count: 0,
+          total_co2_saved: 0,
+          rewear_score: 0,
+        } as Stats)),
+        total_co2_saved: co2FromOrders,
+      };
+      setStats(merged);
     })();
   }, [user]);
 
