@@ -119,13 +119,19 @@ export function ListingCard({ listing }: { listing: ListingWithDetails }) {
               <span className="truncate font-medium uppercase tracking-wider text-foreground/70">
                 {listing.brand}
               </span>
+              {sellerVerified && (
+                <ShieldCheck
+                  className="h-3 w-3 shrink-0 text-primary"
+                  aria-label="Verifierad säljare"
+                />
+              )}
               <span aria-hidden>·</span>
             </>
           )}
-          {listing.size && <span>Stl {listing.size}</span>}
+          {sizeDisp && <span className="truncate">Stl {sizeDisp.value}</span>}
           {listing.city && (
             <>
-              {listing.size && <span aria-hidden>·</span>}
+              {sizeDisp && <span aria-hidden>·</span>}
               <span className="inline-flex items-center gap-0.5 truncate">
                 <MapPin className="h-3 w-3 shrink-0" />
                 {listing.city}
