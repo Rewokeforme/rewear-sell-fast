@@ -33,6 +33,25 @@ function ListingPage() {
   const [sellerVerification, setSellerVerification] = useState<VerificationFlags | null>(null);
   const [savesCount, setSavesCount] = useState<number>(0);
   const [reportOpen, setReportOpen] = useState(false);
+  const [fitProfile, setFitProfile] = useState<FitProfile | null>(null);
+  const [fitProfileLoaded, setFitProfileLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setFitProfile(null);
+      setFitProfileLoaded(true);
+      return;
+    }
+    supabase
+      .from("fit_profiles")
+      .select("clothing_size, shoe_size, kids_sizes")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setFitProfile((data as FitProfile) ?? null);
+        setFitProfileLoaded(true);
+      });
+  }, [user]);
 
   useEffect(() => {
     supabase
