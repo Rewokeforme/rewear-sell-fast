@@ -166,6 +166,9 @@ function CheckoutPage() {
 
   const img = [...(order.listing?.listing_images ?? [])].sort((a, b) => a.position - b.position)[0];
   const needsAddress = order.delivery_method !== "pickup";
+  const addressValid = !needsAddress ||
+    shippingSchema.safeParse({ fullName, street, postalCode, city, phone }).success;
+  const canPay = acceptTerms && addressValid;
   const sellerName = order.seller?.full_name ?? "Säljare";
   const sellerInitial = sellerName.charAt(0).toUpperCase();
 
@@ -371,9 +374,15 @@ function CheckoutPage() {
 
               <button
                 onClick={handlePay}
-                disabled={paying || !acceptTerms}
+                disabled={paying || !canPay}
                 className="mt-4 w-full rounded-full bg-primary px-5 py-3.5 text-sm font-medium text-primary-foreground shadow-card transition-opacity disabled:opacity-60 disabled:cursor-not-allowed hover:opacity-90"
-                title={!acceptTerms ? "Du måste godkänna villkoren först" : undefined}
+                title={
+                  !acceptTerms
+                    ? "Du måste godkänna villkoren först"
+                    : !addressValid
+                      ? "Fyll i leveransadressen först"
+                      : undefined
+                }
               >
                 {paying ? "Behandlar..." : `Testbetala ${formatSEK(order.total_amount)}`}
               </button>
