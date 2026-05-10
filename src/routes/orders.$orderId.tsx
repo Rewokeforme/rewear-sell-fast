@@ -22,6 +22,8 @@ import {
 } from "@/lib/orders";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
 import { ShipOrderForm } from "@/components/ShipOrderForm";
+import { SellerReviewForm } from "@/components/SellerReviewForm";
+import { getReviewForOrder, type ReviewRow } from "@/lib/reviews";
 import { formatSEK } from "@/lib/rewear";
 import { MessageCircle, Truck, CheckCircle2 } from "lucide-react";
 
@@ -38,6 +40,7 @@ function OrderDetailPage() {
   const [busy, setBusy] = useState(false);
   const [showDispute, setShowDispute] = useState(false);
   const [dispute, setDispute] = useState<DisputeRow | null>(null);
+  const [myReview, setMyReview] = useState<ReviewRow | null>(null);
 
   async function load() {
     const o = await getOrder(orderId);
@@ -45,6 +48,10 @@ function OrderDetailPage() {
     if (o) {
       const d = await getDisputeForOrder(o.id);
       setDispute(d);
+      if (user && user.id === o.buyer_id) {
+        const r = await getReviewForOrder(o.id, user.id);
+        setMyReview(r);
+      }
     }
     setLoading(false);
   }
@@ -305,6 +312,28 @@ function OrderDetailPage() {
             )}
           </div>
         )}
+
+        {/* Buyer: seller review form (delivered or completed, no active dispute) */}
+        {isBuyer &&
+          (order.status === "delivered" || order.status === "completed") &&
+          !(
+            dispute &&
+            (
+              ["open", "awaiting_buyer_evidence", "awaiting_seller_response", "under_review"] as DisputeStatus[]
+            ).includes(dispute.status)
+          ) &&
+          (!isPickup ||
+            (order.buyer_handover_confirmed_at && order.seller_handover_confirmed_at)) && (
+            <SellerReviewForm
+              orderId={order.id}
+              listingId={order.listing_id}
+              reviewerId={user!.id}
+              revieweeId={order.seller_id}
+              sellerName={order.seller?.full_name ?? "säljaren"}
+              existing={myReview}
+              onSubmitted={(r) => setMyReview(r)}
+            />
+          )}
 
         {/* Pickup handover — dual confirmation */}
         {isPickup && ["paid"].includes(order.status) && (

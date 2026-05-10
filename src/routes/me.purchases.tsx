@@ -4,10 +4,11 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/lib/auth";
 import { getMyPurchases, type OrderWithListing } from "@/lib/orders";
+import { getReviewsForOrders, type ReviewRow } from "@/lib/reviews";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
 import { TestPaymentBanner } from "@/components/TestPaymentBanner";
 import { formatSEK } from "@/lib/rewear";
-import { Package } from "lucide-react";
+import { Package, Star } from "lucide-react";
 
 export const Route = createFileRoute("/me/purchases")({
   component: MyPurchasesPage,
@@ -17,6 +18,7 @@ function MyPurchasesPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<OrderWithListing[]>([]);
+  const [reviews, setReviews] = useState<Record<string, ReviewRow>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,8 +27,12 @@ function MyPurchasesPage() {
       navigate({ to: "/login" });
       return;
     }
-    getMyPurchases(user.id).then((o) => {
+    getMyPurchases(user.id).then(async (o) => {
       setOrders(o);
+      const eligible = o
+        .filter((x) => x.status === "delivered" || x.status === "completed")
+        .map((x) => x.id);
+      setReviews(await getReviewsForOrders(eligible, user.id));
       setLoading(false);
     });
   }, [user, authLoading, navigate]);
@@ -75,12 +81,19 @@ function MyPurchasesPage() {
                     {o.status === "pending_payment" && "Väntar på betalning"}
                     {o.status === "paid" && "Väntar på att säljaren skickar"}
                     {o.status === "shipped" && "Skickad – bekräfta när du mottagit varan"}
-                    {o.status === "delivered" && "Granskningsperiod pågår"}
-                    {o.status === "completed" && "Slutförd"}
+                    {o.status === "delivered" &&
+                      (reviews[o.id] ? "Granskningsperiod pågår" : "Granskningsperiod pågår – betygsätt säljaren")}
+                    {o.status === "completed" && (reviews[o.id] ? "Slutförd" : "Slutförd – betygsätt säljaren")}
                     {o.status === "disputed" && "Tvist pågår"}
                     {o.status === "cancelled" && "Avbruten"}
                     {o.status === "refunded" && "Återbetald"}
                   </p>
+                  {(o.status === "delivered" || o.status === "completed") && (
+                    <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium">
+                      <Star className="h-3 w-3" />
+                      {reviews[o.id] ? `Betyg lämnat (${reviews[o.id].rating}/5)` : "Betygsätt säljaren"}
+                    </p>
+                  )}
                 </div>
               </Link>
             );

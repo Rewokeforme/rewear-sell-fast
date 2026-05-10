@@ -743,30 +743,45 @@ export type Database = {
       reviews: {
         Row: {
           comment: string | null
+          communication_rating: number | null
           created_at: string
+          description_accuracy_rating: number | null
           id: string
           listing_id: string | null
+          order_id: string | null
           rating: number
           reviewee_id: string
           reviewer_id: string
+          shipping_rating: number | null
+          updated_at: string
         }
         Insert: {
           comment?: string | null
+          communication_rating?: number | null
           created_at?: string
+          description_accuracy_rating?: number | null
           id?: string
           listing_id?: string | null
+          order_id?: string | null
           rating: number
           reviewee_id: string
           reviewer_id: string
+          shipping_rating?: number | null
+          updated_at?: string
         }
         Update: {
           comment?: string | null
+          communication_rating?: number | null
           created_at?: string
+          description_accuracy_rating?: number | null
           id?: string
           listing_id?: string | null
+          order_id?: string | null
           rating?: number
           reviewee_id?: string
           reviewer_id?: string
+          shipping_rating?: number | null
+          updated_at?: string
         }
         Relationships: [
           {
