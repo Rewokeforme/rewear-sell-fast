@@ -133,9 +133,15 @@ function HomePage() {
           </div>
         </section>
 
+        {/* Garderober du följer */}
+        {user && <FollowedWardrobes userId={user.id} />}
+
         {/* Feed */}
         <section>
           <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="font-display text-2xl">
+              {feedTab === "following" ? "Från garderober du följer" : "Upptäck plagg"}
+            </h2>
             <div className="flex gap-1 rounded-full border border-border bg-card p-1 text-xs">
               <FeedTabBtn active={feedTab === "discover"} onClick={() => setFeedTab("discover")}>
                 Upptäck
