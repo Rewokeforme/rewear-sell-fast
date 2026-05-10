@@ -13,6 +13,9 @@ import { computeAllBadges, formatSEK, type SellerStatsLite, type VerificationFla
 import { TrustBadges } from "@/components/TrustBadges";
 import type { ListingWithDetails } from "@/lib/database.types";
 import { ReportDialog } from "@/components/ReportDialog";
+import { CONDITION_LABELS, MEASUREMENT_LABELS, type ConditionKey, type MeasurementKey } from "@/lib/listingSchema";
+import { computeFitMatch, formatSizeForDisplay, type FitProfile } from "@/lib/fitMatch";
+import { Check, X, Sparkles, AlertCircle, Ruler } from "lucide-react";
 
 export const Route = createFileRoute("/listing/$id")({
   component: ListingPage,
@@ -30,6 +33,25 @@ function ListingPage() {
   const [sellerVerification, setSellerVerification] = useState<VerificationFlags | null>(null);
   const [savesCount, setSavesCount] = useState<number>(0);
   const [reportOpen, setReportOpen] = useState(false);
+  const [fitProfile, setFitProfile] = useState<FitProfile | null>(null);
+  const [fitProfileLoaded, setFitProfileLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setFitProfile(null);
+      setFitProfileLoaded(true);
+      return;
+    }
+    supabase
+      .from("fit_profiles")
+      .select("clothing_size, shoe_size, kids_sizes")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setFitProfile((data as FitProfile) ?? null);
+        setFitProfileLoaded(true);
+      });
+  }, [user]);
 
   useEffect(() => {
     supabase
@@ -244,11 +266,74 @@ function ListingPage() {
             <p className="font-display text-2xl text-foreground">{formatSEK(listing.price_sek)}</p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {listing.size && <Chip>Storlek {listing.size}</Chip>}
-            {listing.condition && <Chip>{listing.condition}</Chip>}
-            {listing.categories?.name_sv && <Chip>{listing.categories.name_sv}</Chip>}
-          </div>
+          {(() => {
+            const sizeDisp = formatSizeForDisplay({
+              sizeType: listing.size_type,
+              sizeLabel: listing.size_label,
+              size: listing.size,
+              shoeSize: listing.shoe_size,
+              waistSize: listing.waist_size,
+              lengthSize: listing.length_size,
+            });
+            return (
+              <div className="flex flex-wrap gap-2">
+                {sizeDisp && <Chip>{sizeDisp.label}: <strong className="ml-1 font-medium">{sizeDisp.value}</strong></Chip>}
+                {listing.condition && <Chip>{listing.condition}</Chip>}
+                {(listing.main_category || listing.categories?.name_sv) && (
+                  <Chip>
+                    {listing.main_category ?? listing.categories?.name_sv}
+                    {listing.sub_category ? ` · ${listing.sub_category}` : ""}
+                  </Chip>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Fit Match */}
+          {fitProfileLoaded && (() => {
+            const fm = computeFitMatch({
+              sizeType: listing.size_type,
+              size: listing.size,
+              shoeSize: listing.shoe_size,
+              sizeLabel: listing.size_label,
+              profile: fitProfile,
+            });
+            if (fm.kind === "no-profile") {
+              return (
+                <Link
+                  to="/me"
+                  className="flex items-center gap-2 rounded-xl border border-dashed border-border bg-card px-3 py-2 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Lägg till din storlek för bättre rekommendationer
+                </Link>
+              );
+            }
+            const cls =
+              fm.kind === "match"
+                ? "border-primary/30 bg-primary/10 text-primary"
+                : fm.kind === "check"
+                ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                : "border-border bg-card text-muted-foreground";
+            const Icon = fm.kind === "match" ? Check : fm.kind === "check" ? AlertCircle : Sparkles;
+            return (
+              <div className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${cls}`}>
+                <Icon className="h-3.5 w-3.5" />
+                {fm.label}
+              </div>
+            );
+          })()}
+
+          {/* Style tags */}
+          {Array.isArray(listing.style_tags) && listing.style_tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {listing.style_tags.slice(0, 5).map((t) => (
+                <span key={t} className="rounded-full border border-border bg-secondary px-2.5 py-0.5 text-[11px] font-medium text-foreground/80">
+                  #{t}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Engagemang */}
           <div className="flex items-center gap-2">
@@ -288,6 +373,12 @@ function ListingPage() {
               <p className="text-sm whitespace-pre-line">{listing.description}</p>
             </div>
           )}
+
+          {/* Mått */}
+          <MeasurementsSection measurements={listing.measurements} />
+
+          {/* Skick kontrollerat av säljaren */}
+          <ConditionChecksSection checks={listing.condition_checks} />
 
           {/* Plats & leverans */}
           <div className="rounded-xl border border-border bg-card p-3 space-y-2">
@@ -489,6 +580,80 @@ function StatPill({
       <span className={highlight ? "text-accent" : "text-foreground/70"}>{icon}</span>
       <span className="font-medium tabular-nums text-foreground">{value.toLocaleString("sv-SE")}</span>
       <span>{label}</span>
+    </div>
+  );
+}
+
+function MeasurementsSection({ measurements }: { measurements: Record<string, number> | null }) {
+  const entries = measurements
+    ? (Object.entries(measurements).filter(([, v]) => typeof v === "number" && v > 0) as [MeasurementKey, number][])
+    : [];
+  return (
+    <div className="rounded-xl border border-border bg-card p-3 space-y-2">
+      <h2 className="text-eyebrow text-muted-foreground flex items-center gap-1.5">
+        <Ruler className="h-3.5 w-3.5" /> Mått
+      </h2>
+      {entries.length === 0 ? (
+        <p className="text-xs text-muted-foreground">Säljaren har inte lagt till mått.</p>
+      ) : (
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+          {entries.map(([k, v]) => (
+            <div key={k} className="flex items-baseline justify-between gap-2 border-b border-border/50 pb-1 last:border-0">
+              <dt className="text-muted-foreground">{MEASUREMENT_LABELS[k] ?? k}</dt>
+              <dd className="font-medium tabular-nums">{v} cm</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </div>
+  );
+}
+
+function ConditionChecksSection({ checks }: { checks: Record<string, boolean> | null }) {
+  if (!checks || Object.keys(checks).length === 0) return null;
+  const positive: { key: ConditionKey; label: string }[] = [];
+  const negative: { key: ConditionKey; label: string }[] = [];
+
+  const c = checks as Record<ConditionKey, boolean | undefined>;
+  // Negativa egenskaper: visa "Inga ..." om false, annars varning
+  if (c.has_stains === false) positive.push({ key: "has_stains", label: "Inga fläckar" });
+  else if (c.has_stains === true) negative.push({ key: "has_stains", label: "Fläckar angivna" });
+  if (c.has_holes === false) positive.push({ key: "has_holes", label: "Inga hål eller skador" });
+  else if (c.has_holes === true) negative.push({ key: "has_holes", label: "Hål eller skador angivna" });
+  if (c.has_pilling === false) positive.push({ key: "has_pilling", label: "Ej noppigt tyg" });
+  else if (c.has_pilling === true) negative.push({ key: "has_pilling", label: "Noppigt tyg angivet" });
+  // Positiva egenskaper: visa bara om true
+  if (c.is_cleaned) positive.push({ key: "is_cleaned", label: CONDITION_LABELS.is_cleaned });
+  if (c.buttons_zipper_ok) positive.push({ key: "buttons_zipper_ok", label: CONDITION_LABELS.buttons_zipper_ok });
+  if (c.receipt_available) positive.push({ key: "receipt_available", label: CONDITION_LABELS.receipt_available });
+  if (c.authenticity_documented) positive.push({ key: "authenticity_documented", label: CONDITION_LABELS.authenticity_documented });
+
+  if (positive.length === 0 && negative.length === 0) return null;
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-3 space-y-2">
+      <h2 className="text-eyebrow text-muted-foreground">Skick kontrollerat av säljaren</h2>
+      <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+        {positive.map((it) => (
+          <li key={it.key} className="flex items-center gap-2 text-sm">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Check className="h-3 w-3" />
+            </span>
+            <span>{it.label}</span>
+          </li>
+        ))}
+        {negative.map((it) => (
+          <li key={it.key} className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/10">
+              <X className="h-3 w-3" />
+            </span>
+            <span>{it.label}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-[11px] text-muted-foreground pt-1">
+        Informationen är angiven av säljaren. ReWoke verifierar inte enskilda plagg.
+      </p>
     </div>
   );
 }
