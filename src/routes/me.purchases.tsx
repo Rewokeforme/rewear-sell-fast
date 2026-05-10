@@ -4,10 +4,11 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/lib/auth";
 import { getMyPurchases, type OrderWithListing } from "@/lib/orders";
+import { getReviewsForOrders, type ReviewRow } from "@/lib/reviews";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
 import { TestPaymentBanner } from "@/components/TestPaymentBanner";
 import { formatSEK } from "@/lib/rewear";
-import { Package } from "lucide-react";
+import { Package, Star } from "lucide-react";
 
 export const Route = createFileRoute("/me/purchases")({
   component: MyPurchasesPage,
