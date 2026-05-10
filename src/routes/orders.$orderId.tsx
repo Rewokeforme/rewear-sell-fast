@@ -36,8 +36,6 @@ function OrderDetailPage() {
   const [order, setOrder] = useState<OrderWithListing | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [carrier, setCarrier] = useState("");
-  const [trackingNumber, setTrackingNumber] = useState("");
   const [showDispute, setShowDispute] = useState(false);
   const [dispute, setDispute] = useState<DisputeRow | null>(null);
 
@@ -45,8 +43,6 @@ function OrderDetailPage() {
     const o = await getOrder(orderId);
     setOrder(o);
     if (o) {
-      setCarrier(o.carrier ?? "");
-      setTrackingNumber(o.tracking_number ?? "");
       const d = await getDisputeForOrder(o.id);
       setDispute(d);
     }
@@ -73,28 +69,6 @@ function OrderDetailPage() {
       await load();
     }
     setBusy(false);
-  }
-
-  async function handleMarkShipped() {
-    if (!order) return;
-    if (order.delivery_method === "shipping") {
-      if (!carrier.trim() || !trackingNumber.trim()) {
-        toast.error("Fyll i transportör och spårningsnummer");
-        return;
-      }
-      setBusy(true);
-      const { error: tErr } = await updateOrderTracking(
-        order.id,
-        carrier.trim(),
-        trackingNumber.trim(),
-      );
-      if (tErr) {
-        toast.error(tErr);
-        setBusy(false);
-        return;
-      }
-    }
-    await transition("shipped", "Markerad som skickad");
   }
 
   async function handlePickupConfirm(role: "buyer" | "seller") {
