@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Bookmark, Eye, Flag, Handshake, Heart, Leaf, MapPin, ShieldCheck, ShoppingBag, Star, Truck } from "lucide-react";
+import { Bookmark, Eye, Flag, Handshake, Heart, Info, Leaf, MapPin, ShieldCheck, ShoppingBag, Star, Truck } from "lucide-react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { createOrder } from "@/lib/orders";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -256,12 +257,28 @@ function ListingPage() {
           </div>
 
           {listing.co2_saved_kg > 0 && (
-            <div className="flex items-center gap-3 rounded-xl bg-primary/10 p-3 text-sm">
-              <Leaf className="h-5 w-5 text-primary" />
-              <p>
-                Genom att köpa second hand sparar du ca{" "}
-                <strong>{Math.round(Number(listing.co2_saved_kg))} kg CO₂</strong>.
-              </p>
+            <div className="flex items-start gap-3 rounded-xl bg-primary/10 p-3 text-sm">
+              <Leaf className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <div className="flex-1">
+                <p>
+                  Genom att köpa second hand sparar du uppskattningsvis{" "}
+                  <strong>{Math.round(Number(listing.co2_saved_kg))} kg CO₂</strong>.
+                </p>
+                <HoverCard openDelay={100}>
+                  <HoverCardTrigger asChild>
+                    <button type="button" className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground underline-offset-2 hover:underline">
+                      <Info className="h-3 w-3" />
+                      Hur räknar vi?
+                    </button>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-80 text-xs leading-relaxed">
+                    <p className="font-medium text-foreground mb-1">Uppskattning, inte exakt mätning</p>
+                    <p className="text-muted-foreground">
+                      Siffran är ett <strong>branschgenomsnitt per kategori</strong> (t.ex. jacka, byxor, skor) och visar ungefär hur mycket CO₂ som hade släppts ut vid produktion av ett motsvarande nytt plagg. Den faktiska besparingen beror på material, vikt och tillverkningsland – något vi inte mäter per plagg idag.
+                    </p>
+                  </HoverCardContent>
+                </HoverCard>
+              </div>
             </div>
           )}
 

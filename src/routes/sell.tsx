@@ -774,7 +774,7 @@ function SellPage() {
                   </p>
                   <p className="flex items-center gap-1 pt-0.5 text-[11px] text-muted-foreground">
                     <Leaf className="h-3 w-3 text-primary" />
-                    Denna annons sparar cirka {co2Kg} kg CO₂ jämfört med att köpa nytt.
+                    Uppskattad besparing: ca {co2Kg} kg CO₂ (branschgenomsnitt för kategorin).
                   </p>
                 </div>
 
