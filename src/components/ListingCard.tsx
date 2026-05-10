@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, Leaf, MapPin, Truck, Handshake } from "lucide-react";
+import { Heart, Leaf, MapPin, Truck, Handshake, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { formatSEK } from "@/lib/rewear";
+import { formatSizeForDisplay } from "@/lib/fitMatch";
 import { cn } from "@/lib/utils";
 import type { ListingWithDetails } from "@/lib/database.types";
 
@@ -22,6 +23,15 @@ export function ListingCard({ listing }: { listing: ListingWithDetails }) {
   const [fav, setFav] = useState(false);
   const isDemo = listing.id.startsWith("demo-");
   const cond = conditionLabel(listing.condition);
+  const sizeDisp = formatSizeForDisplay({
+    sizeType: listing.size_type,
+    sizeLabel: listing.size_label,
+    size: listing.size,
+    shoeSize: listing.shoe_size,
+    waistSize: listing.waist_size,
+    lengthSize: listing.length_size,
+  });
+  const sellerVerified = Boolean(listing.profiles?.is_verified);
 
   const inner = (
     <>
