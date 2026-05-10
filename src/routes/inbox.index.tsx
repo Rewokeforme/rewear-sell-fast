@@ -10,6 +10,16 @@ import { cn } from "@/lib/utils";
 import { formatSEK } from "@/lib/rewear";
 import { BadgeCheck, Sparkles, ShieldCheck, Lock, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type AdminMsgItem = {
   id: string;
@@ -55,10 +65,10 @@ function InboxPage() {
   const [busy, setBusy] = useState(true);
   const [tab, setTab] = useState<Tab>("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   async function deleteConversation(convId: string) {
     if (!user) return;
-    if (!window.confirm("Radera denna konversation från din inkorg? Den dyker upp igen om motparten skickar ett nytt meddelande.")) return;
     setDeletingId(convId);
     const prev = items;
     setItems((arr) => arr.filter((c) => c.id !== convId));
@@ -382,7 +392,7 @@ function InboxPage() {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      void deleteConversation(c.id);
+                      setConfirmDeleteId(c.id);
                     }}
                     disabled={deletingId === c.id}
                     aria-label="Radera konversation"
@@ -397,6 +407,32 @@ function InboxPage() {
         )}
       </main>
       <BottomNav />
+
+      <AlertDialog
+        open={!!confirmDeleteId}
+        onOpenChange={(o) => !o && setConfirmDeleteId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Radera konversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Konversationen försvinner från din inkorg. Den dyker upp igen om motparten skickar ett nytt meddelande.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmDeleteId) void deleteConversation(confirmDeleteId);
+                setConfirmDeleteId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Radera
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
