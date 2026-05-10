@@ -927,6 +927,7 @@ export type Database = {
         Returns: boolean
       }
       compute_seller_badge: { Args: { _user_id: string }; Returns: string }
+      compute_seller_badges: { Args: { _user_id: string }; Returns: string[] }
       expire_unpaid_orders: { Args: never; Returns: number }
       has_role: {
         Args: {

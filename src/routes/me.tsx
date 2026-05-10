@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Bell, Camera, Heart, Leaf, LogOut, Package, ShieldCheck, ShoppingBag, Star, Tag, Users } from "lucide-react";
+import { Bell, Camera, Heart, Leaf, LogOut, Package, Ruler, ShieldCheck, ShoppingBag, Star, Tag, Users } from "lucide-react";
 import { computeSellerBadge, type SellerStatsLite } from "@/lib/rewear";
 
 export const Route = createFileRoute("/me")({
@@ -186,6 +186,7 @@ function MePage() {
           <RowLink to="/me/sales" icon={Tag} label="Mina försäljningar" />
           <RowLink to="/me/favorites" icon={Heart} label="Sparade" />
           <RowLink to="/me/following" icon={Users} label="Säljare jag följer" />
+          <RowLink to="/me/fit" icon={Ruler} label="Fit Match-profil" />
           <RowLink to="/notifications" icon={Bell} label="Notiser" />
           <RowLink to="/inbox" icon={Users} label="Inkorg" />
           {isAdmin && <RowLink to="/admin" icon={Star} label="Adminpanel" />}
@@ -226,7 +227,7 @@ function RowLink({
   icon: Icon,
   label,
 }: {
-  to: "/me/listings" | "/me/purchases" | "/me/sales" | "/me/favorites" | "/me/following" | "/notifications" | "/inbox" | "/admin";
+  to: "/me/listings" | "/me/purchases" | "/me/sales" | "/me/favorites" | "/me/following" | "/me/fit" | "/notifications" | "/inbox" | "/admin";
   icon: typeof Heart;
   label: string;
 }) {
