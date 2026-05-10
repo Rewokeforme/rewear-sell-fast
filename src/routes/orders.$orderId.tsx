@@ -3,10 +3,13 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
+import { TestPaymentBanner } from "@/components/TestPaymentBanner";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { getOrder, updateOrderStatus, type OrderStatus, type OrderWithListing } from "@/lib/orders";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
 import { formatSEK } from "@/lib/rewear";
+import { MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/orders/$orderId")({
   component: OrderDetailPage,
@@ -74,11 +77,15 @@ function OrderDetailPage() {
     <div className="min-h-screen bg-background pb-32">
       <Header subtitle="Order" />
       <main className="mx-auto max-w-md px-4 py-5 space-y-4">
+        {(order.is_mock_payment ||
+          ["pending_payment", "paid", "shipped", "delivered"].includes(order.status)) && (
+          <TestPaymentBanner variant={isSeller ? "seller" : "buyer"} />
+        )}
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
             Order #{order.id.slice(0, 8)}
           </p>
-          <OrderStatusBadge status={order.status} />
+          <OrderStatusBadge status={order.status} isMock={order.is_mock_payment} />
         </div>
 
         <Link
@@ -112,6 +119,68 @@ function OrderDetailPage() {
             {order.delivery_method === "both" && "Skickas eller hämtas"}
           </p>
         </div>
+
+        {/* Leveransinformation för säljare när order är betald eller senare */}
+        {isSeller &&
+          ["paid", "shipped", "delivered", "completed", "disputed"].includes(order.status) &&
+          order.delivery_method !== "pickup" &&
+          order.shipping_full_name && (
+            <div className="rounded-xl border border-border bg-card p-4 text-sm space-y-1">
+              <p className="font-medium mb-1">Leveransinformation</p>
+              <p>{order.shipping_full_name}</p>
+              <p>{order.shipping_street}</p>
+              <p>
+                {order.shipping_postal_code} {order.shipping_city}
+              </p>
+              {order.shipping_phone && (
+                <p className="text-muted-foreground">Tel: {order.shipping_phone}</p>
+              )}
+            </div>
+          )}
+
+        {/* Kontakta motpart */}
+        {(isBuyer || isSeller) && (
+          <button
+            onClick={async () => {
+              if (!user) return;
+              const otherId = isBuyer ? order.seller_id : order.buyer_id;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const sb = supabase as any;
+              const { data: existing } = await sb
+                .from("conversations")
+                .select("id")
+                .eq("listing_id", order.listing_id)
+                .eq("buyer_id", order.buyer_id)
+                .eq("seller_id", order.seller_id)
+                .maybeSingle();
+              let convId: string | undefined = existing?.id;
+              if (!convId) {
+                const { data: created, error } = await sb
+                  .from("conversations")
+                  .insert({
+                    listing_id: order.listing_id,
+                    buyer_id: order.buyer_id,
+                    seller_id: order.seller_id,
+                  })
+                  .select("id")
+                  .single();
+                if (error) {
+                  toast.error(error.message);
+                  return;
+                }
+                convId = created.id;
+              }
+              if (convId) {
+                navigate({ to: "/inbox/$conversationId", params: { conversationId: convId } });
+              }
+              void otherId;
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm font-medium"
+          >
+            <MessageCircle className="h-4 w-4" />
+            {isBuyer ? "Kontakta säljare" : "Kontakta köpare"}
+          </button>
+        )}
 
         {/* Actions */}
         <div className="space-y-2">

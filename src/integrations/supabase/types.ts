@@ -490,8 +490,10 @@ export type Database = {
           currency: string
           delivery_method: string
           id: string
+          is_mock_payment: boolean
           item_price: number
           listing_id: string
+          paid_at: string | null
           payment_method: string | null
           platform_fee: number
           seller_id: string
@@ -511,8 +513,10 @@ export type Database = {
           currency?: string
           delivery_method: string
           id?: string
+          is_mock_payment?: boolean
           item_price: number
           listing_id: string
+          paid_at?: string | null
           payment_method?: string | null
           platform_fee?: number
           seller_id: string
@@ -532,8 +536,10 @@ export type Database = {
           currency?: string
           delivery_method?: string
           id?: string
+          is_mock_payment?: boolean
           item_price?: number
           listing_id?: string
+          paid_at?: string | null
           payment_method?: string | null
           platform_fee?: number
           seller_id?: string

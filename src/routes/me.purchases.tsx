@@ -5,6 +5,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/lib/auth";
 import { getMyPurchases, type OrderWithListing } from "@/lib/orders";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
+import { TestPaymentBanner } from "@/components/TestPaymentBanner";
 import { formatSEK } from "@/lib/rewear";
 import { Package } from "lucide-react";
 
@@ -34,6 +35,7 @@ function MyPurchasesPage() {
     <div className="min-h-screen bg-background pb-24">
       <Header subtitle="Mina köp" />
       <main className="mx-auto max-w-2xl px-4 py-4 space-y-3">
+        <TestPaymentBanner variant="buyer" />
         {loading ? (
           <p className="text-sm text-muted-foreground">Laddar...</p>
         ) : orders.length === 0 ? (
@@ -62,7 +64,7 @@ function MyPurchasesPage() {
                   </p>
                   <p className="text-sm mt-1">{formatSEK(o.total_amount)}</p>
                   <div className="mt-1.5 flex items-center gap-2">
-                    <OrderStatusBadge status={o.status} />
+                    <OrderStatusBadge status={o.status} isMock={o.is_mock_payment} />
                     <span className="text-[11px] text-muted-foreground">
                       {o.delivery_method === "shipping" && "Skickas"}
                       {o.delivery_method === "pickup" && "Hämtas"}

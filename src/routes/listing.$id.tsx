@@ -517,8 +517,13 @@ function ListingPage() {
                         className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-card"
                       >
                         <ShoppingBag className="h-4 w-4" />
-                        Köp nu
+                        Reservera & gå till testkassa
                       </button>
+                    )}
+                    {!isReserved && !isSold && (
+                      <p className="text-[11px] text-center text-muted-foreground -mt-1">
+                        Betalning är i testläge — ingen riktig debitering sker.
+                      </p>
                     )}
                     <button
                       onClick={() => startConversation("")}

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
+import { TestPaymentBanner } from "@/components/TestPaymentBanner";
 import { useAuth } from "@/lib/auth";
 import {
   getOrder,
@@ -177,6 +178,9 @@ function CheckoutPage() {
           <p className="text-sm text-muted-foreground mt-1">
             Säkert via ReWoke köparskydd
           </p>
+        </div>
+        <div className="mb-6">
+          <TestPaymentBanner variant="checkout" />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -370,11 +374,11 @@ function CheckoutPage() {
                 disabled={paying}
                 className="mt-4 w-full rounded-full bg-primary px-5 py-3.5 text-sm font-medium text-primary-foreground shadow-card transition-opacity disabled:opacity-60 hover:opacity-90"
               >
-                {paying ? "Behandlar..." : `Betala ${formatSEK(order.total_amount)}`}
+                {paying ? "Behandlar..." : `Testbetala ${formatSEK(order.total_amount)}`}
               </button>
 
               <p className="mt-3 text-center text-xs text-muted-foreground inline-flex items-center justify-center gap-1.5 w-full">
-                <Lock className="h-3 w-3" /> Säker betalning · ReWoke köparskydd
+                <Lock className="h-3 w-3" /> Testkassa · ingen riktig debitering
               </p>
             </div>
           </aside>
