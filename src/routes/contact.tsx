@@ -80,11 +80,6 @@ function ContactPage() {
             </div>
             <div className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground shadow-soft">
               <p className="text-eyebrow text-foreground">Bolagsinformation</p>
-              <p className="mt-2 leading-relaxed">
-                ReWoke AB<br />
-                Org.nr: [lägg till senare]<br />
-                Sverige
-              </p>
             </div>
           </aside>
 
