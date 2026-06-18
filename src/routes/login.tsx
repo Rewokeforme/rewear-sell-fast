@@ -25,6 +25,10 @@ function LoginPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        if (inviteCode.trim() !== INVITE_CODE) {
+          toast.error("Ogiltig inbjudningskod. Plattformen är i stängd testfas.");
+          return;
+        }
         if (password.length < 6) {
           toast.error("Lösenordet måste vara minst 6 tecken.");
           return;
