@@ -45,10 +45,15 @@ export const Route = createRootRoute({
         content:
           "Sveriges enklaste second hand-app. Sälj dina kläder snabbt med AI och spara CO₂.",
       },
-      { property: "og:title", content: "ReWoke — Sälj på 60 sekunder" },
-      { property: "og:description", content: "Premium svensk second hand med AI." },
+      { property: "og:title", content: "ReWoke — Sälj dina kläder på 60 sekunder" },
+      { property: "og:description", content: "Rewear: Sell Fast is a premium Swedish second-hand platform for selling clothes quickly." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "ReWoke — Sälj dina kläder på 60 sekunder" },
+      { name: "description", content: "Rewear: Sell Fast is a premium Swedish second-hand platform for selling clothes quickly." },
+      { name: "twitter:description", content: "Rewear: Sell Fast is a premium Swedish second-hand platform for selling clothes quickly." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/054faedb-e17d-49a8-a9ac-c9390fc0bba8/id-preview-6833bfc2--7cb564f4-7944-43b2-be0d-b6738911428f.lovable.app-1781729493107.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/054faedb-e17d-49a8-a9ac-c9390fc0bba8/id-preview-6833bfc2--7cb564f4-7944-43b2-be0d-b6738911428f.lovable.app-1781729493107.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
