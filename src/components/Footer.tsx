@@ -118,9 +118,6 @@ export function Footer() {
             <div className="space-y-1.5">
               <p className="text-foreground">© 2026 ReWoke. Alla rättigheter förbehållna.</p>
               <p>ReWoke är en svensk second hand-plattform för kläder, skor och accessoarer.</p>
-              <p>
-                ReWoke AB · Org.nr: <span className="text-foreground/70">[lägg till senare]</span> · Sverige
-              </p>
             </div>
             <div className="md:text-right">
               <p className="text-eyebrow text-muted-foreground">Kontakt</p>
