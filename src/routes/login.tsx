@@ -89,6 +89,21 @@ function LoginPage() {
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {mode === "signup" && (
+            <Field label="Inbjudningskod">
+              <input
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                required
+                className="input"
+                placeholder="Ange din inbjudningskod"
+                autoComplete="off"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Plattformen är i stängd testfas. Krävs för att skapa konto.
+              </p>
+            </Field>
+          )}
+          {mode === "signup" && (
             <Field label="Namn">
               <input
                 value={name}
