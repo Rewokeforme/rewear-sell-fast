@@ -10,6 +10,10 @@ import { AuthProvider } from "@/lib/auth";
 import { Footer } from "@/components/Footer";
 
 import appCss from "../styles.css?url";
+import faviconIco from "@/assets/favicon.ico.asset.json";
+import favicon16 from "@/assets/favicon-16x16.png.asset.json";
+import favicon32 from "@/assets/favicon-32x32.png.asset.json";
+import appleTouchIcon from "@/assets/apple-touch-icon.png.asset.json";
 
 function NotFoundComponent() {
   return (
@@ -56,6 +60,10 @@ export const Route = createRootRoute({
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/054faedb-e17d-49a8-a9ac-c9390fc0bba8/id-preview-6833bfc2--7cb564f4-7944-43b2-be0d-b6738911428f.lovable.app-1781729493107.png" },
     ],
     links: [
+      { rel: "icon", type: "image/x-icon", href: faviconIco.url },
+      { rel: "icon", type: "image/png", sizes: "16x16", href: favicon16.url },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: favicon32.url },
+      { rel: "apple-touch-icon", sizes: "180x180", href: appleTouchIcon.url },
       { rel: "stylesheet", href: appCss },
       {
         rel: "preconnect",
