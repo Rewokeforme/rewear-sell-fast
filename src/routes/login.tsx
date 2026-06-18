@@ -15,7 +15,10 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const INVITE_CODE = "Deje2026";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
