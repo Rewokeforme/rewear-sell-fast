@@ -15,13 +15,20 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const INVITE_CODE = "Deje2026";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
       if (mode === "signup") {
+        if (inviteCode.trim() !== INVITE_CODE) {
+          toast.error("Ogiltig inbjudningskod. Plattformen är i stängd testfas.");
+          return;
+        }
         if (password.length < 6) {
           toast.error("Lösenordet måste vara minst 6 tecken.");
           return;
@@ -81,6 +88,21 @@ function LoginPage() {
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          {mode === "signup" && (
+            <Field label="Inbjudningskod">
+              <input
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                required
+                className="input"
+                placeholder="Ange din inbjudningskod"
+                autoComplete="off"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Plattformen är i stängd testfas. Krävs för att skapa konto.
+              </p>
+            </Field>
+          )}
           {mode === "signup" && (
             <Field label="Namn">
               <input
